@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Client Sign In | Elvarion Holdings{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 140px 24px 80px;">
+    <div class="glass-card-luxury" style="max-width: 460px; width: 100%; padding: 42px 36px; border-color: var(--border-gold);">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div class="brand-crest" style="margin: 0 auto 16px; width: 52px; height: 52px; font-size: 1.6rem;">EH</div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 6px;">Client Authentication</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Secure access to your private wealth portal</p>
+        </div>
+
+        <!-- Quick Demo Switcher -->
+        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 24px; text-align: center;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--gold-light); font-weight: 700; margin-bottom: 8px;">
+                <i class="fas fa-bolt"></i> Fast Evaluation Demo Access
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+                <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemo('vip_investor', 'Investor@12345')">
+                    <i class="fas fa-user-tie"></i> VIP Investor
+                </button>
+                <button type="button" class="btn btn-sm btn-gold" onclick="autofillDemo('admin', 'Admin@12345')">
+                    <i class="fas fa-shield"></i> Director Admin
+                </button>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Username or Corporate Email</label>
+                <input type="text" id="login-identifier" name="identifier" class="form-control" placeholder="username or email" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <label class="form-label" style="margin-bottom: 0;">Access Key / Password</label>
+                    <a href="#" style="color: var(--gold-light); font-size: 0.78rem; text-decoration: none;">Forgot key?</a>
+                </div>
+                <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-lock"></i> Authorize & Enter Vault
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.88rem; color: var(--text-dim);">
+            Do not have an account yet? 
+            <a href="{% url 'register' %}" style="color: var(--gold-light); font-weight: 600; text-decoration: none;">Open Account</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function autofillDemo(username, password) {
+    document.getElementById('login-identifier').value = username;
+    document.getElementById('login-password').value = password;
+}
+</script>
+{% endblock %}

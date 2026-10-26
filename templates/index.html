@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div>
+        <div class="hero-tag">
+            <span class="pulse-dot"></span>
+            INSTITUTIONAL WEALTH & PRIVATE CREDIT FACILITY
+        </div>
+
+        <h1 class="hero-title">
+            Architecting <span class="gold-gradient-text">Predictable High ROI</span> Across Sovereign Asset Classes.
+        </h1>
+
+        <p class="hero-desc">
+            Elvarion Holdings unlocks elite direct participations in prime international <strong>Real Estate</strong>, physical allocated <strong>Gold</strong>, multi-generational <strong>Trust Funds</strong>, and sovereign <strong>Money Market Mutual Funds</strong>, backed by customized private liquidity facilities.
+        </p>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
+                <i class="fas fa-arrow-trend-up"></i> Start Investing with ROI
+            </a>
+            <a href="#loans" class="btn btn-outline-gold btn-lg">
+                <i class="fas fa-hand-holding-dollar"></i> Check Loan Eligibility
+            </a>
+        </div>
+
+        <div class="hero-stats-row">
+            <div class="stat-item">
+                <div class="stat-num">$2.45B+</div>
+                <div class="stat-label">Assets Under Management</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" style="color: var(--emerald-accent);">99.98%</div>
+                <div class="stat-label">On-Time ROI Disbursements</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">14,200+</div>
+                <div class="stat-label">Institutional Investors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live ROI Interactive Hero Simulator -->
+    <div class="hero-interactive-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <span class="badge badge-gold"><i class="fas fa-bolt"></i> REAL-TIME ENGINE</span>
+                <h3 style="margin-top: 8px; font-size: 1.35rem;">Live ROI Yield Estimator</h3>
+            </div>
+            <div class="live-indicator">
+                <span class="pulse-dot"></span> LIVE TICKING
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Investment Sector</label>
+            <select id="hero-calc-area" class="form-control">
+                <option value="real-estate">Real-Estate Investment (Prime Commercial & Residential)</option>
+                <option value="gold">Gold Investment (Swiss Vault Physical Bullion)</option>
+                <option value="trust-fund">Trust Fund Investment (High-Yield Fiduciary Estate)</option>
+                <option value="money-market">Money Market Mutual Funds (Overnight Sovereign Repo)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Investment Duration Cycle</label>
+            <select id="hero-calc-duration" class="form-control">
+                <option value="daily">Daily Accrual (Fast-Track Liquidity)</option>
+                <option value="weekly">Weekly Accrual (Consistent Cashflow)</option>
+                <option value="monthly" selected>Monthly Distribution (Institutional Choice)</option>
+                <option value="yearly">Yearly Compounding (Maximum Capital Yield)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <label class="form-label" style="margin-bottom: 0;">Planned Allocation ($ USD)</label>
+                <span id="hero-calc-rate-badge" class="badge badge-emerald" style="font-size: 0.75rem;">12.5% MONTHLY</span>
+            </div>
+            <input type="number" id="hero-calc-amount" class="form-control mono-num" value="50000" min="1000" step="1000">
+        </div>
+
+        <!-- Calculated Yield Output Box -->
+        <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 20px; margin: 24px 0 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="color: var(--text-muted); font-size: 0.88rem;">Projected Pure ROI Profit:</span>
+                <span id="hero-calc-profit" class="mono-num" style="font-size: 1.6rem; font-weight: 800; color: #34d399;">+$37,500.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                <span style="color: var(--text-dim); font-size: 0.88rem;">Total Capital + Return:</span>
+                <span id="hero-calc-total" class="mono-num" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">$87,500.00</span>
+            </div>
+        </div>
+
+        <a href="{% url 'register' %}" class="btn btn-gold" style="width: 100%;">
+            <i class="fas fa-lock-open"></i> Lock In This Allocation & Accrue ROI
+        </a>
+    </div>
+</section>
+
+<!-- Section 1: Investment Areas -->
+<section id="areas" class="section-wrapper">
+    <div class="section-header">
+        <span class="section-tag">DIVERSIFIED PORTFOLIO ASSETS</span>
+        <h2 class="section-title">The Four Pillars of <span class="gold-gradient-text">Elvarion Holdings</span></h2>
+        <p class="section-subtitle">
+            Every area features independent investment plans, tailored risk parameters, and customizable durations (daily, weekly, monthly, yearly) managed under institutional fiduciary standards.
+        </p>
+    </div>
+
+    <div class="grid-4">
+        {% for area in areas %}
+        <div class="glass-card-luxury area-card">
+            <div>
+                <div class="area-icon-wrap">
+                    <i class="fas fa-{{ area.icon }}"></i>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="badge badge-gold">{{ area.risk_level }}</span>
+                    <span style="font-size: 0.75rem; color: var(--emerald-accent); font-weight: 700;">{{ area.expected_roi_range }}</span>
+                </div>
+                <h3 class="area-name">{{ area.name }}</h3>
+                <p class="area-desc">{{ area.description }}</p>
+            </div>
+
+            <div>
+                <div class="area-meta-row">
+                    <span class="area-meta-label">Active Portfolios</span>
+                    <span class="area-meta-val">{{ area.plans.count }} Configured Plans</span>
+                </div>
+                <div class="area-meta-row">
+                    <span class="area-meta-label">Available Cycles</span>
+                    <span class="area-meta-val" style="color: var(--gold-light);">Daily &bull; Weekly &bull; Monthly &bull; Yearly</span>
+                </div>
+                <a href="{% url 'register' %}" class="btn btn-outline-gold btn-sm" style="width: 100%; margin-top: 14px;">
+                    Explore {{ area.name }} Plans
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Section 2: Featured Investment Plans & Durations -->
+<section class="section-wrapper" style="padding-top: 0;">
+    <div class="section-header">
+        <span class="section-tag">ACCELERATED RETURN CYCLES</span>
+        <h2 class="section-title">Featured Investment Plans & ROIs</h2>
+        <p class="section-subtitle">
+            Administer multiple active investments simultaneously. Watch returns read and accumulate on your live dashboard ticker.
+        </p>
+    </div>
+
+    <div class="grid-3">
+        {% for plan in featured_plans %}
+        <div class="glass-card-luxury plan-card">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="badge badge-gold">{{ plan.badge }}</span>
+                    <span class="badge badge-cyan">{{ plan.area.name }}</span>
+                </div>
+
+                <h3 style="font-size: 1.35rem; margin-top: 16px;">{{ plan.title }}</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 6px;">{{ plan.description }}</p>
+
+                <div class="plan-roi-header">
+                    <div class="plan-roi-val">{{ plan.roi_percentage }}%</div>
+                    <div class="plan-duration-badge">
+                        {{ plan.duration_count }} {{ plan.get_duration_unit_display }} Payout Cycle
+                    </div>
+                </div>
+
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Minimum Allocation: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:0 }}</strong></li>
+                    <li><i class="fas fa-check-circle"></i> Maximum Capacity: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:0 }}</strong></li>
+                    <li><i class="fas fa-check-circle"></i> Total Projected Term ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
+                    <li><i class="fas fa-check-circle"></i> 100% Capital Returned Upon Maturity</li>
+                </ul>
+            </div>
+
+            <div>
+                <a href="{% url 'register' %}" class="btn btn-gold" style="width: 100%;">
+                    <i class="fas fa-vault"></i> Allocate Capital Now
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Section 3: Private Credit & Loan Session (Matching user requirements exactly) -->
+<section id="loans" class="section-wrapper" style="background: radial-gradient(circle at 50% 50%, rgba(18, 27, 50, 0.7) 0%, rgba(7, 10, 18, 0.95) 100%); border-radius: var(--radius-lg); border: 1px solid var(--border-gold); padding: 80px 40px; margin-top: 40px;">
+    <div class="section-header">
+        <span class="section-tag"><i class="fas fa-shield-alt"></i> PRIVATE CREDIT LIQUIDITY FACILITY</span>
+        <h2 class="section-title">Access Institutional Loans Based on <span class="gold-gradient-text">Deposit Qualification</span></h2>
+        <p class="section-subtitle">
+            Investor capital deposits unlock tiered borrowing privileges. Repay over <strong>6 months at 0.5% monthly interest</strong> or <strong>12 months at 1.0% monthly interest</strong>. Every request is reviewed and authorized by the admin.
+        </p>
+    </div>
+
+    <!-- Loan Qualification Criteria Grid (Exact numbers from user prompt) -->
+    <div class="grid-4" style="margin-bottom: 60px;">
+        {% for tier in loan_tiers %}
+        <div class="glass-card-luxury loan-tier-card {% if forloop.counter == 2 %}highlight{% endif %}">
+            <span class="badge badge-gold" style="margin-bottom: 16px;">{{ tier.badge }}</span>
+            
+            <div class="loan-threshold-circle">
+                <span class="threshold-amount">${{ tier.min_deposit_required|floatformat:0 }}</span>
+                <span class="threshold-sub">Deposit</span>
+            </div>
+
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                Unlocks Eligible Loan Range:
+            </div>
+            
+            <div class="eligible-loan-range">
+                ${{ tier.min_loan_amount|floatformat:0 }} - ${{ tier.max_loan_amount|floatformat:0 }}
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 16px 0 20px; line-height: 1.5;">
+                {{ tier.perks_description }}
+            </p>
+
+            <a href="{% url 'register' %}" class="btn btn-sm btn-outline-gold" style="width: 100%;">
+                Qualify For This Tier
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Interactive Loan Repayment Calculator -->
+    <div style="background: rgba(10, 15, 28, 0.85); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 40px; max-width: 900px; margin: 0 auto; box-shadow: var(--shadow-card);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="font-size: 1.4rem;">Institutional Loan Repayment Calculator</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem;">Test repayment installments across 6-month and 12-month configurations</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <span class="badge badge-emerald">6 Months @ 0.5% / mo</span>
+                <span class="badge badge-cyan">12 Months @ 1.0% / mo</span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;">
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Loan Facility Repayment Term</label>
+                    <select id="loan-term-select" class="form-control">
+                        <option value="6" selected>6 Months Repayment (0.5% Interest / Month = 3.0% Total)</option>
+                        <option value="12">12 Months Repayment (1.0% Interest / Month = 12.0% Total)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <label class="form-label" style="margin-bottom: 0;">Borrowing Amount ($ USD)</label>
+                        <span id="calc-loan-amount" class="mono-num text-gold" style="font-size: 1.15rem; font-weight: 700;">$500,000</span>
+                    </div>
+                    <input type="range" id="loan-amount-slider" min="300000" max="5000000" step="25000" value="500000">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 6px;">
+                        <span>Min $300,000 (Tier 1)</span>
+                        <span>Max $5,000,000 (Chairman)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculation Output -->
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-gold); border-radius: var(--radius-md); padding: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Configured Rate:</span>
+                    <span id="calc-loan-rate-label" class="badge badge-gold">0.5% / month</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Total Term Interest:</span>
+                    <span id="calc-loan-interest" class="mono-num" style="color: var(--gold-light); font-weight: 700;">$15,000.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Total Payback Obligation:</span>
+                    <span id="calc-loan-total" class="mono-num" style="color: #ffffff; font-weight: 700;">$515,000.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #ffffff; font-weight: 600; font-size: 0.95rem;">Monthly Installment:</span>
+                    <span id="calc-loan-monthly" class="mono-num" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">$85,833.33</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; text-align: center;">
+            <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
+                <i class="fas fa-file-signature"></i> Open Account & Unlock Your Private Credit Facility
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Section 4: Security, Custody & Transparency -->
+<section id="security" class="section-wrapper">
+    <div class="section-header">
+        <span class="section-tag">INSTITUTIONAL TRUST</span>
+        <h2 class="section-title">Built Upon Fiduciary Fortification</h2>
+        <p class="section-subtitle">
+            Client principal and precious commodity reserves are protected by Tier-1 custodial safeguards.
+        </p>
+    </div>
+
+    <div class="grid-3">
+        <div class="glass-card-luxury" style="padding: 32px;">
+            <div class="area-icon-wrap" style="color: var(--cyan-accent); border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1);">
+                <i class="fas fa-building-columns"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 12px;">Segregated Tier-1 Bank Custody</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                Client funds are held in strictly ring-fenced fiduciary accounts at JPMorgan Chase & Co., completely isolated from corporate operational capital.
+            </p>
+        </div>
+
+        <div class="glass-card-luxury" style="padding: 32px;">
+            <div class="area-icon-wrap" style="color: var(--gold-light); border-color: var(--border-gold); background: rgba(212, 175, 55, 0.1);">
+                <i class="fas fa-gem"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 12px;">Allocated Physical Bullion</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                Gold deposits are matched with physical LBMA-certified 99.99% pure bullion bars in bonded Swiss vaults, insured under comprehensive Lloyds coverage.
+            </p>
+        </div>
+
+        <div class="glass-card-luxury" style="padding: 32px;">
+            <div class="area-icon-wrap" style="color: var(--emerald-accent); border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);">
+                <i class="fas fa-scale-balanced"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 12px;">Strict Statutory Governance</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                Comprehensive AML/KYC protocols, real-time blockchain ledger tracking for crypto liquidity, and quarterly external audit validations.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="section-wrapper" style="padding-top: 0;">
+    <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%), #0c1222; border: 1px solid var(--border-gold); border-radius: var(--radius-lg); padding: 60px 40px; text-align: center; box-shadow: var(--shadow-luxury);">
+        <h2 style="font-size: 2.8rem; margin-bottom: 16px;">Begin Your Sovereign Investment Journey</h2>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto 32px;">
+            Join over 14,000 global investors allocating capital into institutional Real Estate, vaulted Gold, Trust Funds, and Money Markets with live reading ROI.
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
+                <i class="fas fa-vault"></i> Open An Investor Account
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-outline-gold btn-lg">
+                <i class="fas fa-lock"></i> Client Sign In
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

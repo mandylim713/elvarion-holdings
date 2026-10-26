@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Open Investor Account | Elvarion Holdings{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 140px 24px 80px;">
+    <div class="glass-card-luxury" style="max-width: 520px; width: 100%; padding: 42px 36px; border-color: var(--border-gold);">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div class="brand-crest" style="margin: 0 auto 16px; width: 52px; height: 52px; font-size: 1.6rem;">EH</div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 6px;">Open Investor Account</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Begin investing across 4 asset classes with real-time ROI tracking</p>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Full Name / Entity Name</label>
+                <input type="text" name="full_name" class="form-control" placeholder="e.g. Lord Alexander Sterling" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="sterling_wealth" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Country of Residence</label>
+                    <input type="text" name="country" class="form-control" value="United States" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="investor@holdings.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contact Telephone</label>
+                <input type="tel" name="phone" class="form-control" placeholder="+1 (555) 019-2834">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" name="password_confirm" class="form-control" placeholder="••••••••••••" required>
+                </div>
+            </div>
+
+            <div style="margin: 16px 0 24px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;">
+                By opening an account, you affirm compliance with institutional fiduciary terms and agree to segregated custody policies under statutory jurisdiction.
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%;">
+                <i class="fas fa-vault"></i> Initialize Investor Vault
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.88rem; color: var(--text-dim);">
+            Already possess an active account? 
+            <a href="{% url 'login' %}" style="color: var(--gold-light); font-weight: 600; text-decoration: none;">Client Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

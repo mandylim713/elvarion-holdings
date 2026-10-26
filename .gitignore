@@ -1,0 +1,14 @@
+# Python & Django
+venv/
+*.pyc
+__pycache__/
+*.swp
+*.sqlite3-journal
+.DS_Store
+
+# Media files
+media/receipts/
+media/avatars/
+
+# Static collection
+staticfiles/

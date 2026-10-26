@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+
+{% block title %}Executive Management Desk | Elvarion Holdings{% endblock %}
+
+{% block content %}
+<div style="padding: 120px 24px 80px; max-width: 1400px; margin: 0 auto;">
+
+    <!-- Admin Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span class="badge badge-gold"><i class="fas fa-shield"></i> DIRECTORATE CONTROL DESK</span>
+                <span class="badge badge-emerald">STATUTORY GOVERNANCE</span>
+            </div>
+            <h1 style="font-size: 2.4rem; line-height: 1.1;">
+                Underwriting & <span class="gold-gradient-text">Portfolio Administration</span>
+            </h1>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 4px;">
+                Configure investment durations (daily, weekly, monthly, yearly), customize ROIs, adjust loan criteria thresholds, and approve/disapprove applications.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <a href="/admin/" target="_blank" class="btn btn-outline-gold btn-sm">
+                <i class="fas fa-database"></i> Full Django Admin
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-gold btn-sm">
+                <i class="fas fa-eye"></i> View Client Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="grid-4" style="margin-bottom: 36px;">
+        <div class="glass-card-luxury" style="padding: 22px;">
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Pending Loan Reviews</div>
+            <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">
+                {{ pending_loans|length }}
+            </div>
+        </div>
+        <div class="glass-card-luxury" style="padding: 22px;">
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Pending Deposits</div>
+            <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #34d399; margin-top: 4px;">
+                {{ pending_deposits|length }}
+            </div>
+        </div>
+        <div class="glass-card-luxury" style="padding: 22px;">
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Configured Plans</div>
+            <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-top: 4px;">
+                {{ plans|length }}
+            </div>
+        </div>
+        <div class="glass-card-luxury" style="padding: 22px;">
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Registered Investors</div>
+            <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #67e8f9; margin-top: 4px;">
+                {{ users|length }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Tabs -->
+    <div class="tabs-container">
+        <div class="tabs-nav" style="margin-bottom: 30px;">
+            <button class="tab-btn active" data-tab-target="mgmt-loans">
+                <i class="fas fa-hand-holding-dollar"></i> Loan Approvals ({{ pending_loans|length }})
+            </button>
+            <button class="tab-btn" data-tab-target="mgmt-deposits">
+                <i class="fas fa-coins"></i> Deposit Verifications ({{ pending_deposits|length }})
+            </button>
+            <button class="tab-btn" data-tab-target="mgmt-plans">
+                <i class="fas fa-layer-group"></i> Investment Areas & Plans Config
+            </button>
+            <button class="tab-btn" data-tab-target="mgmt-criteria">
+                <i class="fas fa-sliders"></i> Loan Eligibility Criteria & Rates
+            </button>
+            <button class="tab-btn" data-tab-target="mgmt-users">
+                <i class="fas fa-users"></i> Investor Balances
+            </button>
+        </div>
+
+        <!-- 1. LOAN APPROVALS SECTION -->
+        <div id="mgmt-loans" class="tab-pane active">
+            <div class="glass-card-luxury" style="padding: 28px; margin-bottom: 30px;">
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Pending Private Credit Loan Requests</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                    Review borrower cumulative deposit status, requested borrowing amount, and interest term. Approving dispatches credit directly into borrower's loan wallet balance.
+                </p>
+
+                {% if pending_loans %}
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                            <th style="padding: 12px;">Ref / Investor</th>
+                            <th style="padding: 12px;">Cumulative Deposit</th>
+                            <th style="padding: 12px;">Requested Loan</th>
+                            <th style="padding: 12px;">Term & Rate</th>
+                            <th style="padding: 12px;">Monthly Payment</th>
+                            <th style="padding: 12px;">Total Repayable</th>
+                            <th style="padding: 12px; text-align: right;">Director Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in pending_loans %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td style="padding: 16px 12px;">
+                                <div style="font-weight: 700; color: #ffffff;">{{ loan.user.username }}</div>
+                                <div class="mono-num" style="font-size: 0.75rem; color: var(--gold-light);">#{{ loan.loan_reference|slice:":8" }}</div>
+                            </td>
+                            <td class="mono-num" style="padding: 16px 12px; color: #34d399; font-weight: 700;">
+                                ${{ loan.user.profile.total_deposited|floatformat:2 }}
+                            </td>
+                            <td class="mono-num" style="padding: 16px 12px; font-weight: 800; font-size: 1.05rem; color: #ffffff;">
+                                ${{ loan.amount_requested|floatformat:2 }}
+                            </td>
+                            <td style="padding: 16px 12px;">
+                                <strong>{{ loan.term_months }} Months</strong><br>
+                                <span class="badge badge-gold">{{ loan.monthly_interest_rate }}% / mo</span>
+                            </td>
+                            <td class="mono-num" style="padding: 16px 12px; color: #67e8f9;">
+                                ${{ loan.monthly_installment|floatformat:2 }}
+                            </td>
+                            <td class="mono-num" style="padding: 16px 12px;">
+                                ${{ loan.total_repayable|floatformat:2 }}
+                            </td>
+                            <td style="padding: 16px 12px; text-align: right;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    <form method="POST" action="{% url 'admin_loan_action' loan.id 'approve' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-emerald" onclick="return confirm('Approve and disburse ${{ loan.amount_requested|floatformat:0 }} loan to {{ loan.user.username }}?');">
+                                            <i class="fas fa-check"></i> Approve & Disburse
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{% url 'admin_loan_action' loan.id 'reject' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-subtle" onclick="return confirm('Decline this loan request?');">
+                                            <i class="fas fa-xmark"></i> Decline
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-sm); padding: 30px; text-align: center; color: var(--text-dim);">
+                    <i class="fas fa-check-double text-emerald" style="font-size: 1.8rem; margin-bottom: 8px;"></i>
+                    <p>All loan applications have been reviewed. No pending requests.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Historical Loans Table -->
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <h4 style="font-size: 1.15rem; margin-bottom: 16px;">All Institutional Facilities History</h4>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase;">
+                            <th style="padding: 10px;">Ref</th>
+                            <th style="padding: 10px;">User</th>
+                            <th style="padding: 10px;">Amount</th>
+                            <th style="padding: 10px;">Term</th>
+                            <th style="padding: 10px;">Status</th>
+                            <th style="padding: 10px;">Date Applied</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in all_loans %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                            <td class="mono-num" style="padding: 12px; color: var(--gold-light);">#{{ l.loan_reference|slice:":8" }}</td>
+                            <td style="padding: 12px; color: #ffffff;">{{ l.user.username }}</td>
+                            <td class="mono-num" style="padding: 12px; font-weight: 700;">${{ l.amount_requested|floatformat:2 }}</td>
+                            <td style="padding: 12px;">{{ l.term_months }} Months ({{ l.monthly_interest_rate }}%/mo)</td>
+                            <td style="padding: 12px;">
+                                {% if l.status == 'approved' %}
+                                    <span class="badge badge-emerald">DISBURSED</span>
+                                {% elif l.status == 'rejected' %}
+                                    <span class="badge badge-purple">DECLINED</span>
+                                {% else %}
+                                    <span class="badge badge-gold">{{ l.status|upper }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px; color: var(--text-dim);">{{ l.applied_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. DEPOSIT APPROVALS SECTION -->
+        <div id="mgmt-deposits" class="tab-pane" style="display: none;">
+            <div class="glass-card-luxury" style="padding: 28px;">
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Pending Deposit Confirmations</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                    Approving credits the investor's available wallet balance and increases their cumulative deposit, upgrading their loan eligibility tier.
+                </p>
+
+                {% if pending_deposits %}
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                            <th style="padding: 12px;">Investor</th>
+                            <th style="padding: 12px;">Method</th>
+                            <th style="padding: 12px;">Amount</th>
+                            <th style="padding: 12px;">TxID / Proof Reference</th>
+                            <th style="padding: 12px;">Date</th>
+                            <th style="padding: 12px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dep in pending_deposits %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td style="padding: 14px 12px; font-weight: 700; color: #ffffff;">{{ dep.user.username }}</td>
+                            <td style="padding: 14px 12px;">
+                                <span class="badge badge-cyan">{{ dep.get_method_display }}</span>
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; font-weight: 800; font-size: 1.1rem; color: #34d399;">
+                                +${{ dep.amount|floatformat:2 }}
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; color: var(--text-muted); font-size: 0.8rem;">
+                                {{ dep.proof_hash|default:"Direct Submission" }}
+                            </td>
+                            <td style="padding: 14px 12px; color: var(--text-dim);">{{ dep.created_at|date:"M d, Y H:i" }}</td>
+                            <td style="padding: 14px 12px; text-align: right;">
+                                <form method="POST" action="{% url 'admin_deposit_action' dep.id 'approve' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-emerald">
+                                        <i class="fas fa-check"></i> Credit Balance
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'admin_deposit_action' dep.id 'reject' %}" style="display: inline; margin-left: 6px;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-subtle">
+                                        <i class="fas fa-xmark"></i> Reject
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-sm); padding: 30px; text-align: center; color: var(--text-dim);">
+                    <i class="fas fa-check text-emerald" style="font-size: 1.8rem; margin-bottom: 8px;"></i>
+                    <p>No pending deposits awaiting verification.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 3. INVESTMENT AREAS & PLANS CONFIGURATION -->
+        <div id="mgmt-plans" class="tab-pane" style="display: none;">
+            <!-- Configure / Add Plan Card -->
+            <div class="glass-card-luxury" style="padding: 32px; margin-bottom: 36px; border-color: var(--border-gold);">
+                <h3 style="font-size: 1.4rem; margin-bottom: 6px;">Configure Investment Area Plans & Durations</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                    Set specific investment durations: <strong>daily</strong>, <strong>weekly</strong>, <strong>monthly</strong>, or <strong>yearly</strong> for each area and customize their ROI percentages.
+                </p>
+
+                <form method="POST" action="{% url 'admin_save_plan' %}">
+                    {% csrf_token %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Plan Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Sovereign Vault Bullion" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Investment Sector</label>
+                            <select name="area_id" class="form-control" required>
+                                {% for area in investment_areas %}
+                                    <option value="{{ area.id }}">{{ area.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">ROI Percentage (%)</label>
+                            <input type="number" name="roi_percentage" class="form-control mono-num" placeholder="e.g. 12.5" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Duration Cycle Unit</label>
+                            <select name="duration_unit" class="form-control">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Duration Count</label>
+                            <input type="number" name="duration_count" class="form-control mono-num" value="6" min="1" help_text="Units count" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Minimum Allocation ($)</label>
+                            <input type="number" name="min_deposit" class="form-control mono-num" value="5000" step="500" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Maximum Allocation ($)</label>
+                            <input type="number" name="max_deposit" class="form-control mono-num" value="250000" step="1000" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold">
+                        <i class="fas fa-plus-circle"></i> Save & Deploy Investment Plan
+                    </button>
+                </form>
+            </div>
+
+            <!-- Existing Plans Table -->
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <h4 style="font-size: 1.2rem; margin-bottom: 16px;">Currently Active Investment Plans</h4>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase;">
+                            <th style="padding: 12px;">Sector</th>
+                            <th style="padding: 12px;">Plan Title</th>
+                            <th style="padding: 12px;">Configured Duration</th>
+                            <th style="padding: 12px;">ROI Rate</th>
+                            <th style="padding: 12px;">Min Deposit</th>
+                            <th style="padding: 12px;">Max Deposit</th>
+                            <th style="padding: 12px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plan in plans %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td style="padding: 12px; font-weight: 700; color: var(--gold-light);">{{ plan.area.name }}</td>
+                            <td style="padding: 12px; color: #ffffff;">{{ plan.title }}</td>
+                            <td style="padding: 12px;">
+                                <span class="badge badge-cyan">{{ plan.duration_count }} {{ plan.get_duration_unit_display|upper }}</span>
+                            </td>
+                            <td class="mono-num" style="padding: 12px; font-weight: 800; color: #34d399;">
+                                {{ plan.roi_percentage }}%
+                            </td>
+                            <td class="mono-num" style="padding: 12px;">${{ plan.min_deposit|floatformat:0 }}</td>
+                            <td class="mono-num" style="padding: 12px;">${{ plan.max_deposit|floatformat:0 }}</td>
+                            <td style="padding: 12px;">
+                                <span class="badge badge-emerald">ACTIVE</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. LOAN ELIGIBILITY CRITERIA & RATES -->
+        <div id="mgmt-criteria" class="tab-pane" style="display: none;">
+            <div class="glass-card-luxury" style="padding: 32px; margin-bottom: 36px; border-color: var(--border-gold);">
+                <h3 style="font-size: 1.4rem; margin-bottom: 6px;">Configure Loan Qualification Criteria</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                    Define the minimum cumulative deposit needed to unlock specific loan brackets (e.g. $25k -> $300k-$799k, $50k -> $800k-$1M, $100k -> $2M-$4.99M, $150k -> $5M).
+                </p>
+
+                <form method="POST" action="{% url 'admin_save_tier' %}">
+                    {% csrf_token %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Tier Name</label>
+                            <input type="text" name="tier_name" class="form-control" placeholder="e.g. Silver Private Credit" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Min Deposit Required ($)</label>
+                            <input type="number" name="min_deposit_required" class="form-control mono-num" placeholder="25000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Min Loan Range ($)</label>
+                            <input type="number" name="min_loan_amount" class="form-control mono-num" placeholder="300000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Loan Range ($)</label>
+                            <input type="number" name="max_loan_amount" class="form-control mono-num" placeholder="799000" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold">
+                        <i class="fas fa-save"></i> Save Criteria Tier
+                    </button>
+                </form>
+            </div>
+
+            <!-- Current Active Tiers Table -->
+            <div class="glass-card-luxury" style="padding: 24px; margin-bottom: 30px;">
+                <h4 style="font-size: 1.2rem; margin-bottom: 16px;">Active Loan Eligibility Tiers</h4>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase;">
+                            <th style="padding: 12px;">Tier Name</th>
+                            <th style="padding: 12px;">Deposit Threshold Required</th>
+                            <th style="padding: 12px;">Eligible Loan Range</th>
+                            <th style="padding: 12px;">Badge</th>
+                            <th style="padding: 12px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in loan_tiers %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td style="padding: 14px 12px; font-weight: 700; color: #ffffff;">{{ t.tier_name }}</td>
+                            <td class="mono-num" style="padding: 14px 12px; font-weight: 800; color: var(--gold-light);">
+                                ${{ t.min_deposit_required|floatformat:0 }}+
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; color: #34d399; font-weight: 700;">
+                                ${{ t.min_loan_amount|floatformat:0 }} &ndash; ${{ t.max_loan_amount|floatformat:0 }}
+                            </td>
+                            <td style="padding: 14px 12px;"><span class="badge badge-gold">{{ t.badge }}</span></td>
+                            <td style="padding: 14px 12px;"><span class="badge badge-emerald">ACTIVE</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Current Loan Terms -->
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <h4 style="font-size: 1.2rem; margin-bottom: 16px;">Configured Loan Facility Repayment Terms</h4>
+                <div class="grid-2">
+                    {% for term in loan_terms %}
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="badge badge-emerald">{{ term.term_months }} MONTHS REPAYMENT</span>
+                            <span class="mono-num text-gold font-bold">{{ term.monthly_interest_rate }}% / MONTH</span>
+                        </div>
+                        <div style="font-size: 0.88rem; color: var(--text-muted);">
+                            Total Cumulative Interest: <strong class="mono-num text-white">{{ term.total_interest_rate }}%</strong> over {{ term.term_months }} months.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. INVESTOR BALANCES -->
+        <div id="mgmt-users" class="tab-pane" style="display: none;">
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <h3 style="font-size: 1.4rem; margin-bottom: 16px;">All Investor Profiles & Eligibility</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase;">
+                            <th style="padding: 12px;">User</th>
+                            <th style="padding: 12px;">Cumulative Deposits</th>
+                            <th style="padding: 12px;">Loan Qualification Tier</th>
+                            <th style="padding: 12px;">Wallet Balance</th>
+                            <th style="padding: 12px;">Disbursed Loans</th>
+                            <th style="padding: 12px;">KYC Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td style="padding: 14px 12px;">
+                                <strong style="color: #ffffff;">{{ u.username }}</strong><br>
+                                <span style="color: var(--text-dim); font-size: 0.78rem;">{{ u.email }}</span>
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; font-weight: 700; color: #34d399;">
+                                ${{ u.profile.total_deposited|floatformat:2 }}
+                            </td>
+                            <td style="padding: 14px 12px;">
+                                {% with tier=u.profile.get_eligible_loan_tier %}
+                                    {% if tier %}
+                                        <span class="badge badge-gold">{{ tier.badge }}</span><br>
+                                        <span class="mono-num" style="font-size: 0.75rem; color: var(--text-muted);">${{ tier.min_loan_amount|floatformat:0 }} - ${{ tier.max_loan_amount|floatformat:0 }}</span>
+                                    {% else %}
+                                        <span class="badge badge-purple">No Loan Tier</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; font-weight: 700;">
+                                ${{ u.profile.wallet_balance|floatformat:2 }}
+                            </td>
+                            <td class="mono-num" style="padding: 14px 12px; color: #67e8f9;">
+                                ${{ u.profile.loan_balance|floatformat:2 }}
+                            </td>
+                            <td style="padding: 14px 12px;">
+                                <span class="badge badge-emerald">{{ u.profile.kyc_status|upper }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

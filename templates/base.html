@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Elvarion Holdings | Sovereign Wealth, Multi-Asset Private Investments & Credit{% endblock %}</title>
+    <meta name="description" content="Elvarion Holdings - Premier multi-asset investment management across Real Estate, Physical Gold, Heritage Trust Funds, and Sovereign Money Markets with institutional private credit facilities.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Main Luxury CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Ambient Background Lighting Mesh -->
+    <div class="ambient-glow">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+        <div class="glow-orb-3"></div>
+    </div>
+
+    <!-- Luxury Top Navbar -->
+    <nav class="luxury-navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="brand-logo">
+                <div class="brand-crest">EH</div>
+                <div>
+                    <div class="brand-title">ELVARION</div>
+                    <div class="brand-sub">HOLDINGS &bull; ASSET MANAGEMENT</div>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}#areas"><i class="fas fa-layer-group text-gold"></i> Investment Areas</a></li>
+                <li><a href="{% url 'home' %}#calculator"><i class="fas fa-calculator text-gold"></i> ROI Simulator</a></li>
+                <li><a href="{% url 'home' %}#loans"><i class="fas fa-hand-holding-dollar text-gold"></i> Private Credit & Loans</a></li>
+                <li><a href="{% url 'home' %}#security"><i class="fas fa-shield-halved text-gold"></i> Custody & Governance</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin_management' %}" class="btn btn-sm btn-outline-gold">
+                            <i class="fas fa-sliders"></i> Admin Desk
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-gold">
+                        <i class="fas fa-wallet"></i> Investor Portal
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-subtle" title="Sign Out">
+                        <i class="fas fa-right-from-bracket"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-sm btn-outline-gold">
+                        <i class="fas fa-user-lock"></i> Client Sign In
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-sm btn-gold">
+                        <i class="fas fa-vault"></i> Open Account
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Flash Messages -->
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast-msg toast-{{ message.tags }}">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-circle-check text-emerald"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-circle-exclamation text-danger"></i>
+            {% else %}
+                <i class="fas fa-circle-info text-cyan"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Block -->
+    <main style="position: relative; z-index: 5;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Luxury Footer -->
+    <footer class="luxury-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <a href="{% url 'home' %}" class="brand-logo" style="margin-bottom: 20px;">
+                    <div class="brand-crest">EH</div>
+                    <div>
+                        <div class="brand-title">ELVARION</div>
+                        <div class="brand-sub">HOLDINGS &bull; EST. 2014</div>
+                    </div>
+                </a>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.7; margin-bottom: 20px;">
+                    Elvarion Holdings is a premier multi-asset fiduciary investment house and private credit facility. We deliver sovereign-grade capital growth, high-yield asset allocation, and liquidity solutions to institutional and accredited high-net-worth clients worldwide.
+                </p>
+                <div style="display: flex; gap: 12px;">
+                    <span class="badge badge-gold"><i class="fas fa-award"></i> AAA RATED</span>
+                    <span class="badge badge-emerald"><i class="fas fa-shield"></i> LLOYDS INSURED</span>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h5>Asset Classes</h5>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}#areas">Prime Commercial Real Estate</a></li>
+                    <li><a href="{% url 'home' %}#areas">Swiss Vault Physical Gold</a></li>
+                    <li><a href="{% url 'home' %}#areas">Heritage Wealth Trust Funds</a></li>
+                    <li><a href="{% url 'home' %}#areas">Money Market Mutual Liquidity</a></li>
+                    <li><a href="{% url 'home' %}#loans">Tiered Private Credit Lines</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h5>Platform & Legal</h5>
+                <ul class="footer-links">
+                    <li><a href="{% url 'dashboard' %}">Investor Dashboard</a></li>
+                    <li><a href="{% url 'home' %}#calculator">Real-time Yield Calculator</a></li>
+                    <li><a href="{% url 'home' %}#loans">Loan Underwriting Policy</a></li>
+                    <li><a href="{% url 'login' %}">Client Vault Authentication</a></li>
+                    <li><a href="#">AML / KYC Regulatory Disclosures</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h5>Treasury Headquarters</h5>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 12px;">
+                    <i class="fas fa-location-dot text-gold"></i> Tower 49, 12 East 49th Street<br>New York, NY 10017
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 12px;">
+                    <i class="fas fa-envelope text-gold"></i> concierge@elvarionholdings.com
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                    <i class="fas fa-shield-alt text-emerald"></i> Segregated Custody: JPMorgan Chase & Co.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                &copy; 2026 Elvarion Holdings Ltd (elvarionholdings.com). All sovereign and institutional rights reserved.
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <span>Privacy Notice</span>
+                <span>Terms of Custody</span>
+                <span>Regulatory Filings</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive JS -->
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

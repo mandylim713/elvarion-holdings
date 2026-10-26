@@ -1,0 +1,799 @@
+{% extends 'base.html' %}
+
+{% block title %}Investor Dashboard | Elvarion Holdings{% endblock %}
+
+{% block content %}
+<div style="padding: 120px 24px 80px; max-width: 1400px; margin: 0 auto;">
+
+    <!-- Client Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span class="badge badge-gold"><i class="fas fa-crown"></i> PRIVATE WEALTH CLIENT</span>
+                {% if eligible_tier %}
+                    <span class="badge badge-emerald"><i class="fas fa-certificate"></i> {{ eligible_tier.tier_name }}</span>
+                {% else %}
+                    <span class="badge badge-cyan"><i class="fas fa-shield-alt"></i> STANDARD TIER</span>
+                {% endif %}
+            </div>
+            <h1 style="font-size: 2.4rem; line-height: 1.1;">
+                Portfolio Desk &bull; <span class="gold-gradient-text">{{ user.first_name|default:user.username }}</span>
+            </h1>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 4px;">
+                Client UID: <span class="mono-num" style="color: var(--text-muted);">EH-{{ user.id|stringformat:"05d" }}</span> &bull; Jurisdiction: {{ profile.country }}
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-gold btn-sm" onclick="openModal('depositModal')">
+                <i class="fas fa-plus-circle"></i> Hybrid Deposit
+            </button>
+            <button class="btn btn-outline-gold btn-sm" onclick="openModal('withdrawModal')">
+                <i class="fas fa-arrow-up-from-bracket"></i> Request Withdrawal
+            </button>
+            {% if eligible_tier %}
+                <button class="btn btn-emerald btn-sm" onclick="switchDashboardTab('tab-loans')">
+                    <i class="fas fa-hand-holding-dollar"></i> Apply for Loan
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Live Accrued ROI Pulsing Hero Banner -->
+    <div class="live-ticker-box" style="margin-bottom: 36px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="live-indicator">
+                    <span class="pulse-dot"></span> REAL-TIME ENGINE ACTIVE
+                </div>
+                <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">
+                    Total Live Accrued ROI Across All Active Sectors
+                </span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-dim);">
+                <i class="fas fa-rotate"></i> Synchronized with Institutional Ledger
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <div id="live-total-roi" class="live-ticker-val" data-target-value="{{ total_live_roi|floatformat:4 }}">
+                    ${{ total_live_roi|floatformat:4 }}
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
+                    Currently generating real-time returns from <strong>{{ active_investments|length }}</strong> simultaneous active investment portfolios.
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Active Capital</div>
+                    <div class="mono-num" style="font-size: 1.4rem; font-weight: 700; color: #ffffff;">
+                        ${% widthratio active_investments|length 1 1 as dummy %}{{ active_investments|length }} Active
+                    </div>
+                </div>
+                <div style="text-align: right; border-left: 1px solid var(--border-subtle); padding-left: 20px;">
+                    <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Loan Credit Status</div>
+                    <div class="mono-num" style="font-size: 1.4rem; font-weight: 700; color: var(--gold-light);">
+                        {% if eligible_tier %}{{ eligible_tier.badge }}{% else %}Unqualified (<$25k){% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Key Financial Metric Cards -->
+    <div class="grid-4" style="margin-bottom: 40px;">
+        <!-- Wallet Balance -->
+        <div class="glass-card-luxury" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="color: var(--text-dim); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Liquid Balance</span>
+                <i class="fas fa-wallet text-gold"></i>
+            </div>
+            <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #ffffff; line-height: 1;">
+                ${{ profile.wallet_balance|floatformat:2 }}
+            </div>
+            <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.8rem;">
+                <span style="color: var(--text-muted);">Available for deployment</span>
+                <a href="#" onclick="openModal('depositModal')" style="color: var(--gold-light); text-decoration: none; font-weight: 600;">+ Fund Wallet</a>
+            </div>
+        </div>
+
+        <!-- Cumulative Deposits & Loan Qualification Progress -->
+        <div class="glass-card-luxury" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="color: var(--text-dim); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Cumulative Deposits</span>
+                <i class="fas fa-vault text-emerald"></i>
+            </div>
+            <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #34d399; line-height: 1;">
+                ${{ profile.total_deposited|floatformat:2 }}
+            </div>
+            <div style="margin-top: 12px; font-size: 0.8rem;">
+                {% if next_tier %}
+                    <span style="color: var(--text-muted);">Deposit <strong style="color: #ffffff;">${{ next_tier_remaining|floatformat:0 }}</strong> more to unlock <strong>{{ next_tier.tier_name }}</strong> (${{ next_tier.min_loan_amount|floatformat:0 }} loan).</span>
+                {% else %}
+                    <span style="color: var(--gold-light);"><i class="fas fa-crown"></i> Maximum Chairman Loan Tier Unlocked ($5,000,000)!</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Loan Balance / Credit Line -->
+        <div class="glass-card-luxury" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="color: var(--text-dim); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Loan Balance Disbursed</span>
+                <i class="fas fa-hand-holding-dollar text-cyan"></i>
+            </div>
+            <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #67e8f9; line-height: 1;">
+                ${{ profile.loan_balance|floatformat:2 }}
+            </div>
+            <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+                {% if eligible_tier %}
+                    Qualified Limit: <strong style="color: #ffffff;">${{ eligible_tier.max_loan_amount|floatformat:0 }}</strong>
+                {% else %}
+                    Deposit $25k+ to unlock loans
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Total Accrued Past Profits -->
+        <div class="glass-card-luxury" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="color: var(--text-dim); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Total Withdrawn</span>
+                <i class="fas fa-money-bill-transfer text-gold"></i>
+            </div>
+            <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #ffffff; line-height: 1;">
+                ${{ profile.total_withdrawn|floatformat:2 }}
+            </div>
+            <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+                Dispatched to verified accounts
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-container">
+        <div class="tabs-nav" style="margin-bottom: 32px;">
+            <button class="tab-btn active" data-tab-target="tab-investments">
+                <i class="fas fa-chart-line"></i> My Active Portfolios ({{ active_investments|length }})
+            </button>
+            <button class="tab-btn" data-tab-target="tab-invest-now">
+                <i class="fas fa-layer-group"></i> Invest in New Sector
+            </button>
+            <button class="tab-btn" data-tab-target="tab-loans" id="btn-tab-loans">
+                <i class="fas fa-hand-holding-dollar"></i> Private Credit & Loans Session
+            </button>
+            <button class="tab-btn" data-tab-target="tab-deposit">
+                <i class="fas fa-credit-card"></i> Hybrid Deposit & Wallet
+            </button>
+            <button class="tab-btn" data-tab-target="tab-transactions">
+                <i class="fas fa-receipt"></i> Transaction Ledger
+            </button>
+        </div>
+
+        <!-- TAB 1: Active Investments & Live Reading ROI -->
+        <div id="tab-investments" class="tab-pane active">
+            {% if active_investments %}
+            <div class="grid-3">
+                {% for item in active_investments %}
+                <div class="glass-card-luxury" data-investment-id="{{ item.obj.id }}" style="padding: 28px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span class="badge badge-gold">{{ item.obj.plan.area.name }}</span>
+                        <div class="live-indicator" style="font-size: 0.65rem; padding: 2px 8px;">
+                            <span class="pulse-dot"></span> READING
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 1.3rem; margin-bottom: 4px;">{{ item.obj.plan.title }}</h3>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+                        Allocated: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.amount|floatformat:2 }}</strong> &bull; Term: <strong>{{ item.obj.plan.duration_count }} {{ item.obj.plan.get_duration_unit_display }}</strong>
+                    </div>
+
+                    <!-- Live Reading Ticker Card -->
+                    <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
+                            <span>Accrued Real-Time ROI</span>
+                            <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ item.obj.plan.roi_percentage }}% {{ item.obj.plan.duration_unit|upper }}</span>
+                        </div>
+                        <div id="inv-roi-{{ item.obj.id }}" class="mono-num" data-target-value="{{ item.accrued_roi|floatformat:4 }}" style="font-size: 1.75rem; font-weight: 800; color: #34d399;">
+                            ${{ item.accrued_roi|floatformat:4 }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 4px;">
+                            Target Return: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.total_projected_roi|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar to Maturity -->
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px;">
+                            <span>Term Progression</span>
+                            <span class="mono-num" style="color: var(--text-muted);">{{ item.progress_pct }}%</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden;">
+                            <div id="inv-prog-{{ item.obj.id }}" style="height: 100%; width: {{ item.progress_pct }}%; background: linear-gradient(90deg, #d4af37, #10b981); transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+                        <span>Started: {{ item.obj.start_date|date:"M d, Y" }}</span>
+                        <span>Maturity: {{ item.obj.end_date|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="glass-card-luxury" style="padding: 60px 30px; text-align: center;">
+                <i class="fas fa-layer-group text-gold" style="font-size: 3rem; margin-bottom: 16px;"></i>
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">No Active Investments Yet</h3>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 24px;">
+                    Allocate your funds into Real Estate, Gold, Trust Funds, or Money Markets to start watching your ROI tick up in real time.
+                </p>
+                <button class="btn btn-gold" onclick="switchDashboardTab('tab-invest-now')">
+                    <i class="fas fa-arrow-trend-up"></i> Explore Investment Sectors
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 2: Invest in New Sector -->
+        <div id="tab-invest-now" class="tab-pane" style="display: none;">
+            <div style="margin-bottom: 24px;">
+                <h2 style="font-size: 1.6rem; margin-bottom: 4px;">Select an Investment Sector & Plan</h2>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">
+                    Allocate capital directly from your wallet balance. Each plan features unique payout frequencies and durations.
+                </p>
+            </div>
+
+            {% for area in investment_areas %}
+            <div style="margin-bottom: 40px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                    <div class="area-icon-wrap" style="width: 44px; height: 44px; font-size: 1.2rem; margin-bottom: 0;">
+                        <i class="fas fa-{{ area.icon }}"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.35rem;">{{ area.name }}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-dim);">{{ area.tagline }} &bull; <span style="color: var(--emerald-accent);">Risk: {{ area.risk_level }}</span></p>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    {% for plan in area.plans.all %}
+                    <div class="glass-card-luxury plan-card">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="badge badge-gold">{{ plan.badge }}</span>
+                                <span class="badge badge-cyan">{{ plan.duration_count }} {{ plan.get_duration_unit_display|upper }}</span>
+                            </div>
+
+                            <h4 style="font-size: 1.25rem; margin-top: 14px;">{{ plan.title }}</h4>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 6px;">{{ plan.description }}</p>
+
+                            <div class="plan-roi-header">
+                                <div class="plan-roi-val">{{ plan.roi_percentage }}%</div>
+                                <div class="plan-duration-badge">{{ plan.get_duration_unit_display }} Payout Frequency</div>
+                            </div>
+
+                            <ul class="features-list" style="margin-bottom: 16px;">
+                                <li><i class="fas fa-check"></i> Min: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:0 }}</strong> &bull; Max: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:0 }}</strong></li>
+                                <li><i class="fas fa-check"></i> Cumulative Expected ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
+                                <li><i class="fas fa-check"></i> Capital Returned at Term Completion</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-gold" style="width: 100%;" 
+                                onclick="selectPlanForInvest('{{ plan.id }}', '{{ plan.title }}', '{{ area.name }}', '{{ plan.min_deposit }}', '{{ plan.max_deposit }}', '{{ plan.roi_percentage }}% {{ plan.get_duration_unit_display }}')">
+                                <i class="fas fa-plus"></i> Allocate Capital (${{ plan.min_deposit|floatformat:0 }}+)
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- TAB 3: Private Credit & Loans Session (Exact user criteria) -->
+        <div id="tab-loans" class="tab-pane" style="display: none;">
+            <!-- Eligibility Status Overview -->
+            <div class="glass-card-luxury" style="padding: 36px; border-color: var(--border-gold); margin-bottom: 36px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    <div>
+                        <span class="badge badge-gold" style="margin-bottom: 8px;"><i class="fas fa-shield-alt"></i> PRIVATE UNDERWRITING STATUS</span>
+                        <h2 style="font-size: 1.8rem;">Private Credit Eligibility Status</h2>
+                        <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">
+                            Borrowing privileges are calibrated directly against your verified cumulative deposits (${{ profile.total_deposited|floatformat:2 }}).
+                        </p>
+                    </div>
+
+                    <div>
+                        {% if eligible_tier %}
+                            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm); padding: 12px 20px; text-align: right;">
+                                <div style="font-size: 0.75rem; text-transform: uppercase; color: #a7f3d0; font-weight: 700;">Unlocked Loan Facility</div>
+                                <div class="mono-num" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">
+                                    ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-sm); padding: 12px 20px; text-align: right;">
+                                <div style="font-size: 0.75rem; text-transform: uppercase; color: #fca5a5; font-weight: 700;">Deposit Qualification Pending</div>
+                                <div class="mono-num" style="font-size: 1.3rem; font-weight: 700; color: #f87171;">
+                                    Requires $25,000 Deposit
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Step Criteria Visual Bar (Exact prompt numbers) -->
+                <div style="margin-top: 36px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                    {% for tier in loan_tiers %}
+                    <div style="padding: 18px; border-radius: var(--radius-sm); background: {% if profile.total_deposited >= tier.min_deposit_required %}rgba(212, 175, 55, 0.15); border: 1px solid var(--border-gold);{% else %}rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);{% endif %}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--gold-light);">{{ tier.badge }}</span>
+                            {% if profile.total_deposited >= tier.min_deposit_required %}
+                                <i class="fas fa-check-circle text-emerald"></i>
+                            {% else %}
+                                <i class="fas fa-lock text-dim"></i>
+                            {% endif %}
+                        </div>
+                        <div class="mono-num" style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">
+                            ${{ tier.min_deposit_required|floatformat:0 }} Deposit
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--emerald-accent); font-weight: 600; margin-top: 4px;">
+                            Eligible: ${{ tier.min_loan_amount|floatformat:0 }} &ndash; ${{ tier.max_loan_amount|floatformat:0 }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Loan Application Form if Qualified -->
+            {% if eligible_tier %}
+            <div class="grid-2" style="margin-bottom: 40px;">
+                <!-- Application Form -->
+                <div class="glass-card-luxury" style="padding: 32px;">
+                    <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Submit Loan Application</h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                        Funds will be credited directly to your Loan Balance upon Director approval.
+                    </p>
+
+                    <form method="POST" action="{% url 'apply_loan' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="form-label">Repayment Facility Term</label>
+                            <select id="user-loan-term" name="term_months" class="form-control" onchange="recalcUserLoan()">
+                                {% for term in loan_terms %}
+                                    <option value="{{ term.term_months }}" data-rate="{{ term.monthly_interest_rate }}">
+                                        {{ term.term_months }} Months Repayment ({{ term.monthly_interest_rate }}% Interest / Month)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <label class="form-label" style="margin-bottom: 0;">Loan Principal ($ USD)</label>
+                                <span class="mono-num" style="font-size: 0.85rem; color: var(--gold-light);">
+                                    Allowed: ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                                </span>
+                            </div>
+                            <input type="number" id="user-loan-amount" name="loan_amount" class="form-control mono-num" 
+                                value="{{ eligible_tier.min_loan_amount|floatformat:0 }}" 
+                                min="{{ eligible_tier.min_loan_amount|floatformat:0 }}" 
+                                max="{{ eligible_tier.max_loan_amount|floatformat:0 }}" 
+                                step="10000" oninput="recalcUserLoan()" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Intended Allocation / Purpose</label>
+                            <select name="purpose" class="form-control">
+                                <option value="Real Estate Expansion & Acquisition">Real Estate Expansion & Acquisition</option>
+                                <option value="Private Portfolio Liquidity">Private Portfolio Liquidity</option>
+                                <option value="Institutional Working Capital">Institutional Working Capital</option>
+                                <option value="High-Yield Arbitrage Allocation">High-Yield Arbitrage Allocation</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 12px;">
+                            <i class="fas fa-file-signature"></i> Submit Application for Underwriter Approval
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Instant Repayment Breakdown -->
+                <div class="glass-card-luxury" style="padding: 32px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Facility Financial Schedule</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+                            Transparent amortization calculated per month.
+                        </p>
+
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 0.9rem;">
+                                <span style="color: var(--text-muted);">Selected Principal:</span>
+                                <span id="schedule-principal" class="mono-num text-white font-bold">$0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 0.9rem;">
+                                <span style="color: var(--text-muted);">Monthly Interest Rate:</span>
+                                <span id="schedule-rate" class="badge badge-gold">0.5% / month</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 0.9rem;">
+                                <span style="color: var(--text-muted);">Total Term Interest:</span>
+                                <span id="schedule-interest" class="mono-num" style="color: var(--gold-light); font-weight: 700;">$0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem;">
+                                <span style="color: var(--text-muted);">Total Repayment:</span>
+                                <span id="schedule-total" class="mono-num font-bold text-white">$0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; color: #ffffff;">Monthly Installment:</span>
+                                <span id="schedule-monthly" class="mono-num" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-dim); line-height: 1.5;">
+                        <i class="fas fa-info-circle text-gold"></i> Approvals are reviewed by the Director desk. Loan disbursements are allocated to your client account upon approval.
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Unqualified Guidance -->
+            <div class="glass-card-luxury" style="padding: 40px; text-align: center;">
+                <i class="fas fa-lock text-gold" style="font-size: 2.8rem; margin-bottom: 16px;"></i>
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Private Credit Tier Locked</h3>
+                <p style="color: var(--text-muted); max-width: 550px; margin: 0 auto 24px;">
+                    To qualify for the entry-level loan range ($300,000 – $799,000), your account requires a minimum cumulative deposit of $25,000. You currently have ${{ profile.total_deposited|floatformat:2 }}.
+                </p>
+                <button class="btn btn-gold" onclick="openModal('depositModal')">
+                    <i class="fas fa-plus"></i> Fund Deposit to Unlock Loans
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- User Loan History -->
+            <h3 style="font-size: 1.35rem; margin-bottom: 16px;">My Loan Applications & Facilities</h3>
+            {% if user_loans %}
+            <div class="glass-card-luxury" style="padding: 20px; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                            <th style="padding: 12px;">Reference</th>
+                            <th style="padding: 12px;">Principal</th>
+                            <th style="padding: 12px;">Term</th>
+                            <th style="padding: 12px;">Monthly Installment</th>
+                            <th style="padding: 12px;">Total Repayable</th>
+                            <th style="padding: 12px;">Status</th>
+                            <th style="padding: 12px;">Applied Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in user_loans %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td class="mono-num" style="padding: 14px; font-weight: 600; color: var(--gold-light);">#{{ loan.loan_reference|slice:":8" }}</td>
+                            <td class="mono-num font-bold" style="padding: 14px; color: #ffffff;">${{ loan.amount_requested|floatformat:2 }}</td>
+                            <td style="padding: 14px;">{{ loan.term_months }} Months ({{ loan.monthly_interest_rate }}%/mo)</td>
+                            <td class="mono-num" style="padding: 14px; color: #34d399;">${{ loan.monthly_installment|floatformat:2 }}</td>
+                            <td class="mono-num" style="padding: 14px;">${{ loan.total_repayable|floatformat:2 }}</td>
+                            <td style="padding: 14px;">
+                                {% if loan.status == 'approved' %}
+                                    <span class="badge badge-emerald"><i class="fas fa-check"></i> DISBURSED</span>
+                                {% elif loan.status == 'pending' %}
+                                    <span class="badge badge-gold"><i class="fas fa-clock"></i> UNDER REVIEW</span>
+                                {% else %}
+                                    <span class="badge badge-purple">{{ loan.status|upper }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 14px; color: var(--text-dim);">{{ loan.applied_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-dim); font-size: 0.88rem;">No loan requests registered yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- TAB 4: Hybrid Deposit Center & Wallet Management -->
+        <div id="tab-deposit" class="tab-pane" style="display: none;">
+            <div class="grid-2">
+                <!-- Crypto Options -->
+                <div class="glass-card-luxury" style="padding: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 1.35rem;">Cryptocurrency Gateways</h3>
+                        <span class="badge badge-gold">INSTANT LIQUIDITY</span>
+                    </div>
+
+                    <!-- Bitcoin -->
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong style="color: #f59e0b;"><i class="fab fa-bitcoin"></i> Bitcoin (BTC Network)</strong>
+                            <span class="badge badge-cyan">Tier 1</span>
+                        </div>
+                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
+                            {{ settings.btc_wallet_address }}
+                        </div>
+                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.btc_wallet_address }}">
+                            <i class="fas fa-copy"></i> Copy BTC Address
+                        </button>
+                    </div>
+
+                    <!-- USDT TRC20 -->
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong style="color: #10b981;"><i class="fas fa-coins"></i> USDT (TRC-20 Network)</strong>
+                            <span class="badge badge-emerald">Fast / Low Fee</span>
+                        </div>
+                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
+                            {{ settings.usdt_trc20_address }}
+                        </div>
+                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.usdt_trc20_address }}">
+                            <i class="fas fa-copy"></i> Copy USDT Address
+                        </button>
+                    </div>
+
+                    <!-- Ethereum -->
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong style="color: #60a5fa;"><i class="fab fa-ethereum"></i> Ethereum / USDT (ERC-20)</strong>
+                            <span class="badge badge-purple">Smart Contract</span>
+                        </div>
+                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
+                            {{ settings.eth_wallet_address }}
+                        </div>
+                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.eth_wallet_address }}">
+                            <i class="fas fa-copy"></i> Copy ETH Address
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bank Wire & Submission Form -->
+                <div class="glass-card-luxury" style="padding: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 1.35rem;">Bank Wire Coordinates</h3>
+                        <span class="badge badge-emerald">SEGREGATED</span>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; font-size: 0.88rem; line-height: 1.8;">
+                        <div><strong>Bank Name:</strong> {{ settings.bank_name }}</div>
+                        <div><strong>Account Beneficiary:</strong> {{ settings.bank_account_name }}</div>
+                        <div><strong>Account Number:</strong> <span class="mono-num">{{ settings.bank_account_number }}</span></div>
+                        <div><strong>SWIFT / BIC / ABA:</strong> <span class="mono-num">{{ settings.bank_routing_swift }}</span></div>
+                    </div>
+
+                    <!-- Deposit Submission Form -->
+                    <h4 style="font-size: 1.1rem; margin-bottom: 14px;">Confirm & Submit Deposit</h4>
+                    <form method="POST" action="{% url 'submit_deposit' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="form-label">Deposit Amount ($ USD)</label>
+                            <input type="number" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Payment Channel</label>
+                            <select name="method" class="form-control">
+                                <option value="USDT_TRC20">USDT (TRC-20)</option>
+                                <option value="BTC">Bitcoin (BTC)</option>
+                                <option value="USDT_ERC20">USDT (ERC-20)</option>
+                                <option value="ETH">Ethereum (ETH)</option>
+                                <option value="BANK_WIRE">International Bank Wire Transfer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Transaction Hash / Wire Reference</label>
+                            <input type="text" name="proof_hash" class="form-control" placeholder="TxID or wire transaction code">
+                        </div>
+
+                        <!-- Instant Demo Toggle for Evaluation -->
+                        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; color: var(--gold-light);">
+                                <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 16px; height: 16px;">
+                                <span><strong>Instant Demo Credit:</strong> Immediately credit balance to test loan qualification without admin wait.</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold" style="width: 100%;">
+                            <i class="fas fa-check-circle"></i> Dispatch Deposit Notice
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Transaction Ledger -->
+        <div id="tab-transactions" class="tab-pane" style="display: none;">
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <h3 style="font-size: 1.35rem; margin-bottom: 16px;">Client Account Ledger</h3>
+                {% if recent_txns %}
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                            <th style="padding: 12px;">Reference</th>
+                            <th style="padding: 12px;">Type</th>
+                            <th style="padding: 12px;">Description</th>
+                            <th style="padding: 12px;">Amount</th>
+                            <th style="padding: 12px;">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in recent_txns %}
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                            <td class="mono-num" style="padding: 14px; color: var(--text-dim);">#{{ tx.reference|slice:":8" }}</td>
+                            <td style="padding: 14px;">
+                                <span class="badge {% if tx.is_credit %}badge-emerald{% else %}badge-gold{% endif %}">
+                                    {{ tx.get_txn_type_display }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px; color: var(--text-main);">{{ tx.description }}</td>
+                            <td class="mono-num" style="padding: 14px; font-weight: 700; color: {% if tx.is_credit %}#34d399{% else %}#ffffff{% endif %};">
+                                {% if tx.is_credit %}+{% else %}-{% endif %}${{ tx.amount|floatformat:2 }}
+                            </td>
+                            <td style="padding: 14px; color: var(--text-dim);">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="color: var(--text-dim);">No transactions recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Invest Allocation -->
+<div id="investModal" class="modal-backdrop">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('investModal')">&times;</button>
+        <div style="margin-bottom: 20px;">
+            <span class="badge badge-gold" id="invest-modal-area">SECTOR</span>
+            <h3 id="invest-modal-title" style="font-size: 1.5rem; margin-top: 8px;">Allocate Capital</h3>
+            <div id="invest-modal-roi" class="mono-num text-emerald font-bold" style="font-size: 1.1rem; margin-top: 4px;"></div>
+        </div>
+
+        <form method="POST" action="{% url 'create_investment' %}">
+            {% csrf_token %}
+            <input type="hidden" id="invest-plan-id" name="plan_id" value="">
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <label class="form-label" style="margin-bottom: 0;">Investment Amount ($ USD)</label>
+                    <span id="invest-min-max-label" class="mono-num" style="font-size: 0.78rem; color: var(--text-dim);"></span>
+                </div>
+                <input type="number" id="invest-amount-input" name="amount" class="form-control mono-num" min="1000" step="500" required>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; font-size: 0.85rem; display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Available Wallet Balance:</span>
+                <strong class="mono-num text-white">${{ profile.wallet_balance|floatformat:2 }}</strong>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%;">
+                <i class="fas fa-lock"></i> Confirm & Activate Investment
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Quick Hybrid Deposit -->
+<div id="depositModal" class="modal-backdrop">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('depositModal')">&times;</button>
+        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Deposit Capital</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+            Deposits increase your wallet balance and qualify you for higher private credit loan tiers.
+        </p>
+
+        <form method="POST" action="{% url 'submit_deposit' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Deposit Amount ($ USD)</label>
+                <input type="number" name="amount" class="form-control mono-num" placeholder="e.g. 50000" min="100" step="500" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Deposit Method</label>
+                <select name="method" class="form-control">
+                    <option value="USDT_TRC20">USDT (TRC-20)</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="BANK_WIRE">Bank Wire Transfer (JPMorgan)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Transaction Reference / Note</label>
+                <input type="text" name="proof_hash" class="form-control" placeholder="Blockchain TxID or Bank Reference">
+            </div>
+
+            <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; color: var(--gold-light);">
+                    <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 16px; height: 16px;">
+                    <span><strong>Instant Demo Credit:</strong> Instantly credit balance to test loan unlocks right away.</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%;">
+                <i class="fas fa-check"></i> Process Deposit
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Withdrawal -->
+<div id="withdrawModal" class="modal-backdrop">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('withdrawModal')">&times;</button>
+        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Request Withdrawal</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+            Liquid balance available for withdrawal: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:2 }}</strong>
+        </p>
+
+        <form method="POST" action="{% url 'submit_withdrawal' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Withdrawal Amount ($ USD)</label>
+                <input type="number" name="amount" class="form-control mono-num" max="{{ profile.wallet_balance|floatformat:2 }}" min="50" step="50" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Disbursement Channel</label>
+                <select name="payout_method" class="form-control">
+                    <option value="USDT (TRC-20)">USDT (TRC-20)</option>
+                    <option value="Bitcoin (BTC)">Bitcoin (BTC)</option>
+                    <option value="Bank Wire Transfer">Bank Wire Transfer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Destination Address / Bank Coordinates</label>
+                <textarea name="destination_details" class="form-control" rows="3" placeholder="Enter recipient wallet address or full bank wire details" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%;">
+                <i class="fas fa-paper-plane"></i> Authorize Treasury Dispatch
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchDashboardTab(tabId) {
+    const btn = document.querySelector(`[data-tab-target="${tabId}"]`);
+    if (btn) btn.click();
+}
+
+function recalcUserLoan() {
+    const inputAmount = document.getElementById('user-loan-amount');
+    const selectTerm = document.getElementById('user-loan-term');
+    if (!inputAmount || !selectTerm) return;
+
+    const amount = parseFloat(inputAmount.value) || 0;
+    const term = parseInt(selectTerm.value) || 6;
+    const rate = term === 6 ? 0.5 : 1.0;
+
+    const totalInterest = amount * (rate / 100.0) * term;
+    const totalRepayable = amount + totalInterest;
+    const monthly = term > 0 ? (totalRepayable / term) : 0;
+
+    const elP = document.getElementById('schedule-principal');
+    const elR = document.getElementById('schedule-rate');
+    const elI = document.getElementById('schedule-interest');
+    const elT = document.getElementById('schedule-total');
+    const elM = document.getElementById('schedule-monthly');
+
+    if (elP) elP.innerText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elR) elR.innerText = `${rate}% / month (${(rate * term).toFixed(1)}% total)`;
+    if (elI) elI.innerText = `$${totalInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elT) elT.innerText = `$${totalRepayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elM) elM.innerText = `$${monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    recalcUserLoan();
+});
+</script>
+{% endblock %}
