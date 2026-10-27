@@ -386,11 +386,20 @@ h1, h2, h3, h4, .brand-font {
   gap: 14px;
 }
 
-/* Hero Section */
+/* Hero Section with Cinematic Background */
+.hero-wrapper {
+  position: relative;
+  background: radial-gradient(circle at 60% 20%, rgba(212, 175, 55, 0.15) 0%, rgba(7, 10, 18, 0.85) 60%), linear-gradient(180deg, rgba(7, 10, 18, 0.7) 0%, rgba(7, 10, 18, 0.98) 100%), url('/static/img/hero_bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
 .hero-section {
   position: relative;
-  padding: 160px 24px 100px;
-  max-width: 1380px;
+  padding: 170px 24px 110px;
+  max-width: 1400px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
@@ -403,15 +412,16 @@ h1, h2, h3, h4, .brand-font {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  background: rgba(212, 175, 55, 0.1);
+  padding: 8px 18px;
+  background: rgba(212, 175, 55, 0.15);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-full);
   margin-bottom: 24px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--gold-light);
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
 }
 
 .pulse-dot {
