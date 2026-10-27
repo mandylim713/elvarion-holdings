@@ -13,7 +13,8 @@ from django.db import transaction as db_transaction
 from .models import (
     UserProfile, InvestmentArea, InvestmentPlan, UserInvestment,
     LoanTierCriteria, LoanTermConfig, LoanApplication,
-    DepositRequest, WithdrawalRequest, Transaction, CompanySetting
+    DepositRequest, WithdrawalRequest, Transaction, CompanySetting,
+    KYCSubmission
 )
 
 def home(request):
@@ -35,33 +36,40 @@ def home(request):
 
 
 def register_view(request):
-    """User account registration"""
+    """Institutional User Account Onboarding"""
     if request.user.is_authenticated:
         return redirect('dashboard')
     
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
+        account_type = request.POST.get('account_type', 'individual')
         username = request.POST.get('username', '').strip().lower()
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
         password_confirm = request.POST.get('password_confirm', '')
-        country = request.POST.get('country', 'United States')
-        phone = request.POST.get('phone', '')
+        country = request.POST.get('country', 'United States').strip()
+        phone_code = request.POST.get('phone_code', '+1').strip()
+        phone_number = request.POST.get('phone', '').strip()
+        phone = f"{phone_code} {phone_number}" if phone_number else ''
 
         if not username or not email or not password:
             messages.error(request, 'Please complete all required fields.')
             return render(request, 'auth/register.html')
 
         if password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
+            messages.error(request, 'Passwords do not match. Please re-enter.')
+            return render(request, 'auth/register.html')
+
+        if len(password) < 6:
+            messages.error(request, 'Security requirement: Password must be at least 6 characters.')
             return render(request, 'auth/register.html')
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username is already taken.')
+            messages.error(request, f'Username "{username}" is already registered. Please select another.')
             return render(request, 'auth/register.html')
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'An account with this email already exists.')
+            messages.error(request, 'An institutional account with this corporate email already exists.')
             return render(request, 'auth/register.html')
 
         # Split full name
@@ -79,27 +87,30 @@ def register_view(request):
 
         UserProfile.objects.create(
             user=user,
+            account_type=account_type,
             phone=phone,
             country=country,
+            kyc_status='unverified',
             wallet_balance=Decimal('0.00'),
             total_deposited=Decimal('0.00')
         )
 
         login(request, user)
-        messages.success(request, f'Welcome to Elvarion Holdings, {user.first_name or user.username}!')
+        messages.success(request, f'Welcome to Elvarion Holdings Private Wealth, {user.first_name or user.username}. Your secure vault has been provisioned.')
         return redirect('dashboard')
 
     return render(request, 'auth/register.html')
 
 
 def login_view(request):
-    """User and admin sign-in"""
+    """User and admin sign-in with session remember option"""
     if request.user.is_authenticated:
         return redirect('dashboard')
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '')
+        remember_me = request.POST.get('remember_me') == '1'
 
         # Allow username or email login
         user = authenticate(request, username=identifier, password=password)
@@ -112,9 +123,14 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                request.session.set_expiry(0)  # On browser close
+
             # Ensure profile exists
             UserProfile.objects.get_or_create(user=user)
-            messages.success(request, f'Welcome back, {user.first_name or user.username}.')
+            messages.success(request, f'Vault unlocked. Welcome back, {user.first_name or user.username}.')
             next_url = request.GET.get('next')
             if next_url:
                 return redirect(next_url)
@@ -122,7 +138,7 @@ def login_view(request):
                 return redirect('admin_management')
             return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid credentials. Please verify username and password.')
+            messages.error(request, 'Authentication failed. Please verify your credentials or contact Treasury Concierge.')
 
     return render(request, 'auth/login.html')
 
@@ -164,6 +180,10 @@ def dashboard(request):
             'progress_pct': round(inv.get_progress_percentage(), 1),
         })
 
+    # Deposits history for user
+    user_deposits = DepositRequest.objects.filter(user=request.user).order_by('-created_at')[:15]
+    latest_kyc = KYCSubmission.objects.filter(user=request.user).order_by('-submitted_at').first()
+
     context = {
         'profile': profile,
         'active_investments': active_investments_data,
@@ -177,6 +197,8 @@ def dashboard(request):
         'next_tier_remaining': next_tier_remaining,
         'user_loans': user_loans,
         'recent_txns': recent_txns,
+        'user_deposits': user_deposits,
+        'latest_kyc': latest_kyc,
         'total_live_roi': total_live_roi,
         'settings': CompanySetting.get_settings(),
     }
@@ -461,15 +483,81 @@ def api_loan_calculator(request):
     })
 
 
+@login_required
+def submit_kyc(request):
+    """Investor submits institutional KYC identification and verification documents"""
+    if request.method != 'POST':
+        return redirect('dashboard')
+
+    profile = request.user.profile
+    full_legal_name = request.POST.get('full_legal_name', '').strip()
+    dob_str = request.POST.get('date_of_birth', '').strip()
+    residential_address = request.POST.get('residential_address', '').strip()
+    city = request.POST.get('city', '').strip()
+    postal_code = request.POST.get('postal_code', '').strip()
+    country = request.POST.get('country', profile.country).strip()
+
+    id_type = request.POST.get('id_type', 'passport')
+    id_number = request.POST.get('id_number', '').strip()
+    source_of_wealth = request.POST.get('source_of_wealth', 'employment')
+    estimated_net_worth = request.POST.get('estimated_net_worth', '$1,000,000 - $5,000,000')
+    pep_status = request.POST.get('pep_status') == '1'
+
+    id_front_image = request.FILES.get('id_front_image')
+    id_back_image = request.FILES.get('id_back_image')
+    proof_of_address = request.FILES.get('proof_of_address')
+    selfie_image = request.FILES.get('selfie_image')
+
+    if not full_legal_name or not id_number or not residential_address:
+        messages.error(request, 'Please complete all required identity and address fields.')
+        return redirect('dashboard')
+
+    date_of_birth = None
+    if dob_str:
+        try:
+            from datetime import datetime
+            date_of_birth = datetime.strptime(dob_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    submission = KYCSubmission.objects.create(
+        user=request.user,
+        full_legal_name=full_legal_name,
+        date_of_birth=date_of_birth,
+        residential_address=residential_address,
+        city=city,
+        postal_code=postal_code,
+        country=country,
+        id_type=id_type,
+        id_number=id_number,
+        id_front_image=id_front_image,
+        id_back_image=id_back_image,
+        proof_of_address=proof_of_address,
+        selfie_image=selfie_image,
+        source_of_wealth=source_of_wealth,
+        estimated_net_worth=estimated_net_worth,
+        pep_status=pep_status,
+        status='pending'
+    )
+
+    profile.kyc_status = 'pending'
+    profile.save()
+    ref_id = str(submission.submission_id)[:8]
+    messages.success(request, f'KYC Dossier #{ref_id} submitted successfully. Our Compliance Desk will verify your credentials within 2 business hours.')
+    return redirect('dashboard')
+
+
 # ---------------- ADMIN MANAGEMENT PORTAL ----------------
 
 @user_passes_test(lambda u: u.is_staff)
 def admin_management(request):
-    """Executive Admin Management View for quick control over areas, plans, loans, and deposits"""
+    """Executive Admin Management View for quick control over areas, plans, loans, KYC, and deposits"""
     pending_loans = LoanApplication.objects.filter(status='pending')
     all_loans = LoanApplication.objects.all()[:20]
     pending_deposits = DepositRequest.objects.filter(status='pending')
     pending_withdrawals = WithdrawalRequest.objects.filter(status='pending')
+    pending_kyc = KYCSubmission.objects.filter(status='pending')
+    all_kyc = KYCSubmission.objects.all().order_by('-submitted_at')[:25]
     
     investment_areas = InvestmentArea.objects.all()
     plans = InvestmentPlan.objects.all()
@@ -482,6 +570,8 @@ def admin_management(request):
         'all_loans': all_loans,
         'pending_deposits': pending_deposits,
         'pending_withdrawals': pending_withdrawals,
+        'pending_kyc': pending_kyc,
+        'all_kyc': all_kyc,
         'investment_areas': investment_areas,
         'plans': plans,
         'loan_tiers': loan_tiers,
@@ -490,6 +580,38 @@ def admin_management(request):
         'settings': CompanySetting.get_settings(),
     }
     return render(request, 'management/index.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_kyc_action(request, submission_id, action):
+    """Compliance Director approves or declines a KYC submission"""
+    submission = get_object_or_404(KYCSubmission, id=submission_id)
+    notes = request.POST.get('admin_notes', '').strip()
+
+    if action == 'approve':
+        submission.status = 'approved'
+        submission.reviewed_at = timezone.now()
+        submission.admin_notes = notes or 'Verified and Approved by Compliance Officer'
+        submission.save()
+
+        profile = submission.user.profile
+        profile.kyc_status = 'verified'
+        profile.save()
+
+        messages.success(request, f"KYC for {submission.full_legal_name} ({submission.user.username}) approved as Tier-1 Verified.")
+    elif action == 'reject':
+        submission.status = 'rejected'
+        submission.reviewed_at = timezone.now()
+        submission.admin_notes = notes or 'Document did not meet regulatory standards. Please resubmit.'
+        submission.save()
+
+        profile = submission.user.profile
+        profile.kyc_status = 'unverified'
+        profile.save()
+
+        messages.warning(request, f"KYC for {submission.full_legal_name} was declined.")
+
+    return redirect('admin_management')
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -511,20 +633,21 @@ def admin_loan_action(request, loan_id, action):
         profile.loan_balance += loan.amount_requested
         profile.save()
 
+        loan_ref = str(loan.loan_reference)[:8]
         Transaction.objects.create(
             user=loan.user,
             txn_type='loan_disbursement',
             amount=loan.amount_requested,
-            description=f"Approved Private Credit Loan #{loan.loan_reference[:8]}",
+            description=f"Approved Private Credit Loan #{loan_ref}",
             is_credit=True
         )
-        messages.success(request, f"Loan #{loan.loan_reference[:8]} for ${loan.amount_requested:,.2f} approved and disbursed to {loan.user.username}'s loan balance.")
+        messages.success(request, f"Loan #{loan_ref} for ${loan.amount_requested:,.2f} approved and disbursed to {loan.user.username}'s loan balance.")
     elif action == 'reject':
         loan.status = 'rejected'
         loan.reviewed_at = timezone.now()
         loan.admin_notes = admin_note or 'Declined based on underwriting review.'
         loan.save()
-        messages.warning(request, f"Loan #{loan.loan_reference[:8]} declined.")
+        messages.warning(request, f"Loan #{str(loan.loan_reference)[:8]} declined.")
 
     return redirect('admin_management')
 
@@ -551,12 +674,13 @@ def admin_deposit_action(request, deposit_id, action):
             description=f"Approved Deposit ({deposit.get_method_display()})",
             is_credit=True
         )
-        messages.success(request, f"Deposit #{deposit.reference_id[:8]} for ${deposit.amount:,.2f} approved and credited to {deposit.user.username}.")
+        dep_ref = str(deposit.reference_id)[:8]
+        messages.success(request, f"Deposit #{dep_ref} for ${deposit.amount:,.2f} approved and credited to {deposit.user.username}.")
     elif action == 'reject':
         deposit.status = 'rejected'
         deposit.processed_at = timezone.now()
         deposit.save()
-        messages.warning(request, f"Deposit #{deposit.reference_id[:8]} rejected.")
+        messages.warning(request, f"Deposit #{str(deposit.reference_id)[:8]} rejected.")
 
     return redirect('admin_management')
 

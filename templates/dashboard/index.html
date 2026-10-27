@@ -5,11 +5,56 @@
 {% block content %}
 <div style="padding: 120px 24px 80px; max-width: 1400px; margin: 0 auto;">
 
+    <!-- Top KYC Compliance Alert Banner if Not Fully Verified -->
+    {% if profile.kyc_status == 'unverified' %}
+    <div style="background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(212, 175, 55, 0.1)); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 1.2rem;">
+                <i class="fas fa-id-card-clip"></i>
+            </div>
+            <div>
+                <strong style="color: #ffffff; font-size: 0.95rem;">Identity Verification Required (Tier-1 Compliance)</strong>
+                <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 2px;">
+                    Complete institutional KYC to unlock private credit loan borrowing ($300k - $5M) and unlimited treasury withdrawals.
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-gold" onclick="switchDashboardTab('tab-kyc')">
+            <i class="fas fa-file-shield"></i> Complete KYC Verification Now
+        </button>
+    </div>
+    {% elif profile.kyc_status == 'pending' %}
+    <div style="background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(212, 175, 55, 0.1)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.2); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 1.2rem;">
+                <i class="fas fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <strong style="color: #ffffff; font-size: 0.95rem;">KYC Compliance Dossier Under Review</strong>
+                <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 2px;">
+                    Your identification documents are currently under review by our Compliance Committee. Turnaround SLA &lt; 2 business hours.
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-outline-gold" onclick="switchDashboardTab('tab-kyc')">
+            <i class="fas fa-eye"></i> View Verification Dossier
+        </button>
+    </div>
+    {% endif %}
+
     <!-- Client Header -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
         <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
                 <span class="badge badge-gold"><i class="fas fa-crown"></i> PRIVATE WEALTH CLIENT</span>
+                {% if profile.kyc_status == 'verified' %}
+                    <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> TIER-1 KYC VERIFIED</span>
+                {% elif profile.kyc_status == 'pending' %}
+                    <span class="badge badge-gold"><i class="fas fa-clock"></i> KYC UNDER REVIEW</span>
+                {% else %}
+                    <span class="badge badge-purple"><i class="fas fa-shield"></i> KYC UNVERIFIED</span>
+                {% endif %}
+
                 {% if eligible_tier %}
                     <span class="badge badge-emerald"><i class="fas fa-certificate"></i> {{ eligible_tier.tier_name }}</span>
                 {% else %}
@@ -20,13 +65,15 @@
                 Portfolio Desk &bull; <span class="gold-gradient-text">{{ user.first_name|default:user.username }}</span>
             </h1>
             <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 4px;">
-                Client UID: <span class="mono-num" style="color: var(--text-muted);">EH-{{ user.id|stringformat:"05d" }}</span> &bull; Jurisdiction: {{ profile.country }}
+                Client UID: <span class="mono-num" style="color: var(--text-muted);">EH-{{ user.id|stringformat:"05d" }}</span> &bull; 
+                Entity Type: <strong style="color: var(--text-main); text-transform: capitalize;">{{ profile.get_account_type_display|default:profile.account_type }}</strong> &bull; 
+                Jurisdiction: {{ profile.country }}
             </p>
         </div>
 
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button class="btn btn-gold btn-sm" onclick="openModal('depositModal')">
-                <i class="fas fa-plus-circle"></i> Hybrid Deposit
+            <button class="btn btn-gold btn-sm" onclick="switchDashboardTab('tab-deposit')">
+                <i class="fas fa-plus-circle"></i> Institutional Treasury Deposit
             </button>
             <button class="btn btn-outline-gold btn-sm" onclick="openModal('withdrawModal')">
                 <i class="fas fa-arrow-up-from-bracket"></i> Request Withdrawal
@@ -69,13 +116,13 @@
                 <div style="text-align: right;">
                     <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Active Capital</div>
                     <div class="mono-num" style="font-size: 1.4rem; font-weight: 700; color: #ffffff;">
-                        ${% widthratio active_investments|length 1 1 as dummy %}{{ active_investments|length }} Active
+                        {{ active_investments|length }} Active Portfolios
                     </div>
                 </div>
                 <div style="text-align: right; border-left: 1px solid var(--border-subtle); padding-left: 20px;">
                     <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Loan Credit Status</div>
                     <div class="mono-num" style="font-size: 1.4rem; font-weight: 700; color: var(--gold-light);">
-                        {% if eligible_tier %}{{ eligible_tier.badge }}{% else %}Unqualified (<$25k){% endif %}
+                        {% if eligible_tier %}{{ eligible_tier.badge }}{% else %}Unqualified (&lt;$25k){% endif %}
                     </div>
                 </div>
             </div>
@@ -95,7 +142,7 @@
             </div>
             <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.8rem;">
                 <span style="color: var(--text-muted);">Available for deployment</span>
-                <a href="#" onclick="openModal('depositModal')" style="color: var(--gold-light); text-decoration: none; font-weight: 600;">+ Fund Wallet</a>
+                <a href="javascript:void(0)" onclick="switchDashboardTab('tab-deposit')" style="color: var(--gold-light); text-decoration: none; font-weight: 600;">+ Fund Wallet</a>
             </div>
         </div>
 
@@ -135,7 +182,7 @@
             </div>
         </div>
 
-        <!-- Total Accrued Past Profits -->
+        <!-- Total Withdrawn -->
         <div class="glass-card-luxury" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <span style="color: var(--text-dim); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Total Withdrawn</span>
@@ -154,16 +201,26 @@
     <div class="tabs-container">
         <div class="tabs-nav" style="margin-bottom: 32px;">
             <button class="tab-btn active" data-tab-target="tab-investments">
-                <i class="fas fa-chart-line"></i> My Active Portfolios ({{ active_investments|length }})
+                <i class="fas fa-chart-line"></i> My Portfolios ({{ active_investments|length }})
             </button>
             <button class="tab-btn" data-tab-target="tab-invest-now">
                 <i class="fas fa-layer-group"></i> Invest in New Sector
             </button>
             <button class="tab-btn" data-tab-target="tab-loans" id="btn-tab-loans">
-                <i class="fas fa-hand-holding-dollar"></i> Private Credit & Loans Session
+                <i class="fas fa-hand-holding-dollar"></i> Private Credit & Loans
             </button>
-            <button class="tab-btn" data-tab-target="tab-deposit">
-                <i class="fas fa-credit-card"></i> Hybrid Deposit & Wallet
+            <button class="tab-btn" data-tab-target="tab-deposit" id="btn-tab-deposit">
+                <i class="fas fa-coins text-gold"></i> Institutional Treasury & Deposits
+            </button>
+            <button class="tab-btn" data-tab-target="tab-kyc" id="btn-tab-kyc">
+                <i class="fas fa-id-card-clip"></i> KYC Compliance & Verification
+                {% if profile.kyc_status == 'verified' %}
+                    <span class="badge badge-emerald" style="font-size: 0.65rem; margin-left: 6px;">VERIFIED</span>
+                {% elif profile.kyc_status == 'pending' %}
+                    <span class="badge badge-gold" style="font-size: 0.65rem; margin-left: 6px;">PENDING</span>
+                {% else %}
+                    <span class="badge badge-purple" style="font-size: 0.65rem; margin-left: 6px;">REQUIRED</span>
+                {% endif %}
             </button>
             <button class="tab-btn" data-tab-target="tab-transactions">
                 <i class="fas fa-receipt"></i> Transaction Ledger
@@ -296,7 +353,7 @@
             {% endfor %}
         </div>
 
-        <!-- TAB 3: Private Credit & Loans Session (Exact user criteria) -->
+        <!-- TAB 3: Private Credit & Loans Session -->
         <div id="tab-loans" class="tab-pane" style="display: none;">
             <!-- Eligibility Status Overview -->
             <div class="glass-card-luxury" style="padding: 36px; border-color: var(--border-gold); margin-bottom: 36px;">
@@ -328,7 +385,7 @@
                     </div>
                 </div>
 
-                <!-- Step Criteria Visual Bar (Exact prompt numbers) -->
+                <!-- Step Criteria Visual Bar -->
                 <div style="margin-top: 36px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                     {% for tier in loan_tiers %}
                     <div style="padding: 18px; border-radius: var(--radius-sm); background: {% if profile.total_deposited >= tier.min_deposit_required %}rgba(212, 175, 55, 0.15); border: 1px solid var(--border-gold);{% else %}rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);{% endif %}">
@@ -449,7 +506,7 @@
                 <p style="color: var(--text-muted); max-width: 550px; margin: 0 auto 24px;">
                     To qualify for the entry-level loan range ($300,000 – $799,000), your account requires a minimum cumulative deposit of $25,000. You currently have ${{ profile.total_deposited|floatformat:2 }}.
                 </p>
-                <button class="btn btn-gold" onclick="openModal('depositModal')">
+                <button class="btn btn-gold" onclick="switchDashboardTab('tab-deposit')">
                     <i class="fas fa-plus"></i> Fund Deposit to Unlock Loans
                 </button>
             </div>
@@ -499,115 +556,538 @@
             {% endif %}
         </div>
 
-        <!-- TAB 4: Hybrid Deposit Center & Wallet Management -->
+        <!-- TAB 4: ENHANCED INSTITUTIONAL TREASURY & HYBRID DEPOSIT CENTER -->
         <div id="tab-deposit" class="tab-pane" style="display: none;">
-            <div class="grid-2">
-                <!-- Crypto Options -->
-                <div class="glass-card-luxury" style="padding: 32px;">
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <span class="badge badge-gold"><i class="fas fa-building-columns"></i> SEGREGATED CUSTODY</span>
+                        <h2 style="font-size: 1.8rem; margin-top: 6px;">Institutional Treasury & Hybrid Deposit Gateways</h2>
+                        <p style="color: var(--text-muted); font-size: 0.92rem;">
+                            Direct segregated deposit channels via Blockchain (BTC, USDT TRC-20, USDT ERC-20, ETH) and JPMorgan Chase Private Bank Wire.
+                        </p>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
+                        <span style="font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700;">Account Cumulative Total</span>
+                        <div class="mono-num text-emerald font-bold" style="font-size: 1.25rem;">${{ profile.total_deposited|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Currency Selection Tabs -->
+            <div class="crypto-selector-tabs">
+                <div class="crypto-tab-card active" onclick="selectDepositGateway('USDT_TRC20', this)">
+                    <div class="crypto-tab-icon" style="color: #10b981;"><i class="fas fa-coins"></i></div>
+                    <div class="crypto-tab-name">USDT (TRC-20)</div>
+                    <div class="crypto-tab-network">Tron &bull; Fast & Low Fee</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('BTC', this)">
+                    <div class="crypto-tab-icon" style="color: #f59e0b;"><i class="fab fa-bitcoin"></i></div>
+                    <div class="crypto-tab-name">Bitcoin (BTC)</div>
+                    <div class="crypto-tab-network">Native SegWit &bull; 3 Confs</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_ERC20', this)">
+                    <div class="crypto-tab-icon" style="color: #60a5fa;"><i class="fas fa-diamond"></i></div>
+                    <div class="crypto-tab-name">USDT (ERC-20)</div>
+                    <div class="crypto-tab-network">Ethereum Mainnet</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('ETH', this)">
+                    <div class="crypto-tab-icon" style="color: #a78bfa;"><i class="fab fa-ethereum"></i></div>
+                    <div class="crypto-tab-name">Ethereum (ETH)</div>
+                    <div class="crypto-tab-network">Native ERC-20</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('BANK_WIRE', this)">
+                    <div class="crypto-tab-icon" style="color: #f7d774;"><i class="fas fa-landmark"></i></div>
+                    <div class="crypto-tab-name">Bank Wire (USD)</div>
+                    <div class="crypto-tab-network">JPMorgan Chase Private</div>
+                </div>
+            </div>
+
+            <!-- Gateway Interactive Box -->
+            <div class="grid-2" style="margin-bottom: 36px;">
+                <!-- Left: Dynamic Gateway Coordinates & QR Code -->
+                <div class="glass-card-luxury" style="padding: 32px;" id="gateway-info-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1.35rem;">Cryptocurrency Gateways</h3>
-                        <span class="badge badge-gold">INSTANT LIQUIDITY</span>
+                        <div>
+                            <span class="badge badge-gold" id="gw-badge">TRON NETWORK (TRC-20)</span>
+                            <h3 id="gw-title" style="font-size: 1.4rem; margin-top: 6px;">USDT Custody Gateway</h3>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-dim);" id="gw-status">
+                            <i class="fas fa-circle-check text-emerald"></i> Channel Active
+                        </div>
                     </div>
 
-                    <!-- Bitcoin -->
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <strong style="color: #f59e0b;"><i class="fab fa-bitcoin"></i> Bitcoin (BTC Network)</strong>
-                            <span class="badge badge-cyan">Tier 1</span>
+                    <!-- Dynamic QR Container -->
+                    <div id="crypto-qr-wrapper">
+                        <div class="qr-container" id="qr-code-display">
+                            <!-- Dynamic SVG QR Code renders here -->
                         </div>
-                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
-                            {{ settings.btc_wallet_address }}
+                        <p style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
+                            Scan QR Code with your institutional wallet or corporate exchange
+                        </p>
+                    </div>
+
+                    <!-- Address & Copy Button -->
+                    <div id="crypto-address-wrapper">
+                        <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase;">Designated Inbound Wallet Address</label>
+                        <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <span class="mono-num" id="gw-address-text" style="font-size: 0.88rem; color: #ffffff; word-break: break-all;">
+                                {{ settings.usdt_trc20_address }}
+                            </span>
+                            <button type="button" class="btn btn-sm btn-outline-gold copy-btn" id="gw-copy-btn" data-clipboard-text="{{ settings.usdt_trc20_address }}" style="white-space: nowrap;">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
                         </div>
-                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.btc_wallet_address }}">
-                            <i class="fas fa-copy"></i> Copy BTC Address
+                    </div>
+
+                    <!-- Bank Wire Details (Hidden by default, shown when Wire selected) -->
+                    <div id="bank-wire-wrapper" style="display: none;">
+                        <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 16px; font-size: 0.88rem; line-height: 1.9;">
+                            <div><strong>Financial Institution:</strong> {{ settings.bank_name }}</div>
+                            <div><strong>Account Title:</strong> {{ settings.bank_account_name }}</div>
+                            <div><strong>Account Number / IBAN:</strong> <span class="mono-num text-white font-bold">{{ settings.bank_account_number }}</span></div>
+                            <div><strong>SWIFT / BIC / ABA:</strong> <span class="mono-num text-gold font-bold">{{ settings.bank_routing_swift }}</span></div>
+                            <div><strong>Jurisdiction:</strong> One World Trade Center, New York, NY</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="Bank: {{ settings.bank_name }} | Title: {{ settings.bank_account_name }} | Acct: {{ settings.bank_account_number }} | SWIFT: {{ settings.bank_routing_swift }}">
+                            <i class="fas fa-copy"></i> Copy Full Wire Coordinates
                         </button>
                     </div>
 
-                    <!-- USDT TRC20 -->
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <strong style="color: #10b981;"><i class="fas fa-coins"></i> USDT (TRC-20 Network)</strong>
-                            <span class="badge badge-emerald">Fast / Low Fee</span>
+                    <!-- Real-Time Crypto Conversion Estimator -->
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
+                            <span>Estimated Crypto Transfer Equivalent:</span>
+                            <span id="calc-crypto-rate" class="mono-num" style="color: var(--gold-light);">1 USDT ≈ $1.00 USD</span>
                         </div>
-                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
-                            {{ settings.usdt_trc20_address }}
+                        <div id="calc-crypto-output" class="mono-num" style="font-size: 1.15rem; font-weight: 700; color: #34d399;">
+                            25,000.00 USDT
                         </div>
-                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.usdt_trc20_address }}">
-                            <i class="fas fa-copy"></i> Copy USDT Address
-                        </button>
-                    </div>
-
-                    <!-- Ethereum -->
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <strong style="color: #60a5fa;"><i class="fab fa-ethereum"></i> Ethereum / USDT (ERC-20)</strong>
-                            <span class="badge badge-purple">Smart Contract</span>
-                        </div>
-                        <div class="mono-num" style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all; margin-bottom: 10px;">
-                            {{ settings.eth_wallet_address }}
-                        </div>
-                        <button class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="{{ settings.eth_wallet_address }}">
-                            <i class="fas fa-copy"></i> Copy ETH Address
-                        </button>
                     </div>
                 </div>
 
-                <!-- Bank Wire & Submission Form -->
+                <!-- Right: Deposit Dispatch Submission Form -->
                 <div class="glass-card-luxury" style="padding: 32px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1.35rem;">Bank Wire Coordinates</h3>
-                        <span class="badge badge-emerald">SEGREGATED</span>
+                        <h3 style="font-size: 1.35rem;">Deposit Dispatch Notification</h3>
+                        <span class="badge badge-emerald">STEP 2 OF 2</span>
                     </div>
 
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; font-size: 0.88rem; line-height: 1.8;">
-                        <div><strong>Bank Name:</strong> {{ settings.bank_name }}</div>
-                        <div><strong>Account Beneficiary:</strong> {{ settings.bank_account_name }}</div>
-                        <div><strong>Account Number:</strong> <span class="mono-num">{{ settings.bank_account_number }}</span></div>
-                        <div><strong>SWIFT / BIC / ABA:</strong> <span class="mono-num">{{ settings.bank_routing_swift }}</span></div>
-                    </div>
-
-                    <!-- Deposit Submission Form -->
-                    <h4 style="font-size: 1.1rem; margin-bottom: 14px;">Confirm & Submit Deposit</h4>
-                    <form method="POST" action="{% url 'submit_deposit' %}" enctype="multipart/form-data">
+                    <form method="POST" action="{% url 'submit_deposit' %}" enctype="multipart/form-data" id="depositForm">
                         {% csrf_token %}
+
+                        <!-- Hidden method synced with tabs -->
+                        <input type="hidden" name="method" id="form-deposit-method" value="USDT_TRC20">
+
                         <div class="form-group">
-                            <label class="form-label">Deposit Amount ($ USD)</label>
-                            <input type="number" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="100" required>
+                            <label class="form-label">Deposit Amount ($ USD) <span class="text-danger">*</span></label>
+                            <input type="number" id="deposit-amount-input" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="500" value="25000" oninput="updateCryptoConversion()" required>
+                            
+                            <!-- Preset Amount Chips -->
+                            <div class="preset-chips">
+                                <span class="preset-chip" onclick="setPresetDeposit(1000)">+$1,000</span>
+                                <span class="preset-chip" onclick="setPresetDeposit(5000)">+$5,000</span>
+                                <span class="preset-chip" onclick="setPresetDeposit(25000)" style="border-color: var(--border-gold); color: var(--gold-light);">+$25,000 (Tier-1 Loan)</span>
+                                <span class="preset-chip" onclick="setPresetDeposit(50000)">+$50,000 (Tier-2 Loan)</span>
+                                <span class="preset-chip" onclick="setPresetDeposit(100000)">+$100,000 (Tier-3 Loan)</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Payment Channel</label>
-                            <select name="method" class="form-control">
-                                <option value="USDT_TRC20">USDT (TRC-20)</option>
-                                <option value="BTC">Bitcoin (BTC)</option>
-                                <option value="USDT_ERC20">USDT (ERC-20)</option>
-                                <option value="ETH">Ethereum (ETH)</option>
-                                <option value="BANK_WIRE">International Bank Wire Transfer</option>
-                            </select>
+                            <label class="form-label">Selected Gateway Network</label>
+                            <div style="padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+                                <strong id="form-selected-method-label" style="color: var(--gold-light);">USDT (TRC-20 Tron Network)</strong>
+                                <span class="badge badge-cyan" id="form-selected-badge">INSTANT AUDIT</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Transaction Hash / Wire Reference</label>
-                            <input type="text" name="proof_hash" class="form-control" placeholder="TxID or wire transaction code">
+                            <label class="form-label">Blockchain TxID / Wire Transfer Reference <span class="text-danger">*</span></label>
+                            <input type="text" name="proof_hash" id="deposit-proof-hash" class="form-control" placeholder="e.g. 5e89a4cf98d10... or Bank Reference #89421" required>
                         </div>
 
-                        <!-- Instant Demo Toggle for Evaluation -->
-                        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px;">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; color: var(--gold-light);">
-                                <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 16px; height: 16px;">
-                                <span><strong>Instant Demo Credit:</strong> Immediately credit balance to test loan qualification without admin wait.</span>
+                        <div class="form-group">
+                            <label class="form-label">Transfer Receipt / Confirmation Screenshot (Optional)</label>
+                            <div class="file-dropzone" onclick="document.getElementById('receipt-file-input').click()">
+                                <input type="file" id="receipt-file-input" name="receipt_image" accept="image/*,.pdf" onchange="handleReceiptSelected(this)">
+                                <i class="fas fa-cloud-arrow-up text-gold" style="font-size: 1.5rem;"></i>
+                                <div class="dropzone-label">Click to upload deposit slip or transfer screenshot</div>
+                                <div class="dropzone-sub">Supports PNG, JPG, or PDF (Max 10MB)</div>
+                                <div id="receipt-filename" class="dropzone-selected-name" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Instant Evaluation Credit Demo Switch -->
+                        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 22px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.84rem; color: var(--gold-light);">
+                                <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 17px; height: 17px; accent-color: var(--gold-primary);">
+                                <span><strong>Instant Demo Credit:</strong> Immediately reflect funds into wallet & advance private credit loan tiers.</span>
                             </label>
                         </div>
 
-                        <button type="submit" class="btn btn-gold" style="width: 100%;">
-                            <i class="fas fa-check-circle"></i> Dispatch Deposit Notice
+                        <button type="submit" class="btn btn-gold" style="width: 100%; padding: 13px;">
+                            <i class="fas fa-check-circle"></i> Confirm & Dispatch Treasury Notice
                         </button>
                     </form>
                 </div>
             </div>
+
+            <!-- User Deposit Ledger History Table -->
+            <div class="glass-card-luxury" style="padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 1.35rem;">Inbound Treasury Deposit History</h3>
+                    <span class="badge badge-gold">{{ user_deposits|length }} Total Records</span>
+                </div>
+
+                {% if user_deposits %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                                <th style="padding: 12px;">Reference</th>
+                                <th style="padding: 12px;">Method / Gateway</th>
+                                <th style="padding: 12px;">Amount ($ USD)</th>
+                                <th style="padding: 12px;">Proof Hash / Reference</th>
+                                <th style="padding: 12px;">Status</th>
+                                <th style="padding: 12px;">Audit Note</th>
+                                <th style="padding: 12px;">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dep in user_deposits %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                                <td class="mono-num" style="padding: 14px; font-weight: 600; color: var(--gold-light);">
+                                    #{{ dep.reference_id|slice:":8" }}
+                                </td>
+                                <td style="padding: 14px;">
+                                    <span class="badge badge-cyan">{{ dep.get_method_display }}</span>
+                                </td>
+                                <td class="mono-num font-bold" style="padding: 14px; color: #34d399; font-size: 1rem;">
+                                    +${{ dep.amount|floatformat:2 }}
+                                </td>
+                                <td class="mono-num" style="padding: 14px; color: var(--text-muted); font-size: 0.78rem;">
+                                    {{ dep.proof_hash|truncatechars:20 }}
+                                </td>
+                                <td style="padding: 14px;">
+                                    {% if dep.status == 'approved' %}
+                                        <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> CONFIRMED</span>
+                                    {% elif dep.status == 'pending' %}
+                                        <span class="badge badge-gold"><i class="fas fa-clock"></i> PENDING AUDIT</span>
+                                    {% else %}
+                                        <span class="badge badge-purple">{{ dep.status|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 14px; color: var(--text-dim); font-size: 0.8rem;">
+                                    {{ dep.admin_notes|default:"Audited & Credited" }}
+                                </td>
+                                <td style="padding: 14px; color: var(--text-dim); font-size: 0.8rem;">
+                                    {{ dep.created_at|date:"M d, Y H:i" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color: var(--text-dim); font-size: 0.88rem;">No deposit records submitted yet.</p>
+                {% endif %}
+            </div>
         </div>
 
-        <!-- TAB 5: Transaction Ledger -->
+        <!-- TAB 5: AML / KYC COMPLIANCE & ACCREDITED INVESTOR VERIFICATION -->
+        <div id="tab-kyc" class="tab-pane" style="display: none;">
+            <div style="margin-bottom: 24px;">
+                <span class="badge badge-gold"><i class="fas fa-stamp"></i> REGULATORY STATUTORY FILING</span>
+                <h2 style="font-size: 1.8rem; margin-top: 6px;">AML &amp; KYC Investor Compliance Center</h2>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">
+                    Institutional accreditation, statutory anti-money laundering verification, and segregated custody accreditation.
+                </p>
+            </div>
+
+            {% if profile.kyc_status == 'verified' %}
+            <!-- Verified Accredited Certificate View -->
+            <div class="kyc-certificate-card" style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span class="badge badge-gold"><i class="fas fa-crown"></i> ELVARION HOLDINGS STATUTORY CERTIFICATE</span>
+                            <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> VERIFIED TIER-1 ACCREDITED</span>
+                        </div>
+                        <h2 style="font-size: 2.2rem; font-family: var(--font-serif); color: var(--gold-light); margin-bottom: 4px;">
+                            Certificate of Sovereign Investor Accreditation
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.92rem;">
+                            Issued under the fiduciary regulatory framework of Elvarion Holdings Private Wealth Management Ltd.
+                        </p>
+                    </div>
+                    <div class="certificate-seal">
+                        <i class="fas fa-award"></i>
+                    </div>
+                </div>
+
+                <div style="margin: 28px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 22px;">
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Certified Entity</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-top: 4px;">
+                            {{ user.first_name|default:user.username }} {{ user.last_name }}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Compliance Tier</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #34d399; margin-top: 4px;">
+                            Tier-1 Institutional
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Jurisdiction</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--gold-light); margin-top: 4px;">
+                            {{ profile.country }}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Fiduciary Status</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #60a5fa; margin-top: 4px;">
+                            Active &amp; Compliant
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px;">
+                        <h4 style="font-size: 1rem; color: var(--gold-light); margin-bottom: 8px;">
+                            <i class="fas fa-check-double text-emerald"></i> Granted Institutional Privileges
+                        </h4>
+                        <ul style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; padding-left: 20px;">
+                            <li>Eligible for Private Credit borrowing lines up to $5,000,000.</li>
+                            <li>Unlimited cryptocurrency and multi-million bank wire liquidity gateways.</li>
+                            <li>Direct segregated custody with Lloyds Insured Vaults.</li>
+                            <li>Dedicated Senior Wealth Partner &amp; Private Concierge Desk.</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px;">
+                        <h4 style="font-size: 1rem; color: var(--gold-light); margin-bottom: 8px;">
+                            <i class="fas fa-shield text-cyan"></i> Compliance Dossier Records
+                        </h4>
+                        {% if latest_kyc %}
+                        <div style="font-size: 0.82rem; line-height: 1.8; color: var(--text-muted);">
+                            <div><strong>Dossier Ref:</strong> <span class="mono-num text-white">#{{ latest_kyc.submission_id|slice:":8" }}</span></div>
+                            <div><strong>Document Type:</strong> {{ latest_kyc.get_id_type_display }} ({{ latest_kyc.id_number|truncatechars:15 }})</div>
+                            <div><strong>Source of Wealth:</strong> {{ latest_kyc.get_source_of_wealth_display }}</div>
+                            <div><strong>Verified On:</strong> {{ latest_kyc.reviewed_at|date:"M d, Y H:i"|default:"Verified" }}</div>
+                        </div>
+                        {% else %}
+                        <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;">
+                            Pre-approved Accredited Institutional Account.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% elif profile.kyc_status == 'pending' %}
+            <!-- Pending Verification Review State -->
+            <div class="glass-card-luxury" style="padding: 36px; border-color: rgba(245, 158, 11, 0.5); margin-bottom: 30px;">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 1.8rem;">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <span class="badge badge-gold">COMPLIANCE REVIEW IN PROGRESS</span>
+                        <h3 style="font-size: 1.5rem; margin-top: 4px;">KYC Identification Under Evaluation</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem;">
+                            Your identity dossier has been received and queued for Senior Compliance Officer verification.
+                        </p>
+                    </div>
+                </div>
+
+                {% if latest_kyc %}
+                <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px; font-size: 0.88rem; line-height: 1.8;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Dossier Reference</span>
+                            <div class="mono-num text-gold font-bold">#{{ latest_kyc.submission_id|slice:":8" }}</div>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Full Legal Name</span>
+                            <div class="text-white font-bold">{{ latest_kyc.full_legal_name }}</div>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Submitted Timestamp</span>
+                            <div class="text-muted">{{ latest_kyc.submitted_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Identification Document</span>
+                            <div class="text-white">{{ latest_kyc.get_id_type_display }} ({{ latest_kyc.id_number }})</div>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Declared Wealth Source</span>
+                            <div class="text-emerald">{{ latest_kyc.get_source_of_wealth_display }}</div>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Estimated SLA</span>
+                            <div style="color: #60a5fa;"><i class="fas fa-clock"></i> &lt; 2 Business Hours</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <p style="color: var(--text-dim); font-size: 0.84rem;">
+                    <i class="fas fa-circle-info text-gold"></i> Need urgent expediting for high-capital deployment? Contact our Compliance Desk at <strong>compliance@elvarionholdings.com</strong>.
+                </p>
+            </div>
+
+            {% else %}
+            <!-- Unverified Submission Form -->
+            <div class="glass-card-luxury" style="padding: 36px; border-color: var(--border-gold); margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h3 style="font-size: 1.5rem;">Tier-1 Institutional KYC Verification</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem;">
+                            Fulfill statutory identity verification under International Fiduciary &amp; Anti-Money Laundering Regulations.
+                        </p>
+                    </div>
+
+                    <!-- Fast Auto-Fill Test KYC Button -->
+                    <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemoKYC()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Test Dossier
+                    </button>
+                </div>
+
+                <form method="POST" action="{% url 'submit_kyc' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Section 1: Legal Identity & Address -->
+                    <div style="margin-bottom: 28px;">
+                        <h4 style="font-size: 1.1rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-user-shield"></i> 1. Legal Identity &amp; Tax Jurisdiction
+                        </h4>
+
+                        <div class="form-group">
+                            <label class="form-label">Full Legal Name (as shown on official Government ID) <span class="text-danger">*</span></label>
+                            <input type="text" id="kyc-fullname" name="full_legal_name" class="form-control" value="{{ user.get_full_name|default:user.username }}" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" id="kyc-dob" name="date_of_birth" class="form-control" value="1985-06-15" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tax Residency / Jurisdiction <span class="text-danger">*</span></label>
+                                <input type="text" id="kyc-country" name="country" class="form-control" value="{{ profile.country|default:'United States' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Permanent Residential / Corporate Address <span class="text-danger">*</span></label>
+                            <input type="text" id="kyc-address" name="residential_address" class="form-control" placeholder="Street Address, Suite / Unit" value="742 Evergreen Terrace, Suite 400" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">City <span class="text-danger">*</span></label>
+                                <input type="text" id="kyc-city" name="city" class="form-control" value="New York" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Postal / ZIP Code <span class="text-danger">*</span></label>
+                                <input type="text" id="kyc-postal" name="postal_code" class="form-control" value="10001" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Identification Document Uploads -->
+                    <div style="margin-bottom: 28px;">
+                        <h4 style="font-size: 1.1rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-id-card"></i> 2. Official Identification Document
+                        </h4>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Identification Document Type <span class="text-danger">*</span></label>
+                                <select name="id_type" id="kyc-idtype" class="form-control">
+                                    <option value="passport">International Passport</option>
+                                    <option value="national_id">National Identity Card</option>
+                                    <option value="drivers_license">Driver's License</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Document Serial / Passport Number <span class="text-danger">*</span></label>
+                                <input type="text" id="kyc-idnumber" name="id_number" class="form-control" placeholder="e.g. A92830192" value="US8940281" required>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">ID Document Front / Bio Page (Image / PDF)</label>
+                                <div class="file-dropzone" onclick="document.getElementById('kyc-front-file').click()">
+                                    <input type="file" id="kyc-front-file" name="id_front_image" accept="image/*,.pdf" onchange="handleDocSelected(this, 'front-name')">
+                                    <i class="fas fa-passport text-gold" style="font-size: 1.4rem;"></i>
+                                    <div class="dropzone-label">Upload ID Front / Bio Page</div>
+                                    <div class="dropzone-sub">PNG, JPG, PDF up to 10MB</div>
+                                    <div id="front-name" class="dropzone-selected-name" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Proof of Address (Utility Bill / Bank Statement)</label>
+                                <div class="file-dropzone" onclick="document.getElementById('kyc-proof-file').click()">
+                                    <input type="file" id="kyc-proof-file" name="proof_of_address" accept="image/*,.pdf" onchange="handleDocSelected(this, 'proof-name')">
+                                    <i class="fas fa-file-invoice text-emerald" style="font-size: 1.4rem;"></i>
+                                    <div class="dropzone-label">Upload Proof of Address</div>
+                                    <div class="dropzone-sub">Dated within 90 days</div>
+                                    <div id="proof-name" class="dropzone-selected-name" style="display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Source of Wealth & Financial Attestation -->
+                    <div style="margin-bottom: 28px;">
+                        <h4 style="font-size: 1.1rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-sack-dollar"></i> 3. Source of Wealth &amp; PEP Attestation
+                        </h4>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Primary Source of Wealth <span class="text-danger">*</span></label>
+                                <select name="source_of_wealth" class="form-control">
+                                    <option value="employment">Executive Employment &amp; Compensation</option>
+                                    <option value="business">Corporate Dividends &amp; Business Profits</option>
+                                    <option value="investments">Investment Portfolio &amp; Capital Gains</option>
+                                    <option value="inheritance">Family Office, Trust &amp; Inheritance</option>
+                                    <option value="crypto">Cryptocurrency &amp; Digital Asset Yields</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Estimated Liquid Net Worth</label>
+                                <select name="estimated_net_worth" class="form-control">
+                                    <option value="$500,000 - $1,000,000">$500,000 – $1,000,000</option>
+                                    <option value="$1,000,000 - $5,000,000" selected>$1,000,000 – $5,000,000</option>
+                                    <option value="$5,000,000 - $20,000,000">$5,000,000 – $20,000,000</option>
+                                    <option value="$20,000,000+">$20,000,000+ (Ultra High Net Worth)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 14px;">
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.84rem; color: var(--text-main);">
+                                <input type="checkbox" name="pep_status" value="1" style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--gold-primary);">
+                                <span>I affirm that neither I nor any close family member is a Politically Exposed Person (PEP) or subject to international OFAC/UN sanctions.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold" style="width: 100%; padding: 14px; font-size: 1rem;">
+                        <i class="fas fa-file-shield"></i> Submit KYC Compliance Dossier for Verification
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 6: Transaction Ledger -->
         <div id="tab-transactions" class="tab-pane" style="display: none;">
             <div class="glass-card-luxury" style="padding: 24px;">
                 <h3 style="font-size: 1.35rem; margin-bottom: 16px;">Client Account Ledger</h3>
@@ -676,52 +1156,7 @@
             </div>
 
             <button type="submit" class="btn btn-gold" style="width: 100%;">
-                <i class="fas fa-lock"></i> Confirm & Activate Investment
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Modal: Quick Hybrid Deposit -->
-<div id="depositModal" class="modal-backdrop">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeModal('depositModal')">&times;</button>
-        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Deposit Capital</h3>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
-            Deposits increase your wallet balance and qualify you for higher private credit loan tiers.
-        </p>
-
-        <form method="POST" action="{% url 'submit_deposit' %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label class="form-label">Deposit Amount ($ USD)</label>
-                <input type="number" name="amount" class="form-control mono-num" placeholder="e.g. 50000" min="100" step="500" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Deposit Method</label>
-                <select name="method" class="form-control">
-                    <option value="USDT_TRC20">USDT (TRC-20)</option>
-                    <option value="BTC">Bitcoin (BTC)</option>
-                    <option value="BANK_WIRE">Bank Wire Transfer (JPMorgan)</option>
-                    <option value="ETH">Ethereum (ETH)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Transaction Reference / Note</label>
-                <input type="text" name="proof_hash" class="form-control" placeholder="Blockchain TxID or Bank Reference">
-            </div>
-
-            <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px;">
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; color: var(--gold-light);">
-                    <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 16px; height: 16px;">
-                    <span><strong>Instant Demo Credit:</strong> Instantly credit balance to test loan unlocks right away.</span>
-                </label>
-            </div>
-
-            <button type="submit" class="btn btn-gold" style="width: 100%;">
-                <i class="fas fa-check"></i> Process Deposit
+                <i class="fas fa-lock"></i> Confirm &amp; Activate Investment
             </button>
         </form>
     </div>
@@ -731,7 +1166,7 @@
 <div id="withdrawModal" class="modal-backdrop">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('withdrawModal')">&times;</button>
-        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Request Withdrawal</h3>
+        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Request Capital Withdrawal</h3>
         <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
             Liquid balance available for withdrawal: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:2 }}</strong>
         </p>
@@ -748,13 +1183,14 @@
                 <select name="payout_method" class="form-control">
                     <option value="USDT (TRC-20)">USDT (TRC-20)</option>
                     <option value="Bitcoin (BTC)">Bitcoin (BTC)</option>
-                    <option value="Bank Wire Transfer">Bank Wire Transfer</option>
+                    <option value="USDT (ERC-20)">USDT (ERC-20)</option>
+                    <option value="Bank Wire Transfer">International Bank Wire Transfer</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Destination Address / Bank Coordinates</label>
-                <textarea name="destination_details" class="form-control" rows="3" placeholder="Enter recipient wallet address or full bank wire details" required></textarea>
+                <label class="form-label">Destination Address / Wire Coordinates</label>
+                <textarea name="destination_details" class="form-control" rows="3" placeholder="Enter recipient wallet address or full institutional bank wire details" required></textarea>
             </div>
 
             <button type="submit" class="btn btn-gold" style="width: 100%;">
@@ -765,6 +1201,215 @@
 </div>
 
 <script>
+// Gateway configurations dictionary
+const GATEWAYS = {
+    'USDT_TRC20': {
+        name: 'USDT (TRC-20)',
+        badge: 'TRON NETWORK (TRC-20)',
+        title: 'USDT Custody Gateway',
+        address: '{{ settings.usdt_trc20_address }}',
+        rate: 1.0,
+        rateLabel: '1 USDT ≈ $1.00 USD',
+        unit: 'USDT',
+        isWire: false
+    },
+    'BTC': {
+        name: 'Bitcoin (BTC)',
+        badge: 'BITCOIN NATIVE SEGWIT',
+        title: 'Bitcoin Bullion Vault Gateway',
+        address: '{{ settings.btc_wallet_address }}',
+        rate: 0.0000106,
+        rateLabel: '1 BTC ≈ $94,300.00 USD',
+        unit: 'BTC',
+        isWire: false
+    },
+    'USDT_ERC20': {
+        name: 'USDT (ERC-20)',
+        badge: 'ETHEREUM MAINNET (ERC-20)',
+        title: 'USDT Smart Contract Gateway',
+        address: '{{ settings.usdt_erc20_address }}',
+        rate: 1.0,
+        rateLabel: '1 USDT ≈ $1.00 USD',
+        unit: 'USDT',
+        isWire: false
+    },
+    'ETH': {
+        name: 'Ethereum (ETH)',
+        badge: 'ETHEREUM NATIVE / ERC-20',
+        title: 'Ethereum Smart Liquidity Gateway',
+        address: '{{ settings.eth_wallet_address }}',
+        rate: 0.000305,
+        rateLabel: '1 ETH ≈ $3,280.00 USD',
+        unit: 'ETH',
+        isWire: false
+    },
+    'BANK_WIRE': {
+        name: 'International Bank Wire',
+        badge: 'JPMORGAN CHASE PRIVATE BANK',
+        title: 'Institutional FedWire / SWIFT Coordinates',
+        address: 'Bank: {{ settings.bank_name }} | Acct: {{ settings.bank_account_number }}',
+        rate: 1.0,
+        rateLabel: 'Segregated Treasury Wire',
+        unit: 'USD',
+        isWire: true
+    }
+};
+
+let currentGatewayKey = 'USDT_TRC20';
+
+function selectDepositGateway(gwKey, element) {
+    currentGatewayKey = gwKey;
+    document.querySelectorAll('.crypto-tab-card').forEach(el => el.classList.remove('active'));
+    if (element) element.classList.add('active');
+
+    const gw = GATEWAYS[gwKey];
+    if (!gw) return;
+
+    // Update Gateway card view
+    const elBadge = document.getElementById('gw-badge');
+    const elTitle = document.getElementById('gw-title');
+    const elAddr = document.getElementById('gw-address-text');
+    const elCopy = document.getElementById('gw-copy-btn');
+    const qrWrap = document.getElementById('crypto-qr-wrapper');
+    const addrWrap = document.getElementById('crypto-address-wrapper');
+    const wireWrap = document.getElementById('bank-wire-wrapper');
+
+    if (elBadge) elBadge.innerText = gw.badge;
+    if (elTitle) elTitle.innerText = gw.title;
+
+    if (gw.isWire) {
+        if (qrWrap) qrWrap.style.display = 'none';
+        if (addrWrap) addrWrap.style.display = 'none';
+        if (wireWrap) wireWrap.style.display = 'block';
+    } else {
+        if (qrWrap) qrWrap.style.display = 'block';
+        if (addrWrap) addrWrap.style.display = 'block';
+        if (wireWrap) wireWrap.style.display = 'none';
+        if (elAddr) elAddr.innerText = gw.address;
+        if (elCopy) elCopy.setAttribute('data-clipboard-text', gw.address);
+        renderInlineQRCode(gw.address);
+    }
+
+    // Update Form fields
+    const formMethod = document.getElementById('form-deposit-method');
+    const formMethodLabel = document.getElementById('form-selected-method-label');
+    const formBadge = document.getElementById('form-selected-badge');
+    if (formMethod) formMethod.value = gwKey;
+    if (formMethodLabel) formMethodLabel.innerText = gw.name;
+    if (formBadge) formBadge.innerText = gw.isWire ? 'WIRE AUDIT' : 'BLOCKCHAIN AUDIT';
+
+    updateCryptoConversion();
+}
+
+function renderInlineQRCode(text) {
+    const container = document.getElementById('qr-code-display');
+    if (!container) return;
+    
+    // Generate clean SVG visual QR simulation grid
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash |= 0;
+    }
+    
+    // 21x21 QR matrix
+    const size = 21;
+    let rects = '';
+    const cellSize = 180 / size;
+    
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            // Finder patterns in 3 corners
+            const isTopLeftFinder = (r < 7 && c < 7);
+            const isTopRightFinder = (r < 7 && c >= size - 7);
+            const isBottomLeftFinder = (r >= size - 7 && c < 7);
+            
+            let isBlack = false;
+            if (isTopLeftFinder) {
+                isBlack = (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
+            } else if (isTopRightFinder) {
+                const cAdj = c - (size - 7);
+                isBlack = (r === 0 || r === 6 || cAdj === 0 || cAdj === 6 || (r >= 2 && r <= 4 && cAdj >= 2 && cAdj <= 4));
+            } else if (isBottomLeftFinder) {
+                const rAdj = r - (size - 7);
+                isBlack = (rAdj === 0 || rAdj === 6 || c === 0 || c === 6 || (rAdj >= 2 && rAdj <= 4 && c >= 2 && c <= 4));
+            } else {
+                // Pseudo pseudo-data bits based on text hash
+                const bitVal = Math.sin((r * 13) + (c * 29) + hash);
+                isBlack = bitVal > 0.1;
+            }
+            
+            if (isBlack) {
+                rects += `<rect x="${c * cellSize + 10}" y="${r * cellSize + 10}" width="${cellSize}" height="${cellSize}" fill="#0c1222" />`;
+            }
+        }
+    }
+
+    container.innerHTML = `
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+            <rect width="200" height="200" fill="#ffffff" rx="6" />
+            ${rects}
+        </svg>
+    `;
+}
+
+function updateCryptoConversion() {
+    const amountInput = document.getElementById('deposit-amount-input');
+    const rateLabel = document.getElementById('calc-crypto-rate');
+    const outputEl = document.getElementById('calc-crypto-output');
+    if (!amountInput || !outputEl) return;
+
+    const amount = parseFloat(amountInput.value) || 0;
+    const gw = GATEWAYS[currentGatewayKey] || GATEWAYS['USDT_TRC20'];
+
+    if (rateLabel) rateLabel.innerText = gw.rateLabel;
+
+    if (gw.unit === 'BTC') {
+        const cryptoUnits = amount * gw.rate;
+        outputEl.innerText = `${cryptoUnits.toFixed(6)} BTC`;
+    } else if (gw.unit === 'ETH') {
+        const cryptoUnits = amount * gw.rate;
+        outputEl.innerText = `${cryptoUnits.toFixed(4)} ETH`;
+    } else {
+        outputEl.innerText = `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${gw.unit}`;
+    }
+}
+
+function setPresetDeposit(amt) {
+    const input = document.getElementById('deposit-amount-input');
+    if (input) {
+        input.value = amt;
+        updateCryptoConversion();
+    }
+}
+
+function handleReceiptSelected(input) {
+    const label = document.getElementById('receipt-filename');
+    if (input.files && input.files[0]) {
+        label.innerText = `✓ Selected: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+        label.style.display = 'block';
+    }
+}
+
+function handleDocSelected(input, labelId) {
+    const label = document.getElementById(labelId);
+    if (input.files && input.files[0]) {
+        label.innerText = `✓ Attached: ${input.files[0].name}`;
+        label.style.display = 'block';
+    }
+}
+
+function autofillDemoKYC() {
+    document.getElementById('kyc-fullname').value = 'Lord Alexander Sterling';
+    document.getElementById('kyc-dob').value = '1984-09-22';
+    document.getElementById('kyc-country').value = 'United Kingdom';
+    document.getElementById('kyc-address').value = '14 Grosvenor Square, Mayfair';
+    document.getElementById('kyc-city').value = 'London';
+    document.getElementById('kyc-postal').value = 'W1K 6HN';
+    document.getElementById('kyc-idtype').value = 'passport';
+    document.getElementById('kyc-idnumber').value = 'GB849028190';
+}
+
 function switchDashboardTab(tabId) {
     const btn = document.querySelector(`[data-tab-target="${tabId}"]`);
     if (btn) btn.click();
@@ -798,6 +1443,8 @@ function recalcUserLoan() {
 
 document.addEventListener('DOMContentLoaded', () => {
     recalcUserLoan();
+    renderInlineQRCode('{{ settings.usdt_trc20_address }}');
+    updateCryptoConversion();
 });
 </script>
 {% endblock %}

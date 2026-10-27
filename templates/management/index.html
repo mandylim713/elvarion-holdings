@@ -31,7 +31,7 @@
     </div>
 
     <!-- Quick Stats Bar -->
-    <div class="grid-4" style="margin-bottom: 36px;">
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 36px;">
         <div class="glass-card-luxury" style="padding: 22px;">
             <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Pending Loan Reviews</div>
             <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">
@@ -42,6 +42,12 @@
             <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Pending Deposits</div>
             <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #34d399; margin-top: 4px;">
                 {{ pending_deposits|length }}
+            </div>
+        </div>
+        <div class="glass-card-luxury" style="padding: 22px;">
+            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Pending KYC Reviews</div>
+            <div class="mono-num" style="font-size: 2rem; font-weight: 800; color: #a78bfa; margin-top: 4px;">
+                {{ pending_kyc|length }}
             </div>
         </div>
         <div class="glass-card-luxury" style="padding: 22px;">
@@ -66,6 +72,9 @@
             </button>
             <button class="tab-btn" data-tab-target="mgmt-deposits">
                 <i class="fas fa-coins"></i> Deposit Verifications ({{ pending_deposits|length }})
+            </button>
+            <button class="tab-btn" data-tab-target="mgmt-kyc">
+                <i class="fas fa-id-card-clip text-gold"></i> KYC Compliance Dossiers ({{ pending_kyc|length }})
             </button>
             <button class="tab-btn" data-tab-target="mgmt-plans">
                 <i class="fas fa-layer-group"></i> Investment Areas & Plans Config
@@ -448,6 +457,7 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase;">
                             <th style="padding: 12px;">User</th>
+                            <th style="padding: 12px;">Classification</th>
                             <th style="padding: 12px;">Cumulative Deposits</th>
                             <th style="padding: 12px;">Loan Qualification Tier</th>
                             <th style="padding: 12px;">Wallet Balance</th>
@@ -461,6 +471,11 @@
                             <td style="padding: 14px 12px;">
                                 <strong style="color: #ffffff;">{{ u.username }}</strong><br>
                                 <span style="color: var(--text-dim); font-size: 0.78rem;">{{ u.email }}</span>
+                            </td>
+                            <td style="padding: 14px 12px;">
+                                <span class="badge badge-purple" style="font-size: 0.72rem; text-transform: capitalize;">
+                                    {{ u.profile.get_account_type_display|default:u.profile.account_type }}
+                                </span>
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; font-weight: 700; color: #34d399;">
                                 ${{ u.profile.total_deposited|floatformat:2 }}
@@ -482,12 +497,118 @@
                                 ${{ u.profile.loan_balance|floatformat:2 }}
                             </td>
                             <td style="padding: 14px 12px;">
-                                <span class="badge badge-emerald">{{ u.profile.kyc_status|upper }}</span>
+                                {% if u.profile.kyc_status == 'verified' %}
+                                    <span class="badge badge-emerald"><i class="fas fa-check"></i> VERIFIED</span>
+                                {% elif u.profile.kyc_status == 'pending' %}
+                                    <span class="badge badge-gold"><i class="fas fa-clock"></i> PENDING</span>
+                                {% else %}
+                                    <span class="badge badge-purple">UNVERIFIED</span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- 6. KYC COMPLIANCE DOSSIERS SECTION -->
+        <div id="mgmt-kyc" class="tab-pane" style="display: none;">
+            <div class="glass-card-luxury" style="padding: 28px; margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="font-size: 1.4rem;">Institutional KYC &amp; AML Verification Desk</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
+                            Review identity credentials, government document uploads, and source of wealth declarations. Approving grants Tier-1 Verified investor status.
+                        </p>
+                    </div>
+                    <span class="badge badge-gold">{{ pending_kyc|length }} Pending Reviews</span>
+                </div>
+
+                {% if all_kyc %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem;">
+                                <th style="padding: 12px;">Dossier / Investor</th>
+                                <th style="padding: 12px;">Document Identification</th>
+                                <th style="padding: 12px;">Jurisdiction &amp; Address</th>
+                                <th style="padding: 12px;">Source of Wealth</th>
+                                <th style="padding: 12px;">Attachments</th>
+                                <th style="padding: 12px;">Status</th>
+                                <th style="padding: 12px; text-align: right;">Compliance Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for kyc in all_kyc %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                                <td style="padding: 16px 12px;">
+                                    <div style="font-weight: 700; color: #ffffff;">{{ kyc.full_legal_name }}</div>
+                                    <div class="mono-num" style="font-size: 0.78rem; color: var(--gold-light);">#{{ kyc.submission_id|slice:":8" }} &bull; {{ kyc.user.username }}</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-dim);">{{ kyc.submitted_at|date:"M d, Y H:i" }}</div>
+                                </td>
+                                <td style="padding: 16px 12px;">
+                                    <strong style="color: #ffffff;">{{ kyc.get_id_type_display }}</strong><br>
+                                    <span class="mono-num text-muted" style="font-size: 0.82rem;">{{ kyc.id_number }}</span>
+                                </td>
+                                <td style="padding: 16px 12px;">
+                                    <div>{{ kyc.country }}</div>
+                                    <div style="color: var(--text-dim); font-size: 0.78rem;">{{ kyc.city }}, {{ kyc.postal_code }}</div>
+                                </td>
+                                <td style="padding: 16px 12px;">
+                                    <span class="badge badge-emerald">{{ kyc.get_source_of_wealth_display }}</span><br>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ kyc.estimated_net_worth }}</span>
+                                </td>
+                                <td style="padding: 16px 12px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        {% if kyc.id_front_image %}
+                                            <a href="{{ kyc.id_front_image.url }}" target="_blank" class="badge badge-cyan" title="View Front of ID"><i class="fas fa-id-card"></i> Front</a>
+                                        {% endif %}
+                                        {% if kyc.proof_of_address %}
+                                            <a href="{{ kyc.proof_of_address.url }}" target="_blank" class="badge badge-gold" title="View Proof of Address"><i class="fas fa-file-invoice"></i> Proof</a>
+                                        {% endif %}
+                                        {% if not kyc.id_front_image and not kyc.proof_of_address %}
+                                            <span style="color: var(--text-dim); font-size: 0.78rem;">Digital Filing</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td style="padding: 16px 12px;">
+                                    {% if kyc.status == 'approved' %}
+                                        <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> VERIFIED</span>
+                                    {% elif kyc.status == 'pending' %}
+                                        <span class="badge badge-gold"><i class="fas fa-clock"></i> PENDING</span>
+                                    {% else %}
+                                        <span class="badge badge-purple">{{ kyc.status|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 16px 12px; text-align: right;">
+                                    {% if kyc.status == 'pending' %}
+                                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                        <form method="POST" action="{% url 'admin_kyc_action' kyc.id 'approve' %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-emerald" style="padding: 6px 12px; font-size: 0.78rem;">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{% url 'admin_kyc_action' kyc.id 'reject' %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-subtle" style="padding: 6px 12px; font-size: 0.78rem; color: #f87171;">
+                                                <i class="fas fa-xmark"></i> Decline
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% else %}
+                                    <span style="font-size: 0.78rem; color: var(--text-dim);">Processed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color: var(--text-dim);">No KYC submissions filed yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>

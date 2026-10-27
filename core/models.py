@@ -11,7 +11,13 @@ class UserProfile(models.Model):
         ('pending', 'Pending Verification'),
         ('verified', 'Verified Tier-1'),
     )
+    ACCOUNT_TYPES = (
+        ('individual', 'Individual Accredited Investor'),
+        ('corporate', 'Corporate / Institutional Entity'),
+        ('trust', 'Family Office & Heritage Trust'),
+    )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    account_type = models.CharField(max_length=30, choices=ACCOUNT_TYPES, default='individual')
     phone = models.CharField(max_length=30, blank=True, default='')
     country = models.CharField(max_length=100, blank=True, default='United States')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
@@ -23,7 +29,7 @@ class UserProfile(models.Model):
     total_withdrawn = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
     total_roi_earned = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
     
-    kyc_status = models.CharField(max_length=20, choices=KYC_CHOICES, default='verified')
+    kyc_status = models.CharField(max_length=20, choices=KYC_CHOICES, default='unverified')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -375,3 +381,55 @@ class CompanySetting(models.Model):
     def get_settings(cls):
         obj, _ = cls.objects.get_or_create(id=1)
         return obj
+
+
+class KYCSubmission(models.Model):
+    ID_TYPE_CHOICES = (
+        ('passport', 'International Passport'),
+        ('national_id', 'National Identity Card'),
+        ('drivers_license', "Driver's License"),
+    )
+    STATUS_CHOICES = (
+        ('pending', 'Pending Compliance Review'),
+        ('approved', 'Verified Tier-1 Approved'),
+        ('rejected', 'Declined / Action Required'),
+    )
+    SOURCE_OF_WEALTH_CHOICES = (
+        ('employment', 'Executive Employment & Salary'),
+        ('business', 'Corporate Dividends & Business Profits'),
+        ('investments', 'Investment Portfolio & Capital Gains'),
+        ('inheritance', 'Family Trust & Inheritance'),
+        ('crypto', 'Cryptocurrency Capital Gains'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kyc_submissions')
+    submission_id = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
+    full_legal_name = models.CharField(max_length=200)
+    date_of_birth = models.DateField(null=True, blank=True)
+    residential_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=30)
+    country = models.CharField(max_length=100, default='United States')
+    
+    id_type = models.CharField(max_length=30, choices=ID_TYPE_CHOICES, default='passport')
+    id_number = models.CharField(max_length=100)
+    id_front_image = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    id_back_image = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    proof_of_address = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    selfie_image = models.ImageField(upload_to='kyc_documents/', blank=True, null=True)
+    
+    source_of_wealth = models.CharField(max_length=50, choices=SOURCE_OF_WEALTH_CHOICES, default='employment')
+    estimated_net_worth = models.CharField(max_length=100, default='$1,000,000 - $5,000,000')
+    pep_status = models.BooleanField(default=False, help_text='Politically Exposed Person Declaration')
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, default='')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"KYC: {self.full_legal_name} ({self.user.username}) [{self.status}]"
+

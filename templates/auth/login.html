@@ -1,55 +1,124 @@
 {% extends 'base.html' %}
 
-{% block title %}Client Sign In | Elvarion Holdings{% endblock %}
+{% block title %}Client Authentication & Vault Access | Elvarion Holdings{% endblock %}
 
 {% block content %}
-<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 140px 24px 80px;">
-    <div class="glass-card-luxury" style="max-width: 460px; width: 100%; padding: 42px 36px; border-color: var(--border-gold);">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div class="brand-crest" style="margin: 0 auto 16px; width: 52px; height: 52px; font-size: 1.6rem;">EH</div>
-            <h2 style="font-size: 1.8rem; margin-bottom: 6px;">Client Authentication</h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">Secure access to your private wealth portal</p>
+<div class="auth-wrapper">
+    <div class="auth-card-standard">
+        <!-- Brand Crest & Header -->
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div class="brand-crest" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 1.7rem;">EH</div>
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                <span class="badge badge-gold"><i class="fas fa-lock"></i> VAULT ACCESS</span>
+                <span class="badge badge-emerald"><i class="fas fa-shield-check"></i> TLS 1.3 ENCRYPTED</span>
+            </div>
+            <h2 style="font-size: 1.9rem; margin-bottom: 6px;">Client Authentication</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">
+                Secure sovereign gateway to your private wealth portfolio
+            </p>
         </div>
 
-        <!-- Quick Demo Switcher -->
-        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 24px; text-align: center;">
-            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--gold-light); font-weight: 700; margin-bottom: 8px;">
-                <i class="fas fa-bolt"></i> Fast Evaluation Demo Access
+        <!-- Fast Evaluation Demo Switcher -->
+        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="font-size: 0.76rem; text-transform: uppercase; color: var(--gold-light); font-weight: 700; letter-spacing: 0.5px;">
+                    <i class="fas fa-bolt"></i> Fast Evaluation Access
+                </div>
+                <span style="font-size: 0.7rem; color: var(--text-dim);">One-Click Demo</span>
             </div>
-            <div style="display: flex; gap: 8px; justify-content: center;">
-                <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemo('vip_investor', 'Investor@12345')">
-                    <i class="fas fa-user-tie"></i> VIP Investor
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemo('vip_investor', 'Investor@12345')" style="font-size: 0.78rem; padding: 7px 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-crown text-gold"></i> VIP Investor
                 </button>
-                <button type="button" class="btn btn-sm btn-gold" onclick="autofillDemo('admin', 'Admin@12345')">
-                    <i class="fas fa-shield"></i> Director Admin
+                <button type="button" class="btn btn-sm btn-gold" onclick="autofillDemo('admin', 'Admin@12345')" style="font-size: 0.78rem; padding: 7px 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-shield-halved"></i> Director Admin
                 </button>
             </div>
         </div>
 
+        <!-- Login Form -->
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
+
             <div class="form-group">
-                <label class="form-label">Username or Corporate Email</label>
-                <input type="text" id="login-identifier" name="identifier" class="form-control" placeholder="username or email" required autofocus>
+                <label class="form-label" style="display: flex; justify-content: space-between;">
+                    <span>Username or Corporate Email <span class="text-danger">*</span></span>
+                    <i class="fas fa-user-shield text-gold" style="font-size: 0.8rem;"></i>
+                </label>
+                <input type="text" id="login-identifier" name="identifier" class="form-control" placeholder="username or corporate email" required autofocus>
             </div>
 
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <label class="form-label" style="margin-bottom: 0;">Access Key / Password</label>
-                    <a href="#" style="color: var(--gold-light); font-size: 0.78rem; text-decoration: none;">Forgot key?</a>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label class="form-label" style="margin-bottom: 0;">Access Password / Key <span class="text-danger">*</span></label>
+                    <a href="javascript:void(0)" onclick="openConciergeModal()" style="color: var(--gold-light); font-size: 0.78rem; text-decoration: none;">
+                        Forgot Access Key?
+                    </a>
                 </div>
-                <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••••••" required>
+                <div class="password-input-group">
+                    <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••••••" required>
+                    <button type="button" class="password-toggle-btn" onclick="toggleLoginPassword(this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; font-size: 0.82rem;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-muted);">
+                    <input type="checkbox" name="remember_me" value="1" checked style="width: 15px; height: 15px; accent-color: var(--gold-primary);">
+                    <span>Remember this authorized terminal</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%; padding: 13px; font-size: 0.95rem;">
                 <i class="fas fa-lock"></i> Authorize & Enter Vault
             </button>
         </form>
 
+        <!-- Security Features Notice -->
+        <div class="trust-badges-bar" style="margin-top: 24px;">
+            <div class="trust-badge-item">
+                <i class="fas fa-shield text-emerald"></i>
+                <span>2FA Protected</span>
+            </div>
+            <div class="trust-badge-item">
+                <i class="fas fa-network-wired text-cyan"></i>
+                <span>IP Audited</span>
+            </div>
+            <div class="trust-badge-item">
+                <i class="fas fa-fingerprint text-gold"></i>
+                <span>Zero-Knowledge</span>
+            </div>
+        </div>
+
         <div style="text-align: center; margin-top: 24px; font-size: 0.88rem; color: var(--text-dim);">
-            Do not have an account yet? 
+            Do not possess an active account yet? 
             <a href="{% url 'register' %}" style="color: var(--gold-light); font-weight: 600; text-decoration: none;">Open Account</a>
         </div>
+    </div>
+</div>
+
+<!-- Modal: Concierge Recovery -->
+<div id="conciergeModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 480px;">
+        <button class="modal-close" onclick="closeConciergeModal()">&times;</button>
+        <div style="text-align: center; margin-bottom: 18px;">
+            <div class="brand-crest" style="margin: 0 auto 12px; width: 44px; height: 44px; font-size: 1.3rem;">EH</div>
+            <h3 style="font-size: 1.4rem;">Treasury Key Recovery</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                For statutory security reasons, access credentials are reset directly by our private wealth concierge desk.
+            </p>
+        </div>
+
+        <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; font-size: 0.84rem; line-height: 1.7;">
+            <div><i class="fas fa-envelope text-gold"></i> <strong>Concierge Desk:</strong> concierge@elvarionholdings.com</div>
+            <div><i class="fas fa-phone text-emerald"></i> <strong>Private Terminal:</strong> +1 (212) 555-0188</div>
+            <div><i class="fas fa-clock text-cyan"></i> <strong>Response SLA:</strong> Under 15 minutes (24/7/365)</div>
+        </div>
+
+        <button type="button" class="btn btn-outline-gold" style="width: 100%;" onclick="closeConciergeModal()">
+            Return to Vault Authentication
+        </button>
     </div>
 </div>
 
@@ -57,6 +126,30 @@
 function autofillDemo(username, password) {
     document.getElementById('login-identifier').value = username;
     document.getElementById('login-password').value = password;
+}
+
+function toggleLoginPassword(btn) {
+    const input = document.getElementById('login-password');
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function openConciergeModal() {
+    const m = document.getElementById('conciergeModal');
+    if (m) m.classList.add('active');
+}
+
+function closeConciergeModal() {
+    const m = document.getElementById('conciergeModal');
+    if (m) m.classList.remove('active');
 }
 </script>
 {% endblock %}

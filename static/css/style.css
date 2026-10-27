@@ -1020,3 +1020,401 @@ input[type=range]::-webkit-slider-thumb {
     text-align: center;
   }
 }
+
+/* =========================================================
+   PROFESSIONAL AUTH, KYC & DEPOSIT STYLING EXTENSIONS
+   ========================================================= */
+
+/* Auth Layout & Onboarding Stepper */
+.auth-wrapper {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 130px 24px 80px;
+}
+
+.auth-card-wide {
+  max-width: 680px;
+  width: 100%;
+  padding: 44px 40px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-luxury);
+  position: relative;
+}
+
+.auth-card-standard {
+  max-width: 480px;
+  width: 100%;
+  padding: 42px 36px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-luxury);
+  position: relative;
+}
+
+.onboarding-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.onboarding-steps::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 30px;
+  right: 30px;
+  height: 2px;
+  background: var(--border-subtle);
+  z-index: 1;
+}
+
+.step-indicator {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  cursor: pointer;
+  flex: 1;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-subtle);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  margin-bottom: 6px;
+}
+
+.step-indicator.active .step-circle {
+  border-color: var(--gold-primary);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05));
+  color: var(--gold-light);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.step-indicator.completed .step-circle {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.step-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.step-indicator.active .step-title {
+  color: var(--gold-light);
+}
+
+/* Account Type Selector Cards */
+.account-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.type-option-card {
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.type-option-card:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.04);
+}
+
+.type-option-card.selected {
+  border-color: var(--gold-primary);
+  background: rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
+.type-icon {
+  font-size: 1.25rem;
+  color: var(--gold-light);
+  margin-bottom: 6px;
+}
+
+.type-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.type-desc {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Password Input & Strength Bar */
+.password-input-group {
+  position: relative;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px;
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--gold-light);
+}
+
+.strength-meter {
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.strength-meter-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.strength-meter-bar.weak { width: 33%; background: #ef4444; }
+.strength-meter-bar.medium { width: 66%; background: #f59e0b; }
+.strength-meter-bar.strong { width: 100%; background: #10b981; }
+
+/* Security Trust Badges */
+.trust-badges-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 18px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.trust-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Document Upload Dropzone */
+.file-dropzone {
+  border: 2px dashed rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.file-dropzone:hover {
+  border-color: var(--gold-primary);
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.file-dropzone input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropzone-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 6px;
+}
+
+.dropzone-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.dropzone-selected-name {
+  font-size: 0.8rem;
+  color: #34d399;
+  font-weight: 600;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+/* Verified Investor KYC Certificate */
+.kyc-certificate-card {
+  background: linear-gradient(135deg, rgba(20, 27, 45, 0.95), rgba(12, 18, 34, 0.98));
+  border: 2px solid var(--gold-primary);
+  border-radius: var(--radius-md);
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(212, 175, 55, 0.08);
+}
+
+.kyc-certificate-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.certificate-seal {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f7d774 0%, #d4af37 60%, #aa820a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #070a12;
+  font-size: 2rem;
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+  margin-left: auto;
+}
+
+/* Dynamic Crypto Gateway Cards */
+.crypto-selector-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .crypto-selector-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.crypto-tab-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.crypto-tab-card:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.crypto-tab-card.active {
+  border-color: var(--gold-primary);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.05));
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.crypto-tab-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.crypto-tab-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #ffffff;
+}
+
+.crypto-tab-network {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Preset Amount Chips */
+.preset-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.preset-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-chip:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+}
+
+/* QR Code Display Container */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+}
+
+.qr-container svg {
+  width: 100%;
+  height: 100%;
+}
+

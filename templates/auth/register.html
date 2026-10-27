@@ -1,68 +1,365 @@
 {% extends 'base.html' %}
 
-{% block title %}Open Investor Account | Elvarion Holdings{% endblock %}
+{% block title %}Open Institutional Investor Vault | Elvarion Holdings{% endblock %}
 
 {% block content %}
-<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 140px 24px 80px;">
-    <div class="glass-card-luxury" style="max-width: 520px; width: 100%; padding: 42px 36px; border-color: var(--border-gold);">
+<div class="auth-wrapper">
+    <div class="auth-card-wide">
+        <!-- Brand & Title Header -->
         <div style="text-align: center; margin-bottom: 28px;">
-            <div class="brand-crest" style="margin: 0 auto 16px; width: 52px; height: 52px; font-size: 1.6rem;">EH</div>
-            <h2 style="font-size: 1.8rem; margin-bottom: 6px;">Open Investor Account</h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">Begin investing across 4 asset classes with real-time ROI tracking</p>
+            <div class="brand-crest" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 1.7rem;">EH</div>
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                <span class="badge badge-gold"><i class="fas fa-crown"></i> INSTITUTIONAL ONBOARDING</span>
+                <span class="badge badge-emerald"><i class="fas fa-shield-halved"></i> REGULATED FIDUCIARY</span>
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 6px;">Open Investor Vault</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Provision sovereign multi-asset custody across Real Estate, Bullion, Trusts & Credit
+            </p>
         </div>
 
-        <form method="POST" action="{% url 'register' %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label class="form-label">Full Name / Entity Name</label>
-                <input type="text" name="full_name" class="form-control" placeholder="e.g. Lord Alexander Sterling" required>
+        <!-- Quick Evaluation Preset Helper -->
+        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 0.8rem; color: var(--gold-light); display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-bolt"></i> <span><strong>Fast Demo Preset:</strong> Populate institutional test credentials</span>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" placeholder="sterling_wealth" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Country of Residence</label>
-                    <input type="text" name="country" class="form-control" value="United States" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" name="email" class="form-control" placeholder="investor@holdings.com" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Contact Telephone</label>
-                <input type="tel" name="phone" class="form-control" placeholder="+1 (555) 019-2834">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="••••••••••••" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Confirm Password</label>
-                    <input type="password" name="password_confirm" class="form-control" placeholder="••••••••••••" required>
-                </div>
-            </div>
-
-            <div style="margin: 16px 0 24px; font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;">
-                By opening an account, you affirm compliance with institutional fiduciary terms and agree to segregated custody policies under statutory jurisdiction.
-            </div>
-
-            <button type="submit" class="btn btn-gold" style="width: 100%;">
-                <i class="fas fa-vault"></i> Initialize Investor Vault
+            <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillRegisterPreset()" style="padding: 5px 14px; font-size: 0.78rem;">
+                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Test Investor
             </button>
+        </div>
+
+        <!-- Onboarding Progress Indicator -->
+        <div class="onboarding-steps">
+            <div class="step-indicator active" id="step-tab-1" onclick="switchStep(1)">
+                <div class="step-circle"><i class="fas fa-user-tie"></i></div>
+                <div class="step-title">1. Entity & Profile</div>
+            </div>
+            <div class="step-indicator" id="step-tab-2" onclick="switchStep(2)">
+                <div class="step-circle"><i class="fas fa-lock"></i></div>
+                <div class="step-title">2. Credentials</div>
+            </div>
+            <div class="step-indicator" id="step-tab-3" onclick="switchStep(3)">
+                <div class="step-circle"><i class="fas fa-file-contract"></i></div>
+                <div class="step-title">3. Compliance</div>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}" id="registerForm">
+            {% csrf_token %}
+
+            <!-- STEP 1: Account Classification & Identity -->
+            <div class="step-content" id="step-content-1">
+                <label class="form-label" style="margin-bottom: 8px;">Select Account Classification</label>
+                <div class="account-type-grid">
+                    <div class="type-option-card selected" onclick="selectAccountType('individual', this)">
+                        <div class="type-icon"><i class="fas fa-user-shield"></i></div>
+                        <div class="type-name">Individual Accredited</div>
+                        <div class="type-desc">High Net Worth Client</div>
+                    </div>
+                    <div class="type-option-card" onclick="selectAccountType('corporate', this)">
+                        <div class="type-icon"><i class="fas fa-building-columns"></i></div>
+                        <div class="type-name">Corporate Entity</div>
+                        <div class="type-desc">Institutional Syndicate</div>
+                    </div>
+                    <div class="type-option-card" onclick="selectAccountType('trust', this)">
+                        <div class="type-icon"><i class="fas fa-landmark"></i></div>
+                        <div class="type-name">Family Office</div>
+                        <div class="type-desc">Heritage Wealth Trust</div>
+                    </div>
+                </div>
+                <input type="hidden" name="account_type" id="selected-account-type" value="individual">
+
+                <div class="form-group">
+                    <label class="form-label">Full Legal Name or Entity Name <span class="text-danger">*</span></label>
+                    <input type="text" id="reg-fullname" name="full_name" class="form-control" placeholder="e.g. Lord Alexander Sterling or Sterling Capital Ltd" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Corporate / Personal Email <span class="text-danger">*</span></label>
+                        <input type="email" id="reg-email" name="email" class="form-control" placeholder="investor@sterling-wealth.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Primary Country of Jurisdiction <span class="text-danger">*</span></label>
+                        <select name="country" id="reg-country" class="form-control" required>
+                            <option value="United States">United States</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="Switzerland">Switzerland</option>
+                            <option value="United Arab Emirates">United Arab Emirates</option>
+                            <option value="Singapore">Singapore</option>
+                            <option value="Germany">Germany</option>
+                            <option value="France">France</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Monaco">Monaco</option>
+                            <option value="Luxembourg">Luxembourg</option>
+                            <option value="Hong Kong">Hong Kong</option>
+                            <option value="Other">Other Global Jurisdiction</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Direct Telephone Contact</label>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 10px;">
+                        <select name="phone_code" id="reg-phone-code" class="form-control">
+                            <option value="+1">+1 (US/CA)</option>
+                            <option value="+44">+44 (UK)</option>
+                            <option value="+41">+41 (CH)</option>
+                            <option value="+971">+971 (UAE)</option>
+                            <option value="+65">+65 (SG)</option>
+                            <option value="+49">+49 (DE)</option>
+                            <option value="+33">+33 (FR)</option>
+                            <option value="+81">+81 (JP)</option>
+                            <option value="+61">+61 (AU)</option>
+                        </select>
+                        <input type="tel" id="reg-phone" name="phone" class="form-control" placeholder="202 555 0192">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-gold" onclick="validateAndGoStep(2)">
+                        Continue to Security Credentials <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Vault Credentials & Security Key -->
+            <div class="step-content" id="step-content-2" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Vault Account Username <span class="text-danger">*</span></label>
+                    <input type="text" id="reg-username" name="username" class="form-control" placeholder="e.g. sterling_vault" required>
+                    <small style="color: var(--text-dim); font-size: 0.75rem;">Used for all client sign-ins and private messaging.</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Master Access Password <span class="text-danger">*</span></label>
+                    <div class="password-input-group">
+                        <input type="password" id="reg-password" name="password" class="form-control" placeholder="Create strong encryption key" oninput="checkPasswordStrength()" required>
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="strength-meter">
+                        <div id="strength-bar" class="strength-meter-bar"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">
+                        <span id="strength-label">Password strength: Empty</span>
+                        <span>Min. 6 characters</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Master Password <span class="text-danger">*</span></label>
+                    <div class="password-input-group">
+                        <input type="password" id="reg-confirm" name="password_confirm" class="form-control" placeholder="Re-enter password" oninput="checkPasswordMatch()" required>
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-confirm', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="match-feedback" style="font-size: 0.75rem; margin-top: 4px;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                    <button type="button" class="btn btn-outline-subtle" onclick="switchStep(1)">
+                        <i class="fas fa-arrow-left"></i> Previous Step
+                    </button>
+                    <button type="button" class="btn btn-gold" onclick="validateAndGoStep(3)">
+                        Proceed to Compliance Declarations <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Compliance & Fiduciary Affirmation -->
+            <div class="step-content" id="step-content-3" style="display: none;">
+                <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+                    <h4 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-stamp"></i> Fiduciary & Statutory Disclosures
+                    </h4>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px;">
+                        Elvarion Holdings Ltd operates under statutory institutional private wealth charters. Client assets are held in segregated, bankruptcy-remote custody structures with Lloyds of London underwriters and tier-1 banking institutions (JPMorgan Chase Private Bank).
+                    </p>
+                    <ul style="font-size: 0.76rem; color: var(--text-dim); line-height: 1.7; padding-left: 18px;">
+                        <li>Account holders affirm qualification under accredited or qualified institutional definitions.</li>
+                        <li>Deposits are segregated and protected under institutional custodial protocols.</li>
+                        <li>Private Credit facilities are subject to deposit qualifying thresholds ($25,000+).</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 0.82rem; color: var(--text-main);">
+                        <input type="checkbox" id="affirm-accredited" required checked style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--gold-primary);">
+                        <span>I confirm that I or my entity meet accredited investor criteria and accept the terms of the private fiduciary framework.</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 0.82rem; color: var(--text-main);">
+                        <input type="checkbox" id="affirm-terms" required checked style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--gold-primary);">
+                        <span>I agree to the Custody Policies, AML/KYC requirements, and sovereign yield terms of Elvarion Holdings.</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                    <button type="button" class="btn btn-outline-subtle" onclick="switchStep(2)">
+                        <i class="fas fa-arrow-left"></i> Previous Step
+                    </button>
+                    <button type="submit" class="btn btn-gold" id="btn-submit-register">
+                        <i class="fas fa-vault"></i> Initialize Investor Vault
+                    </button>
+                </div>
+            </div>
         </form>
 
+        <!-- Trust Badges Footer -->
+        <div class="trust-badges-bar">
+            <div class="trust-badge-item">
+                <i class="fas fa-lock text-emerald"></i>
+                <span>256-Bit SSL AES</span>
+            </div>
+            <div class="trust-badge-item">
+                <i class="fas fa-shield-halved text-gold"></i>
+                <span>SOC 2 Type II</span>
+            </div>
+            <div class="trust-badge-item">
+                <i class="fas fa-building-columns text-cyan"></i>
+                <span>JPMorgan Custody</span>
+            </div>
+            <div class="trust-badge-item">
+                <i class="fas fa-certificate text-purple"></i>
+                <span>Lloyd's Insured</span>
+            </div>
+        </div>
+
         <div style="text-align: center; margin-top: 24px; font-size: 0.88rem; color: var(--text-dim);">
-            Already possess an active account? 
+            Already possess an active client vault? 
             <a href="{% url 'login' %}" style="color: var(--gold-light); font-weight: 600; text-decoration: none;">Client Sign In</a>
         </div>
     </div>
 </div>
+
+<script>
+function selectAccountType(type, element) {
+    document.querySelectorAll('.type-option-card').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    document.getElementById('selected-account-type').value = type;
+}
+
+function switchStep(stepNum) {
+    document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+
+    const activeContent = document.getElementById(`step-content-${stepNum}`);
+    const activeTab = document.getElementById(`step-tab-${stepNum}`);
+    if (activeContent) activeContent.style.display = 'block';
+    if (activeTab) activeTab.classList.add('active');
+}
+
+function validateAndGoStep(nextStep) {
+    if (nextStep === 2) {
+        const fullname = document.getElementById('reg-fullname').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        if (!fullname || !email) {
+            alert('Please provide your Full Legal Name and Email before proceeding.');
+            return;
+        }
+    } else if (nextStep === 3) {
+        const username = document.getElementById('reg-username').value.trim();
+        const password = document.getElementById('reg-password').value;
+        const confirm = document.getElementById('reg-confirm').value;
+
+        if (!username || !password) {
+            alert('Please choose a username and enter a password.');
+            return;
+        }
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters.');
+            return;
+        }
+        if (password !== confirm) {
+            alert('Passwords do not match.');
+            return;
+        }
+    }
+    switchStep(nextStep);
+}
+
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function checkPasswordStrength() {
+    const password = document.getElementById('reg-password').value;
+    const bar = document.getElementById('strength-bar');
+    const label = document.getElementById('strength-label');
+
+    bar.className = 'strength-meter-bar';
+    if (!password) {
+        label.innerText = 'Password strength: Empty';
+        label.style.color = 'var(--text-dim)';
+        return;
+    }
+
+    let score = 0;
+    if (password.length >= 6) score++;
+    if (password.length >= 10) score++;
+    if (/[A-Z]/.test(password) && /[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1) {
+        bar.classList.add('weak');
+        label.innerText = 'Strength: Basic';
+        label.style.color = '#ef4444';
+    } else if (score <= 3) {
+        bar.classList.add('medium');
+        label.innerText = 'Strength: Moderate';
+        label.style.color = '#f59e0b';
+    } else {
+        bar.classList.add('strong');
+        label.innerText = 'Strength: Sovereign-Grade';
+        label.style.color = '#10b981';
+    }
+    checkPasswordMatch();
+}
+
+function checkPasswordMatch() {
+    const password = document.getElementById('reg-password').value;
+    const confirm = document.getElementById('reg-confirm').value;
+    const feedback = document.getElementById('match-feedback');
+
+    if (!confirm) {
+        feedback.innerText = '';
+        return;
+    }
+    if (password === confirm) {
+        feedback.innerText = '✓ Passwords match';
+        feedback.style.color = '#10b981';
+    } else {
+        feedback.innerText = '✕ Passwords do not match';
+        feedback.style.color = '#ef4444';
+    }
+}
+
+function autofillRegisterPreset() {
+    const randNum = Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('reg-fullname').value = 'Lord Alexander Sterling';
+    document.getElementById('reg-email').value = `sterling.${randNum}@elvarion-wealth.com`;
+    document.getElementById('reg-username').value = `sterling_${randNum}`;
+    document.getElementById('reg-password').value = 'Sterling@Vault2026';
+    document.getElementById('reg-confirm').value = 'Sterling@Vault2026';
+    document.getElementById('reg-phone').value = '202 555 0194';
+    checkPasswordStrength();
+    checkPasswordMatch();
+}
+</script>
 {% endblock %}

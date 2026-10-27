@@ -3,8 +3,17 @@ from django.utils import timezone
 from .models import (
     UserProfile, InvestmentArea, InvestmentPlan, UserInvestment,
     LoanTierCriteria, LoanTermConfig, LoanApplication,
-    DepositRequest, WithdrawalRequest, Transaction, CompanySetting
+    DepositRequest, WithdrawalRequest, Transaction, CompanySetting,
+    KYCSubmission
 )
+
+@admin.register(KYCSubmission)
+class KYCSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('full_legal_name', 'user', 'id_type', 'id_number', 'source_of_wealth', 'status', 'submitted_at')
+    list_filter = ('status', 'id_type', 'submitted_at')
+    search_fields = ('full_legal_name', 'user__username', 'user__email', 'id_number')
+    readonly_fields = ('submission_id', 'submitted_at')
+
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
