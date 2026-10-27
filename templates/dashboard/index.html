@@ -245,13 +245,17 @@
 
             {% for area in investment_areas %}
             <div style="margin-bottom: 40px;">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
-                    <div class="area-icon-wrap" style="width: 44px; height: 44px; font-size: 1.2rem; margin-bottom: 0;">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 18px;">
+                    {% if area.hero_image %}
+                    <img src="{{ area.hero_image }}" alt="{{ area.name }}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-gold);">
+                    {% else %}
+                    <div class="area-icon-wrap" style="width: 48px; height: 48px; font-size: 1.2rem; margin-bottom: 0;">
                         <i class="fas fa-{{ area.icon }}"></i>
                     </div>
+                    {% endif %}
                     <div>
-                        <h3 style="font-size: 1.35rem;">{{ area.name }}</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-dim);">{{ area.tagline }} &bull; <span style="color: var(--emerald-accent);">Risk: {{ area.risk_level }}</span></p>
+                        <h3 style="font-size: 1.35rem; margin-bottom: 2px;">{{ area.name }}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-dim);">{{ area.tagline }} &bull; <span style="color: var(--emerald-accent); font-weight: 600;">Risk: {{ area.risk_level }}</span></p>
                     </div>
                 </div>
 
