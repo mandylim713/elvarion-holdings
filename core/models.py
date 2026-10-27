@@ -127,7 +127,7 @@ class UserInvestment(models.Model):
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='investments')
     plan = models.ForeignKey(InvestmentPlan, on_delete=models.PROTECT, related_name='user_investments')
-    reference_id = models.CharField(max_length=32, unique=True, default=uuid.uuid4)
+    reference_id = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
     amount = models.DecimalField(max_digits=16, decimal_places=2)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField()
@@ -235,7 +235,7 @@ class LoanApplication(models.Model):
         ('completed', 'Fully Repaid'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loans')
-    loan_reference = models.CharField(max_length=32, unique=True, default=uuid.uuid4)
+    loan_reference = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
     tier = models.ForeignKey(LoanTierCriteria, on_delete=models.SET_NULL, null=True, blank=True)
     term_months = models.PositiveIntegerField(default=6)
     monthly_interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.50'))
@@ -285,7 +285,7 @@ class DepositRequest(models.Model):
         ('rejected', 'Declined'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='deposits')
-    reference_id = models.CharField(max_length=32, unique=True, default=uuid.uuid4)
+    reference_id = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
     method = models.CharField(max_length=25, choices=METHOD_CHOICES)
     amount = models.DecimalField(max_digits=16, decimal_places=2)
     proof_hash = models.CharField(max_length=255, blank=True, help_text='TxID or Bank Transfer Reference')
@@ -309,7 +309,7 @@ class WithdrawalRequest(models.Model):
         ('rejected', 'Declined'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawals')
-    reference_id = models.CharField(max_length=32, unique=True, default=uuid.uuid4)
+    reference_id = models.CharField(max_length=64, unique=True, default=uuid.uuid4)
     amount = models.DecimalField(max_digits=16, decimal_places=2)
     payout_method = models.CharField(max_length=50)
     destination_details = models.TextField(help_text='Crypto Wallet Address or Bank details')
