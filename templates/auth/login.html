@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Client Authentication & Vault Access | Elvarion Holdings{% endblock %}
+{% block title %}Client Vault Sign-In | Elvarion Holdings{% endblock %}
 
 {% block content %}
 <div class="auth-wrapper">
@@ -9,14 +9,15 @@
         <div style="text-align: center; margin-bottom: 28px;">
             <div class="brand-crest" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 1.7rem;">EH</div>
             <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                <span class="badge badge-gold"><i class="fas fa-lock"></i> VAULT ACCESS</span>
+                <span class="badge badge-gold"><i class="fas fa-lock"></i> CLIENT VAULT ACCESS</span>
                 <span class="badge badge-emerald"><i class="fas fa-shield-check"></i> TLS 1.3 ENCRYPTED</span>
             </div>
-            <h2 style="font-size: 1.9rem; margin-bottom: 6px;">Client Authentication</h2>
+            <h2 style="font-size: 1.95rem; margin-bottom: 6px;">Client Authentication</h2>
             <p style="color: var(--text-muted); font-size: 0.88rem;">
                 Secure sovereign gateway to your private wealth portfolio
             </p>
         </div>
+
         <!-- Login Form -->
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
@@ -31,14 +32,14 @@
 
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <label class="form-label" style="margin-bottom: 0;">Access Password / Key <span class="text-danger">*</span></label>
+                    <label class="form-label" style="margin-bottom: 0;">Access Password / Master Key <span class="text-danger">*</span></label>
                     <a href="javascript:void(0)" onclick="openConciergeModal()" style="color: var(--gold-light); font-size: 0.78rem; text-decoration: none;">
                         Forgot Access Key?
                     </a>
                 </div>
                 <div class="password-input-group">
                     <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••••••" required>
-                    <button type="button" class="password-toggle-btn" onclick="toggleLoginPassword(this)">
+                    <button type="button" class="password-toggle-btn" onclick="toggleLoginPassword(this)" aria-label="Toggle password visibility">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -59,12 +60,12 @@
         <!-- Security Features Notice -->
         <div class="trust-badges-bar" style="margin-top: 24px;">
             <div class="trust-badge-item">
-                <i class="fas fa-shield text-emerald"></i>
-                <span>2FA Protected</span>
+                <i class="fas fa-building-columns text-cyan"></i>
+                <span>JPMorgan Custody</span>
             </div>
             <div class="trust-badge-item">
-                <i class="fas fa-network-wired text-cyan"></i>
-                <span>IP Audited</span>
+                <i class="fas fa-certificate text-purple"></i>
+                <span>Lloyd's Insured</span>
             </div>
             <div class="trust-badge-item">
                 <i class="fas fa-fingerprint text-gold"></i>
@@ -104,7 +105,6 @@
 </div>
 
 <script>
-
 function toggleLoginPassword(btn) {
     const input = document.getElementById('login-password');
     const icon = btn.querySelector('i');
@@ -128,5 +128,18 @@ function closeConciergeModal() {
     const m = document.getElementById('conciergeModal');
     if (m) m.classList.remove('open');
 }
+
+// Allow closing modal by clicking outside content or pressing Escape
+document.addEventListener('DOMContentLoaded', function() {
+    const m = document.getElementById('conciergeModal');
+    if (m) {
+        m.addEventListener('click', function(e) {
+            if (e.target === m) closeConciergeModal();
+        });
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeConciergeModal();
+    });
+});
 </script>
 {% endblock %}
