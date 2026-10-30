@@ -1,0 +1,232 @@
+/* =========================================================
+   PREMIUM REFINEMENT LAYER
+   Hue migration alone does not make a design look expensive.
+   This layer changes character: flat fills instead of gradients,
+   hairlines instead of glows, restrained motion, real typographic
+   hierarchy, and more air. Loaded after the components/utilities,
+   before 08-responsive.
+   ========================================================= */
+
+/* ---- Ambient lighting replaced ----
+   Three blurred colour orbs read as a crypto landing page; the shell now
+   carries one faint top scrim instead, so no orb markup or glow is needed. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 340px;
+  background: linear-gradient(180deg, rgba(192, 160, 98, 0.05) 0%, rgba(11, 11, 13, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- Display typography ---- */
+/* Cormorant Garamond is a high-contrast serif that reads smaller than
+   the previous Cinzel at the same size, so the scale moves up and the
+   weight comes down. */
+.hero-title,
+.section-title,
+.brand-title,
+.area-name,
+.block-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--text-main);
+}
+
+.hero-title { font-size: 4.1rem; line-height: 1.06; font-weight: 500; }
+.section-title { font-size: 2.85rem; line-height: 1.14; font-weight: 500; }
+.brand-title { font-size: 1.24rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.block-title { font-size: 1.3rem; font-weight: 600; }
+
+/* Eyebrows: letterspaced micro-caps, never glowing pills */
+.section-tag,
+.hero-tag {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold-primary);
+  box-shadow: none;
+}
+
+.hero-tag {
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border-gold);
+  border-radius: 0;
+  padding: 12px 0 0;
+}
+
+.hero-desc,
+.section-subtitle,
+.area-desc,
+.block-subtitle {
+  font-weight: 300;
+  letter-spacing: 0.004em;
+  color: var(--text-muted);
+}
+
+.section-subtitle { font-size: 1.06rem; max-width: 62ch; }
+
+/* ---- Buttons: flat metallic, no bloom ---- */
+.btn {
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+
+.btn-gold {
+  background: var(--gold-primary);
+  color: var(--bg-input);
+  box-shadow: none;
+  font-weight: 700;
+}
+.btn-gold:hover,
+.btn-gold:focus {
+  background: var(--gold-light);
+  color: var(--bg-input);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-outline-gold {
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  color: var(--gold-light);
+  box-shadow: none;
+}
+.btn-outline-gold:hover {
+  background: rgba(192, 160, 98, 0.08);
+  border-color: var(--gold-primary);
+  transform: none;
+}
+
+.btn-emerald {
+  background: var(--emerald-accent);
+  color: var(--bg-input);
+  box-shadow: none;
+}
+.btn-emerald:hover { background: #5b9b78; color: var(--bg-input); transform: none; }
+
+/* ---- Crest & cards ---- */
+.brand-crest {
+  background: var(--gold-primary);
+  border-radius: var(--radius-sm);
+  color: var(--bg-input);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.glass-card-luxury,
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-card-luxury:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-luxury);
+  transform: none;
+}
+
+/* Gold bloom on hover is the second biggest cheap tell */
+.area-card:hover,
+.plan-card:hover,
+.loan-tier-card:hover,
+.type-option-card:hover { transform: translateY(-3px); }
+.area-icon-wrap,
+.plan-card:hover,
+.loan-tier-card:hover { box-shadow: none; }
+
+/* ---- Tables: quiet, aligned, scannable ---- */
+.data-table thead th,
+.dash-table th,
+.mgmt-table th {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.data-table tbody td { font-variant-numeric: tabular-nums; }
+
+/* ---- Forms ---- */
+.form-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.form-control {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.94rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control:focus,
+.form-control:focus-visible {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 3px rgba(192, 160, 98, 0.08);
+  outline: none;
+}
+
+/* ---- Badges ---- */
+.badge {
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Navbar ---- */
+.luxury-navbar {
+  background: rgba(11, 11, 13, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: rgba(242, 239, 233, 0.06);
+}
+.nav-links a { letter-spacing: 0.01em; font-weight: 400; }
+
+/* ---- Rhythm: premium layouts breathe ---- */
+.section-wrapper { padding-top: 96px; padding-bottom: 96px; }
+.hero-section { gap: 64px; }
+
+/* ---- Numerals ---- */
+.mono-num,
+.plan-roi-val,
+.hero-stats-row .stat-value,
+.live-ticker-val {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Selection & scrollbar ---- */
+::selection { background: rgba(192, 160, 98, 0.28); color: var(--text-main); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb {
+  background: #2a2a30;
+  border: 3px solid var(--bg-dark);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
+
+/* Reduced motion is part of "considered", not an extra */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,30 @@
+{# Shared legal document shell: page frame, masthead and the card that wraps the clause stack. #}
+{# Params: tag_icon (fa-* class), doc_title, sections_template (path), banner (bool, optional). #}
+<div class="legal-page">
+
+    <div class="legal-header">
+        <span class="section-tag"><i class="fas {{ tag_icon }}"></i> LEGAL & COMPLIANCE</span>
+        <h1 class="section-title legal-title">{{ doc_title }}</h1>
+        <p class="legal-meta text-dim mt-8">
+            Last updated: October 2026 &bull; Elvarion Holdings Ltd.
+        </p>
+    </div>
+
+    {% if banner %}
+    <div class="legal-stack legal-stack-28">
+        {% include 'partials/legal/_banner.html' %}
+        <div class="glass-card-luxury legal-card-sm">
+            {# Disclosure Cards #}
+            <div class="legal-stack legal-stack-36">
+                {% include sections_template %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-card-luxury legal-card">
+        <div class="legal-stack legal-stack-40">
+            {% include sections_template %}
+        </div>
+    </div>
+    {% endif %}
+</div>

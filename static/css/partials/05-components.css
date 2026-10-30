@@ -28,8 +28,8 @@
 .area-icon-wrap {
   width: 58px;
   height: 58px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.05) 100%);
+  border-radius: var(--radius-md);
+  background: rgba(192, 160, 98, 0.08);
   border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
 
 .area-meta-val {
   font-weight: 600;
-  color: #ffffff;
+  color: #f8f6f1;
 }
 
 /* Plan Card */
@@ -80,7 +80,7 @@
 .plan-roi-header {
   margin: 18px 0;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(242, 239, 233, 0.03);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
   text-align: center;
@@ -134,8 +134,7 @@
 
 .loan-tier-card.highlight {
   border-color: var(--border-gold);
-  background: linear-gradient(180deg, rgba(25, 34, 62, 0.9) 0%, rgba(12, 18, 34, 0.95) 100%);
-  box-shadow: 0 0 35px rgba(212, 175, 55, 0.2);
+  background: linear-gradient(180deg, rgba(31, 31, 36, 0.9) 0%, rgba(20, 20, 23, 0.95) 100%);
 }
 
 .loan-threshold-circle {
@@ -143,7 +142,7 @@
   height: 90px;
   margin: 0 auto 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(7, 10, 18, 0.8) 100%);
+  background: radial-gradient(circle, rgba(192, 160, 98, 0.2) 0%, rgba(11, 11, 13, 0.8) 100%);
   border: 2px dashed var(--gold-primary);
   display: flex;
   flex-direction: column;
@@ -155,7 +154,7 @@
   font-family: var(--font-mono);
   font-size: 1.15rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #f8f6f1;
 }
 
 .threshold-sub {
@@ -174,8 +173,8 @@
 
 /* Live ROI Accrual Pulsing Ticker */
 .live-ticker-box {
-  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, rgba(12, 18, 34, 0.95) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: radial-gradient(circle at 50% 0%, rgba(79, 138, 107, 0.15) 0%, rgba(20, 20, 23, 0.95) 100%);
+  border: 1px solid rgba(79, 138, 107, 0.35);
   border-radius: var(--radius-lg);
   padding: 28px;
   position: relative;
@@ -186,8 +185,7 @@
   font-family: var(--font-mono);
   font-size: 3.2rem;
   font-weight: 800;
-  color: #34d399;
-  text-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  color: #7fb894;
   letter-spacing: -1px;
 }
 
@@ -195,8 +193,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background: rgba(79, 138, 107, 0.2);
+  color: #7fb894;
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 0.72rem;
@@ -208,7 +206,7 @@
 .tabs-nav {
   display: flex;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(242, 239, 233, 0.04);
   padding: 6px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
@@ -229,7 +227,7 @@
 }
 
 .tab-btn.active, .tab-btn:hover {
-  background: rgba(212, 175, 55, 0.18);
+  background: rgba(192, 160, 98, 0.18);
   color: var(--gold-light);
   border: 1px solid var(--border-gold);
 }
@@ -255,13 +253,13 @@
 }
 
 .modal-content {
-  background: #0f172a;
+  background: #141417;
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-lg);
   max-width: 580px;
   width: 100%;
   padding: 36px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
@@ -280,7 +278,7 @@
 }
 
 .modal-close:hover {
-  color: #ffffff;
+  color: #f8f6f1;
 }
 
 /* Forms */
@@ -304,7 +302,7 @@
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  color: #ffffff;
+  color: #f8f6f1;
   font-family: var(--font-sans);
   font-size: 0.95rem;
   transition: all 0.2s ease;
@@ -313,7 +311,6 @@
 .form-control:focus {
   outline: none;
   border-color: var(--gold-primary);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
 }
 
 select.form-control {
@@ -340,7 +337,7 @@ input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 8px;
   cursor: pointer;
-  background: #1e293b;
+  background: #2a2a30;
   border-radius: 4px;
   border: 1px solid var(--border-subtle);
 }
@@ -349,18 +346,17 @@ input[type=range]::-webkit-slider-thumb {
   height: 24px;
   width: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f7d774 0%, #d4af37 100%);
+  background: var(--gold-primary);
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -8px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
-  border: 2px solid #000;
+  border: 2px solid #101013;
 }
 
 /* Footer */
 .luxury-footer {
   border-top: 1px solid var(--border-subtle);
-  background: #04070d;
+  background: #08080a;
   padding: 80px 24px 30px;
   position: relative;
   z-index: 10;
@@ -373,14 +369,14 @@ input[type=range]::-webkit-slider-thumb {
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
   gap: 48px;
   padding-bottom: 60px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(242, 239, 233, 0.05);
 }
 
 .footer-col h5 {
   font-family: var(--font-serif);
   font-size: 1.05rem;
   margin-bottom: 20px;
-  color: #ffffff;
+  color: #f8f6f1;
   letter-spacing: 1px;
 }
 
@@ -439,21 +435,21 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .toast-success {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #a7f3d0;
+  background: rgba(79, 138, 107, 0.15);
+  border-color: rgba(79, 138, 107, 0.4);
+  color: #bcdcc8;
 }
 
 .toast-error {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
+  background: rgba(180, 84, 76, 0.15);
+  border-color: rgba(180, 84, 76, 0.4);
+  color: #e0a9a2;
 }
 
 .toast-info {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
+  background: rgba(109, 127, 156, 0.15);
+  border-color: rgba(109, 127, 156, 0.4);
+  color: #c3cede;
 }
 
 @keyframes slide-in {

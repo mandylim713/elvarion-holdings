@@ -11,12 +11,12 @@
 .text-emerald { color: var(--emerald-accent); }
 .text-cyan    { color: var(--cyan-accent); }
 .text-blue    { color: var(--blue-accent); }
-.text-purple  { color: #a855f7; }
-.text-danger  { color: #ef4444; }
+.text-purple  { color: #8d7ba8; }
+.text-danger  { color: var(--danger-accent); }
 .text-muted   { color: var(--text-muted); }
 .text-dim     { color: var(--text-dim); }
 .text-bright  { color: var(--text-main); }
-.text-white   { color: #ffffff; }
+.text-white   { color: #f8f6f1; }
 
 /* Typography scale */
 .font-bold   { font-weight: 700; }
@@ -52,13 +52,13 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--gold-light);
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(192, 160, 98, 0.08);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
-.copy-btn:hover { background: rgba(212, 175, 55, 0.18); }
+.copy-btn:hover { background: rgba(192, 160, 98, 0.18); }
 
 /* Read-only value / coordinate blocks */
 .value-block {

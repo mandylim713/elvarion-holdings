@@ -1,0 +1,23 @@
+/* =========================================================
+   MANAGEMENT TABLE OVERRIDES (14-admin-tables.css)
+   The directorate desk reuses the shared .data-table from
+   07-utilities.css for width / collapse / uppercase header / row
+   borders. These page-scoped overrides only restore the three
+   distinct row paddings the inline <th>/<td> styles used, since
+   they outgrew a single shared value.
+   ========================================================= */
+
+/* Header cells: original inline th padding was 12px (shared is 14px 12px). */
+.mgmt-table thead th { padding: 12px; }
+
+/* Body cells: default dense padding (active-plans table used 12px). */
+.mgmt-table tbody td { padding: 12px; }
+
+/* Roomy rows — deposit / eligibility-tier / investor queues (14px 12px). */
+.mgmt-table--roomy tbody td { padding: 14px 12px; }
+
+/* Wide rows — loan-approval & KYC-dossier queues, taller multi-line cells. */
+.mgmt-table--wide tbody td { padding: 16px 12px; }
+
+/* Facilities-history table kept a tighter 10px header. */
+.mgmt-table--history thead th { padding: 10px; }

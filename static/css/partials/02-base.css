@@ -1,63 +1,17 @@
-/* Background Ambient Lighting */
-.ambient-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.glow-orb-1 {
-  position: absolute;
-  top: -10vw;
-  right: -10vw;
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, rgba(7, 10, 18, 0) 70%);
-  filter: blur(80px);
-}
-
-.glow-orb-2 {
-  position: absolute;
-  top: 40vh;
-  left: -15vw;
-  width: 45vw;
-  height: 45vw;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(7, 10, 18, 0) 70%);
-  filter: blur(90px);
-}
-
-.glow-orb-3 {
-  position: absolute;
-  bottom: -10vw;
-  right: 20vw;
-  width: 40vw;
-  height: 40vw;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(7, 10, 18, 0) 70%);
-  filter: blur(80px);
-}
-
 /* Typography Utilities */
 h1, h2, h3, h4, .brand-font {
   font-family: var(--font-serif);
   letter-spacing: 0.5px;
-  color: #ffffff;
+  color: #f8f6f1;
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fff7d6 0%, #d4af37 50%, #aa841e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--gold-light);
   display: inline-block;
 }
 
 .emerald-gradient-text {
-  background: linear-gradient(135deg, #a7f3d0 0%, #10b981 60%, #047857 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--emerald-accent);
   display: inline-block;
 }
 
@@ -79,11 +33,11 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .glass-panel:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(242, 239, 233, 0.15);
 }
 
 .glass-card-luxury {
-  background: linear-gradient(180deg, rgba(18, 26, 48, 0.75) 0%, rgba(10, 15, 28, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(20, 20, 23, 0.75) 0%, rgba(11, 11, 13, 0.85) 100%);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -135,30 +89,30 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .btn-gold {
-  background: linear-gradient(135deg, #d4af37 0%, #b89127 100%);
-  color: #000000;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.35);
+  background: linear-gradient(135deg, #c0a062 0%, #8a6f3b 100%);
+  color: #101013;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.55);
   font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .btn-gold:hover {
-  background: linear-gradient(135deg, #f7d774 0%, #d4af37 100%);
-  box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
+  background: linear-gradient(135deg, #e0c98f 0%, #c0a062 100%);
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.6);
   transform: translateY(-2px);
-  color: #000000;
+  color: #101013;
 }
 
 .btn-emerald {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, #4f8a6b 0%, #3f7357 100%);
+  color: #f8f6f1;
+  box-shadow: 0 4px 15px rgba(79, 138, 107, 0.3);
 }
 
 .btn-emerald:hover {
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  background: linear-gradient(135deg, #7fb894 0%, #4f8a6b 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45);
+  box-shadow: 0 6px 22px rgba(79, 138, 107, 0.45);
 }
 
 .btn-outline-gold {
@@ -168,22 +122,22 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .btn-outline-gold:hover {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(192, 160, 98, 0.1);
   border-color: var(--gold-primary);
-  color: #ffffff;
+  color: #f8f6f1;
   transform: translateY(-2px);
 }
 
 .btn-outline-subtle {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(242, 239, 233, 0.04);
   color: var(--text-main);
   border: 1px solid var(--border-subtle);
 }
 
 .btn-outline-subtle:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(242, 239, 233, 0.09);
+  border-color: rgba(242, 239, 233, 0.2);
+  color: #f8f6f1;
 }
 
 .btn-sm {
@@ -212,26 +166,26 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .badge-gold {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(192, 160, 98, 0.15);
   color: var(--gold-light);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  border: 1px solid rgba(192, 160, 98, 0.35);
 }
 
 .badge-emerald {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(79, 138, 107, 0.15);
+  color: #7fb894;
+  border: 1px solid rgba(79, 138, 107, 0.35);
 }
 
 .badge-cyan {
-  background: rgba(6, 182, 212, 0.15);
-  color: #67e8f9;
-  border: 1px solid rgba(6, 182, 212, 0.35);
+  background: rgba(143, 163, 184, 0.15);
+  color: #b3c3d3;
+  border: 1px solid rgba(143, 163, 184, 0.35);
 }
 
 .badge-purple {
-  background: rgba(147, 51, 234, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(147, 51, 234, 0.35);
+  background: rgba(141, 123, 168, 0.15);
+  color: #a894c2;
+  border: 1px solid rgba(141, 123, 168, 0.35);
 }
 

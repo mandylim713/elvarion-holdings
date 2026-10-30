@@ -1,0 +1,110 @@
+{# TAB 1: Loan Approvals queue + institutional facilities history #}
+<div id="mgmt-loans" class="tab-pane active">
+    <div class="glass-card-luxury mgmt-panel">
+        <h3 class="mgmt-card-title">Pending Private Credit Loan Requests</h3>
+        <p class="mgmt-card-sub">
+            Review borrower cumulative deposit status, requested borrowing amount, and interest term. Approving dispatches credit directly into borrower's loan wallet balance.
+        </p>
+
+        {% if pending_loans %}
+        <div class="table-scroll">
+            <table class="data-table mgmt-table mgmt-table--wide">
+                <thead>
+                    <tr>
+                        <th>Ref / Investor</th>
+                        <th>Cumulative Deposit</th>
+                        <th>Requested Loan</th>
+                        <th>Term & Rate</th>
+                        <th>Monthly Payment</th>
+                        <th>Total Repayable</th>
+                        <th class="u-text-right">Director Decision</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in pending_loans %}
+                    <tr>
+                        <td>
+                            <div class="font-bold text-white">{{ loan.user.username }}</div>
+                            <div class="mono-num text-gold-l mgmt-fs-75">#{{ loan.loan_reference|slice:":8" }}</div>
+                        </td>
+                        <td class="mono-num mgmt-mint font-bold">
+                            ${{ loan.user.profile.total_deposited|floatformat:2 }}
+                        </td>
+                        <td class="mono-num font-bold mgmt-fs-105 text-white">
+                            ${{ loan.amount_requested|floatformat:2 }}
+                        </td>
+                        <td>
+                            <strong>{{ loan.term_months }} Months</strong><br>
+                            <span class="badge badge-gold">{{ loan.monthly_interest_rate }}% / mo</span>
+                        </td>
+                        <td class="mono-num mgmt-cyan">
+                            ${{ loan.monthly_installment|floatformat:2 }}
+                        </td>
+                        <td class="mono-num">
+                            ${{ loan.total_repayable|floatformat:2 }}
+                        </td>
+                        <td class="u-text-right">
+                            <div class="mgmt-actions">
+                                <form method="POST" action="{% url 'admin_loan_action' loan.id 'approve' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-emerald" onclick="return confirm('Approve and disburse ${{ loan.amount_requested|floatformat:0 }} loan to {{ loan.user.username }}?');">
+                                        <i class="fas fa-check"></i> Approve & Disburse
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'admin_loan_action' loan.id 'reject' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-subtle" onclick="return confirm('Decline this loan request?');">
+                                        <i class="fas fa-xmark"></i> Decline
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        {% include 'partials/management/_empty_state.html' with icon='fa-check-double' message='All loan applications have been reviewed. No pending requests.' %}
+        {% endif %}
+    </div>
+
+    <!-- Historical Loans Table -->
+    <div class="glass-card-luxury p-24">
+        <h4 class="mgmt-h4">All Institutional Facilities History</h4>
+        <div class="table-scroll">
+            <table class="data-table mgmt-table mgmt-table--history">
+                <thead>
+                    <tr>
+                        <th>Ref</th>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Term</th>
+                        <th>Status</th>
+                        <th>Date Applied</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in all_loans %}
+                    <tr>
+                        <td class="mono-num text-gold-l">#{{ l.loan_reference|slice:":8" }}</td>
+                        <td class="text-white">{{ l.user.username }}</td>
+                        <td class="mono-num font-bold">${{ l.amount_requested|floatformat:2 }}</td>
+                        <td>{{ l.term_months }} Months ({{ l.monthly_interest_rate }}%/mo)</td>
+                        <td>
+                            {% if l.status == 'approved' %}
+                                <span class="badge badge-emerald">DISBURSED</span>
+                            {% elif l.status == 'rejected' %}
+                                <span class="badge badge-purple">DECLINED</span>
+                            {% else %}
+                                <span class="badge badge-gold">{{ l.status|upper }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-dim">{{ l.applied_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

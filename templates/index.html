@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/partials/12-home.css' %}">
+{% endblock %}
 
 {% block content %}
 <!-- Hero Section with Full Cinematic Background -->
@@ -10,33 +15,33 @@
                 SOVEREIGN MULTI-ASSET WEALTH &bull; EST. 2014
             </div>
 
-            <h1 class="hero-title" style="text-shadow: 0 4px 30px rgba(0,0,0,0.9);">
+            <h1 class="hero-title home-title-glow">
                 High-Yield <span class="gold-gradient-text">ROI Investment</span> & Tiered Private Credit.
             </h1>
 
-            <p class="hero-desc" style="color: #cbd5e1; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">
+            <p class="hero-desc home-hero-desc">
                 Elvarion Holdings bridges accredited investors with prime international <strong>Real Estate</strong>, physical allocated <strong>Gold Bullion</strong>, generational <strong>Trust Funds</strong>, and sovereign <strong>Money Market Mutual Funds</strong>, backed by institutional liquidity credit lines up to $5,000,000.
             </p>
 
-            <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 30px;">
-                <a href="{% url 'register' %}" class="btn btn-gold btn-lg" style="box-shadow: 0 8px 30px rgba(212, 175, 55, 0.45);">
+            <div class="home-hero-actions">
+                <a href="{% url 'register' %}" class="btn btn-gold btn-lg home-cta-gold">
                     <i class="fas fa-arrow-trend-up"></i> Start Investing with ROI
                 </a>
-                <a href="#loans" class="btn btn-outline-gold btn-lg" style="backdrop-filter: blur(10px); background: rgba(0,0,0,0.3);">
+                <a href="#loans" class="btn btn-outline-gold btn-lg home-btn-glass">
                     <i class="fas fa-hand-holding-dollar"></i> Check Loan Eligibility
                 </a>
             </div>
 
-            <div class="hero-stats-row" style="background: rgba(12, 18, 34, 0.7); backdrop-filter: blur(16px); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 30px;">
+            <div class="hero-stats-row home-hero-stats">
                 <div class="stat-item">
-                    <div class="stat-num" style="color: var(--gold-light);">$2.45B+</div>
+                    <div class="stat-num text-gold-l">$2.45B+</div>
                     <div class="stat-label">Assets Under Management</div>
                 </div>
-                <div class="stat-item" style="border-left: 1px solid var(--border-subtle); padding-left: 20px;">
-                    <div class="stat-num" style="color: #34d399;">99.98%</div>
+                <div class="stat-item divider-left">
+                    <div class="stat-num home-num-mint">99.98%</div>
                     <div class="stat-label">On-Time ROI Disbursements</div>
                 </div>
-                <div class="stat-item" style="border-left: 1px solid var(--border-subtle); padding-left: 20px;">
+                <div class="stat-item divider-left">
                     <div class="stat-num">14,200+</div>
                     <div class="stat-label">Global Accredited Investors</div>
                 </div>
@@ -44,24 +49,24 @@
         </div>
 
         <!-- Live ROI Interactive Hero Card with Visual Header -->
-        <div id="roi-estimator" class="hero-interactive-card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-gold); box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.2);">
+        <div id="roi-estimator" class="hero-interactive-card home-roi-card">
             <!-- Image Header inside Card -->
-            <div style="position: relative; height: 160px; overflow: hidden;">
-                <img src="/static/img/gold.jpg" alt="Gold & Yield ROI" style="width: 100%; height: 100%; object-fit: cover;">
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.2) 0%, rgba(12, 18, 34, 0.95) 100%);"></div>
-                <div style="position: absolute; top: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <span class="badge badge-gold" style="backdrop-filter: blur(8px);"><i class="fas fa-bolt"></i> REAL-TIME ENGINE</span>
-                    <div class="live-indicator" style="backdrop-filter: blur(8px);">
+            <div class="home-roi-media">
+                <img src="/static/img/gold.jpg" alt="Gold & Yield ROI" class="home-cover-img">
+                <div class="home-media-shade"></div>
+                <div class="home-media-topbar">
+                    <span class="badge badge-gold home-glass-blur"><i class="fas fa-bolt"></i> REAL-TIME ENGINE</span>
+                    <div class="live-indicator home-glass-blur">
                         <span class="pulse-dot"></span> LIVE TICKING
                     </div>
                 </div>
-                <div style="position: absolute; bottom: 12px; left: 20px;">
-                    <h3 style="font-size: 1.35rem; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">Live ROI Yield Estimator</h3>
-                    <p style="font-size: 0.78rem; color: var(--gold-light);">Calculate returns across daily, weekly, monthly, and yearly cycles</p>
+                <div class="home-roi-flag">
+                    <h3 class="home-roi-media-title">Live ROI Yield Estimator</h3>
+                    <p class="home-roi-media-sub">Calculate returns across daily, weekly, monthly, and yearly cycles</p>
                 </div>
             </div>
 
-            <div style="padding: 24px 28px 28px;">
+            <div class="home-roi-body">
                 <div class="form-group">
                     <label class="form-label">Select Investment Sector</label>
                     <select id="hero-calc-area" class="form-control">
@@ -83,26 +88,26 @@
                 </div>
 
                 <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <label class="form-label" style="margin-bottom: 0;">Planned Allocation ($ USD)</label>
-                        <span id="hero-calc-rate-badge" class="badge badge-emerald" style="font-size: 0.75rem;">12.5% MONTHLY</span>
+                    <div class="u-flex u-justify-between mb-8">
+                        <label class="form-label u-m0">Planned Allocation ($ USD)</label>
+                        <span id="hero-calc-rate-badge" class="badge badge-emerald home-badge-rate">12.5% MONTHLY</span>
                     </div>
                     <input type="number" id="hero-calc-amount" class="form-control mono-num" value="50000" min="1000" step="1000">
                 </div>
 
                 <!-- Calculated Yield Output Box -->
-                <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 18px; margin: 20px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="color: var(--text-muted); font-size: 0.88rem;">Projected Pure ROI Profit:</span>
-                        <span id="hero-calc-profit" class="mono-num" style="font-size: 1.6rem; font-weight: 800; color: #34d399;">+$37,500.00</span>
+                <div class="home-calc-box">
+                    <div class="home-calc-row">
+                        <span class="text-muted home-calc-key">Projected Pure ROI Profit:</span>
+                        <span id="hero-calc-profit" class="mono-num home-value-profit home-num-mint">+$37,500.00</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-                        <span style="color: var(--text-dim); font-size: 0.88rem;">Total Capital + Return:</span>
-                        <span id="hero-calc-total" class="mono-num" style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">$87,500.00</span>
+                    <div class="home-calc-row home-calc-row--rule">
+                        <span class="text-dim home-calc-key">Total Capital + Return:</span>
+                        <span id="hero-calc-total" class="mono-num home-value-total font-bold text-white">$87,500.00</span>
                     </div>
                 </div>
 
-                <a href="{% url 'register' %}" class="btn btn-gold" style="width: 100%;">
+                <a href="{% url 'register' %}" class="btn btn-gold u-w-full">
                     <i class="fas fa-lock-open"></i> Lock In This Allocation & Accrue ROI
                 </a>
             </div>
@@ -122,124 +127,24 @@
 
     <div class="grid-4">
         {% for area in areas %}
-        <div class="glass-card-luxury area-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <!-- Area Image Banner -->
-            <div style="position: relative; width: 100%; height: 180px; overflow: hidden;">
-                {% if area.hero_image %}
-                    <img src="{{ area.hero_image }}" alt="{{ area.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1.0)'">
-                {% else %}
-                    <div style="width: 100%; height: 100%; background: #131c35; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-{{ area.icon }}" style="font-size: 3rem; color: var(--gold-light);"></i>
-                    </div>
-                {% endif %}
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.1) 0%, rgba(12, 18, 34, 0.95) 100%);"></div>
-                
-                <div style="position: absolute; top: 12px; left: 14px;">
-                    <div class="area-icon-wrap" style="width: 40px; height: 40px; font-size: 1.1rem; margin-bottom: 0; backdrop-filter: blur(8px);">
-                        <i class="fas fa-{{ area.icon }}"></i>
-                    </div>
-                </div>
-
-                <div style="position: absolute; top: 12px; right: 14px;">
-                    <span class="badge badge-gold" style="backdrop-filter: blur(8px);">{{ area.risk_level }}</span>
-                </div>
-
-                <div style="position: absolute; bottom: 10px; left: 18px; right: 18px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <span style="font-size: 0.78rem; color: #34d399; font-weight: 800; text-transform: uppercase; text-shadow: 0 1px 4px rgba(0,0,0,0.9);">
-                        {{ area.expected_roi_range }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Card Content Body -->
-            <div style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
-                <div>
-                    <h3 class="area-name" style="font-size: 1.3rem; margin-bottom: 6px;">{{ area.name }}</h3>
-                    <p class="area-desc" style="font-size: 0.88rem; line-height: 1.55; margin-bottom: 18px; color: var(--text-muted);">
-                        {{ area.description }}
-                    </p>
-                </div>
-
-                <div>
-                    <div class="area-meta-row" style="padding: 10px 0;">
-                        <span class="area-meta-label">Configured Plans</span>
-                        <span class="area-meta-val">{{ area.plans.count }} Active Portfolios</span>
-                    </div>
-                    <div class="area-meta-row" style="padding: 10px 0;">
-                        <span class="area-meta-label">Duration Cycles</span>
-                        <span class="area-meta-val" style="color: var(--gold-light);">Daily &bull; Weekly &bull; Monthly &bull; Yearly</span>
-                    </div>
-                    <a href="{% url 'register' %}" class="btn btn-outline-gold btn-sm" style="width: 100%; margin-top: 14px;">
-                        <i class="fas fa-layer-group"></i> Explore {{ area.name }}
-                    </a>
-                </div>
-            </div>
-        </div>
+        {% include 'partials/home/_area_card.html' %}
         {% endfor %}
     </div>
 </section>
 
 <!-- Visual Showcase Feature Section (Real Estate & Gold Bullion) -->
-<section class="section-wrapper" style="padding-top: 0;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+<section class="section-wrapper home-section-tight">
+    <div class="grid-2">
         <!-- Left Feature: Real Estate High-Rise -->
-        <div class="glass-card-luxury" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="position: relative; height: 260px; overflow: hidden;">
-                <img src="/static/img/real_estate.jpg" alt="Commercial Real Estate" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1.0)'">
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.3) 0%, rgba(12, 18, 34, 0.98) 100%);"></div>
-                <div style="position: absolute; bottom: 20px; left: 24px;">
-                    <span class="badge badge-gold" style="margin-bottom: 6px;"><i class="fas fa-building"></i> PRIME REAL ESTATE</span>
-                    <h3 style="font-size: 1.6rem; color: #ffffff;">Grade-A Metropolitan Towers & Logistics</h3>
-                </div>
-            </div>
-            <div style="padding: 28px;">
-                <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; margin-bottom: 20px;">
-                    Our real estate syndicate acquires institutional-grade metropolitan commercial centers, medical complexes, and prime ecommerce logistics hubs backed by 98% long-term corporate tenancy agreements.
-                </p>
-                <div style="display: flex; gap: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
-                    <div>
-                        <div class="mono-num" style="font-size: 1.4rem; font-weight: 800; color: var(--gold-light);">12.5%</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Monthly REIT Payout</div>
-                    </div>
-                    <div style="border-left: 1px solid var(--border-subtle); padding-left: 20px;">
-                        <div class="mono-num" style="font-size: 1.4rem; font-weight: 800; color: #34d399;">32.0%</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Yearly Growth ROI</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% include 'partials/home/_showcase_feature.html' with feat_img='/static/img/real_estate.jpg' feat_alt='Commercial Real Estate' feat_badge_icon='fa-building' feat_badge_text='PRIME REAL ESTATE' feat_title='Grade-A Metropolitan Towers & Logistics' feat_desc='Our real estate syndicate acquires institutional-grade metropolitan commercial centers, medical complexes, and prime ecommerce logistics hubs backed by 98% long-term corporate tenancy agreements.' feat_val_a='12.5%' feat_label_a='Monthly REIT Payout' feat_val_b='32.0%' feat_label_b='Yearly Growth ROI' %}
 
         <!-- Right Feature: Vaulted Physical Gold -->
-        <div class="glass-card-luxury" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="position: relative; height: 260px; overflow: hidden;">
-                <img src="/static/img/gold.jpg" alt="Physical Gold Bullion" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1.0)'">
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.3) 0%, rgba(12, 18, 34, 0.98) 100%);"></div>
-                <div style="position: absolute; bottom: 20px; left: 24px;">
-                    <span class="badge badge-gold" style="margin-bottom: 6px;"><i class="fas fa-coins"></i> LBMA GOLD BULLION</span>
-                    <h3 style="font-size: 1.6rem; color: #ffffff;">Allocated Swiss Vault Reserves</h3>
-                </div>
-            </div>
-            <div style="padding: 28px;">
-                <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; margin-bottom: 20px;">
-                    Direct physical bullion ownership with specific serial numbers allocated in bonded Zurich and Geneva vaults. Insured under comprehensive Lloyds of London underwriting with physical delivery options upon maturity.
-                </p>
-                <div style="display: flex; gap: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
-                    <div>
-                        <div class="mono-num" style="font-size: 1.4rem; font-weight: 800; color: var(--gold-light);">1.10%</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Daily Arbitrage Yield</div>
-                    </div>
-                    <div style="border-left: 1px solid var(--border-subtle); padding-left: 20px;">
-                        <div class="mono-num" style="font-size: 1.4rem; font-weight: 800; color: #34d399;">24.0%</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Annual Compound Return</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% include 'partials/home/_showcase_feature.html' with feat_img='/static/img/gold.jpg' feat_alt='Physical Gold Bullion' feat_badge_icon='fa-coins' feat_badge_text='LBMA GOLD BULLION' feat_title='Allocated Swiss Vault Reserves' feat_desc='Direct physical bullion ownership with specific serial numbers allocated in bonded Zurich and Geneva vaults. Insured under comprehensive Lloyds of London underwriting with physical delivery options upon maturity.' feat_val_a='1.10%' feat_label_a='Daily Arbitrage Yield' feat_val_b='24.0%' feat_label_b='Annual Compound Return' %}
     </div>
 </section>
 
 <!-- Section 2: Featured Investment Plans & Durations -->
-<section class="section-wrapper" style="padding-top: 0;">
+<section class="section-wrapper home-section-tight">
     <div class="section-header">
         <span class="section-tag"><i class="fas fa-chart-line"></i> ACCELERATED RETURN CYCLES</span>
         <h2 class="section-title">Featured Investment Plans & ROIs</h2>
@@ -250,46 +155,16 @@
 
     <div class="grid-3">
         {% for plan in featured_plans %}
-        <div class="glass-card-luxury plan-card">
-            <div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="badge badge-gold">{{ plan.badge }}</span>
-                    <span class="badge badge-cyan">{{ plan.area.name }}</span>
-                </div>
-
-                <h3 style="font-size: 1.35rem; margin-top: 16px;">{{ plan.title }}</h3>
-                <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 6px;">{{ plan.description }}</p>
-
-                <div class="plan-roi-header">
-                    <div class="plan-roi-val">{{ plan.roi_percentage }}%</div>
-                    <div class="plan-duration-badge">
-                        {{ plan.duration_count }} {{ plan.get_duration_unit_display }} Payout Cycle
-                    </div>
-                </div>
-
-                <ul class="features-list">
-                    <li><i class="fas fa-check-circle"></i> Minimum Allocation: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:0 }}</strong></li>
-                    <li><i class="fas fa-check-circle"></i> Maximum Capacity: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:0 }}</strong></li>
-                    <li><i class="fas fa-check-circle"></i> Total Projected Term ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
-                    <li><i class="fas fa-check-circle"></i> 100% Capital Returned Upon Maturity</li>
-                </ul>
-            </div>
-
-            <div>
-                <a href="{% url 'register' %}" class="btn btn-gold" style="width: 100%;">
-                    <i class="fas fa-vault"></i> Allocate Capital Now
-                </a>
-            </div>
-        </div>
+        {% include 'partials/home/_plan_card.html' %}
         {% endfor %}
     </div>
 </section>
 
 <!-- Section 3: Private Credit & Loan Session (Matching user requirements exactly) -->
-<section id="loans" class="section-wrapper" style="background: radial-gradient(circle at 50% 50%, rgba(18, 27, 50, 0.7) 0%, rgba(7, 10, 18, 0.95) 100%); border-radius: var(--radius-lg); border: 1px solid var(--border-gold); padding: 80px 40px; margin-top: 40px; position: relative; overflow: hidden;">
+<section id="loans" class="section-wrapper home-loans-shell">
     <!-- Visual Underwriting Ambient Accent with user image -->
-    <div style="position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; opacity: 0.08; pointer-events: none; border-radius: 50%; overflow: hidden;">
-        <img src="/static/img/money_market.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="home-loans-ambient">
+        <img src="/static/img/money_market.jpg" alt="" class="home-cover-img">
     </div>
 
     <div class="section-header">
@@ -301,52 +176,29 @@
     </div>
 
     <!-- Loan Qualification Criteria Grid (Exact numbers from user prompt) -->
-    <div class="grid-4" style="margin-bottom: 60px;">
+    <div class="grid-4 home-tiers-grid">
         {% for tier in loan_tiers %}
-        <div class="glass-card-luxury loan-tier-card {% if forloop.counter == 2 %}highlight{% endif %}">
-            <span class="badge badge-gold" style="margin-bottom: 16px;">{{ tier.badge }}</span>
-            
-            <div class="loan-threshold-circle">
-                <span class="threshold-amount">${{ tier.min_deposit_required|floatformat:0 }}</span>
-                <span class="threshold-sub">Deposit</span>
-            </div>
-
-            <div style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
-                Unlocks Eligible Loan Range:
-            </div>
-            
-            <div class="eligible-loan-range">
-                ${{ tier.min_loan_amount|floatformat:0 }} - ${{ tier.max_loan_amount|floatformat:0 }}
-            </div>
-
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 16px 0 20px; line-height: 1.5;">
-                {{ tier.perks_description }}
-            </p>
-
-            <a href="{% url 'register' %}" class="btn btn-sm btn-outline-gold" style="width: 100%;">
-                Qualify For This Tier
-            </a>
-        </div>
+        {% include 'partials/home/_loan_tier_card.html' %}
         {% endfor %}
     </div>
 
     <!-- Interactive Loan Repayment Calculator with Executive Review Banner -->
-    <div style="background: rgba(10, 15, 28, 0.92); border: 1px solid var(--border-gold); border-radius: var(--radius-lg); padding: 40px; max-width: 960px; margin: 0 auto; box-shadow: var(--shadow-luxury);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <img src="/static/img/money_market.jpg" alt="Underwriting Desk" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-gold);">
+    <div class="home-loan-calc">
+        <div class="u-flex u-justify-between u-items-center u-flex-wrap gap-16 mb-24">
+            <div class="u-flex u-items-center gap-16">
+                <img src="/static/img/money_market.jpg" alt="Underwriting Desk" class="home-calc-avatar">
                 <div>
-                    <h3 style="font-size: 1.4rem;">Institutional Loan Repayment Calculator</h3>
-                    <p style="color: var(--text-muted); font-size: 0.88rem;">Test repayment installments across 6-month and 12-month configurations</p>
+                    <h3 class="home-calc-title">Institutional Loan Repayment Calculator</h3>
+                    <p class="text-muted home-desc-sm">Test repayment installments across 6-month and 12-month configurations</p>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="u-flex gap-10">
                 <span class="badge badge-emerald">6 Months @ 0.5% / mo</span>
                 <span class="badge badge-cyan">12 Months @ 1.0% / mo</span>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;">
+        <div class="home-calc-grid">
             <div>
                 <div class="form-group">
                     <label class="form-label">Loan Facility Repayment Term</label>
@@ -357,12 +209,12 @@
                 </div>
 
                 <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <label class="form-label" style="margin-bottom: 0;">Borrowing Amount ($ USD)</label>
-                        <span id="calc-loan-amount" class="mono-num text-gold" style="font-size: 1.15rem; font-weight: 700;">$500,000</span>
+                    <div class="u-flex u-justify-between mb-8">
+                        <label class="form-label u-m0">Borrowing Amount ($ USD)</label>
+                        <span id="calc-loan-amount" class="mono-num text-gold font-bold home-slider-val">$500,000</span>
                     </div>
                     <input type="range" id="loan-amount-slider" min="300000" max="5000000" step="25000" value="500000">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-top: 6px;">
+                    <div class="home-slider-scale">
                         <span>Min $300,000 (Tier 1)</span>
                         <span>Max $5,000,000 (Chairman)</span>
                     </div>
@@ -370,27 +222,27 @@
             </div>
 
             <!-- Calculation Output -->
-            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-gold); border-radius: var(--radius-md); padding: 24px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
-                    <span style="color: var(--text-muted);">Configured Rate:</span>
+            <div class="home-loan-out">
+                <div class="home-loan-row">
+                    <span class="text-muted">Configured Rate:</span>
                     <span id="calc-loan-rate-label" class="badge badge-gold">0.5% / month</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem;">
-                    <span style="color: var(--text-muted);">Total Term Interest:</span>
-                    <span id="calc-loan-interest" class="mono-num" style="color: var(--gold-light); font-weight: 700;">$15,000.00</span>
+                <div class="home-loan-row">
+                    <span class="text-muted">Total Term Interest:</span>
+                    <span id="calc-loan-interest" class="mono-num text-gold-l font-bold">$15,000.00</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem;">
-                    <span style="color: var(--text-muted);">Total Payback Obligation:</span>
-                    <span id="calc-loan-total" class="mono-num" style="color: #ffffff; font-weight: 700;">$515,000.00</span>
+                <div class="home-loan-row home-loan-row--rule">
+                    <span class="text-muted">Total Payback Obligation:</span>
+                    <span id="calc-loan-total" class="mono-num text-white font-bold">$515,000.00</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #ffffff; font-weight: 600; font-size: 0.95rem;">Monthly Installment:</span>
-                    <span id="calc-loan-monthly" class="mono-num" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">$85,833.33</span>
+                <div class="home-loan-row home-loan-row--final">
+                    <span class="text-white font-semi home-loan-final-key">Monthly Installment:</span>
+                    <span id="calc-loan-monthly" class="mono-num home-loan-final-val home-num-mint">$85,833.33</span>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: 24px; text-align: center;">
+        <div class="mt-24 u-text-center">
             <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
                 <i class="fas fa-file-signature"></i> Open Account & Unlock Your Private Credit Facility
             </a>
@@ -410,65 +262,37 @@
 
     <div class="grid-3">
         <!-- Trust Fund Card with user image -->
-        <div class="glass-card-luxury" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="position: relative; height: 180px; overflow: hidden; background: #0c1222;">
-                <img src="/static/img/trust_fund.jpg" alt="Heritage Trust Fund" style="width: 100%; height: 100%; object-fit: contain; padding: 12px; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1.0)'">
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.1) 0%, rgba(12, 18, 34, 0.95) 100%);"></div>
-                <div style="position: absolute; bottom: 12px; left: 16px;">
-                    <span class="badge badge-gold">HERITAGE TRUST</span>
-                </div>
-            </div>
-            <div style="padding: 24px;">
-                <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Multi-Generational Wealth Trusts</h3>
-                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
-                    Structured fiduciary asset protection shielding capital through statutory governance, sovereign high-watermark growth, and tax-efficient compounding.
-                </p>
-            </div>
-        </div>
+        {% include 'partials/home/_security_image_card.html' with sec_img='/static/img/trust_fund.jpg' sec_alt='Heritage Trust Fund' sec_tinted=True sec_contain=True sec_badge_class='badge-gold' sec_badge_text='HERITAGE TRUST' sec_title='Multi-Generational Wealth Trusts' sec_desc='Structured fiduciary asset protection shielding capital through statutory governance, sovereign high-watermark growth, and tax-efficient compounding.' %}
 
         <!-- Segregated Bank Custody -->
-        <div class="glass-card-luxury" style="padding: 32px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="glass-card-luxury home-custody-card">
             <div>
-                <div class="area-icon-wrap" style="color: var(--cyan-accent); border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1);">
+                <div class="area-icon-wrap home-icon-cyan">
                     <i class="fas fa-building-columns"></i>
                 </div>
-                <h3 style="font-size: 1.25rem; margin-bottom: 12px;">Segregated Tier-1 Bank Custody</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                <h3 class="home-custody-title">Segregated Tier-1 Bank Custody</h3>
+                <p class="text-muted home-custody-desc">
                     Client funds are held in strictly ring-fenced fiduciary accounts at JPMorgan Chase & Co., completely isolated from corporate operational capital.
                 </p>
             </div>
-            <div style="margin-top: 20px;">
+            <div class="mt-20">
                 <span class="badge badge-emerald"><i class="fas fa-lock"></i> RING-FENCED ESCROW</span>
             </div>
         </div>
 
         <!-- Institutional Underwriting & Money Markets with user image -->
-        <div class="glass-card-luxury" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="position: relative; height: 180px; overflow: hidden;">
-                <img src="/static/img/money_market.jpg" alt="Underwriting & Treasury" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1.0)'">
-                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 10, 18, 0.1) 0%, rgba(12, 18, 34, 0.95) 100%);"></div>
-                <div style="position: absolute; bottom: 12px; left: 16px;">
-                    <span class="badge badge-emerald">MONEY MARKET YIELD</span>
-                </div>
-            </div>
-            <div style="padding: 24px;">
-                <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Overnight Repo & Treasury Bills</h3>
-                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
-                    Maximized liquidity yields backstopped by US Treasury repurchase instruments, central bank deposits, and Tier-1 commercial notes.
-                </p>
-            </div>
-        </div>
+        {% include 'partials/home/_security_image_card.html' with sec_img='/static/img/money_market.jpg' sec_alt='Underwriting & Treasury' sec_badge_class='badge-emerald' sec_badge_text='MONEY MARKET YIELD' sec_title='Overnight Repo & Treasury Bills' sec_desc='Maximized liquidity yields backstopped by US Treasury repurchase instruments, central bank deposits, and Tier-1 commercial notes.' %}
     </div>
 </section>
 
 <!-- Call to Action Banner -->
-<section class="section-wrapper" style="padding-top: 0;">
-    <div style="position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%), #0c1222; border: 1px solid var(--border-gold); border-radius: var(--radius-lg); padding: 60px 40px; text-align: center; box-shadow: var(--shadow-luxury);">
-        <h2 style="font-size: 2.8rem; margin-bottom: 16px;">Begin Your Sovereign Investment Journey</h2>
-        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto 32px;">
+<section class="section-wrapper home-section-tight">
+    <div class="home-cta-banner">
+        <h2 class="home-cta-title">Begin Your Sovereign Investment Journey</h2>
+        <p class="text-muted home-cta-sub">
             Join over 14,000 global investors allocating capital into institutional Real Estate, vaulted Gold, Trust Funds, and Money Markets with live reading ROI.
         </p>
-        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <div class="u-flex gap-16 u-justify-center u-flex-wrap">
             <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
                 <i class="fas fa-vault"></i> Open An Investor Account
             </a>

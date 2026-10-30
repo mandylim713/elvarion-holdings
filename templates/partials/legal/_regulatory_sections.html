@@ -1,0 +1,50 @@
+{# Regulatory filings disclosure stack — rendered inside partials/legal/_layout.html with banner=True. #}
+
+<section>
+    {% include 'partials/legal/_section.html' with heading='Institutional Charter & Registration' %}
+    <p class="block-subtitle">
+        Elvarion Holdings Ltd is a privately incorporated fiduciary wealth management and private credit firm registered under applicable private placement and institutional investment exemptions. Our operations are structured to comply with relevant AML/KYC regulations in each jurisdiction in which we accept client investments.
+    </p>
+</section>
+
+<section>
+    {% include 'partials/legal/_section.html' with heading='AML / KYC Policy' %}
+    <p class="block-subtitle">
+        We maintain a comprehensive Anti-Money Laundering and Know-Your-Customer compliance program. All clients are required to undergo identity verification before accessing investment services or private credit facilities. We screen all clients against OFAC, UN, and relevant sanctions lists. Suspicious activity is reported to appropriate regulatory authorities as required by law.
+    </p>
+    <div class="mt-16 u-flex gap-12 u-flex-wrap">
+        <span class="badge badge-emerald"><i class="fas fa-check"></i> OFAC Screened</span>
+        <span class="badge badge-emerald"><i class="fas fa-check"></i> UN Sanctions Compliant</span>
+        <span class="badge badge-emerald"><i class="fas fa-check"></i> PEP Screening Active</span>
+        <span class="badge badge-gold"><i class="fas fa-check"></i> SOC 2 Type II Audited</span>
+    </div>
+</section>
+
+<section>
+    {% include 'partials/legal/_section.html' with heading='Custodial & Insurance Arrangements' %}
+    <p class="block-subtitle">
+        Client fiat currency assets are custodied in segregated, ring-fenced accounts at JPMorgan Chase Private Bank, completely isolated from Elvarion's operational capital. Physical gold bullion holdings are specifically allocated with serial numbers in bonded Swiss vaults (Zurich and Geneva) and are comprehensively insured under Lloyds of London underwriting policies.
+    </p>
+</section>
+
+<section>
+    {% include 'partials/legal/_section.html' with heading='Risk Disclosures' %}
+    <ul class="legal-list legal-list-loose">
+        <li>All investment products carry inherent risk. Past performance does not guarantee future results.</li>
+        <li>ROI projections are indicative and based on institutional benchmark models; actual returns may differ.</li>
+        <li>Real estate, gold, trust fund, and money market investments are subject to market volatility, liquidity risk, and macroeconomic factors.</li>
+        <li>Private credit facilities are underwritten against verified deposit collateral; default on repayment may result in facility termination.</li>
+        <li>Cryptocurrency deposit channels carry blockchain network risks including confirmation delays and transaction finality timelines.</li>
+    </ul>
+</section>
+
+<section>
+    {% include 'partials/legal/_section.html' with heading='Contact Our Compliance Desk' %}
+    <p class="block-subtitle">
+        For regulatory enquiries, fiduciary disclosures, or compliance documentation requests, please contact:<br>
+        <strong class="text-bright">Chief Compliance Officer</strong><br>
+        Elvarion Holdings Ltd, Tower 49, 12 East 49th Street, New York, NY 10017<br>
+        Email: <strong class="text-gold-l">concierge@elvarionholdings.com</strong><br>
+        Private Terminal: <strong class="text-gold-l">+1 (212) 555-0188</strong>
+    </p>
+</section>

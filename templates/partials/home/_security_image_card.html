@@ -1,0 +1,16 @@
+{# Home: image-topped card in the #security section. Params: sec_img, sec_alt, sec_badge_class, sec_badge_text, sec_title, sec_desc, sec_tinted (dark media backdrop), sec_contain (letterbox the image) #}
+<div class="glass-card-luxury home-edge-card">
+    <div class="home-security-media{% if sec_tinted %} home-media-tint{% endif %}">
+        <img src="{{ sec_img }}" alt="{{ sec_alt }}" class="home-zoom-img{% if sec_contain %} home-zoom-img--contain{% endif %}">
+        <div class="home-media-shade home-media-shade--soft"></div>
+        <div class="home-security-flag">
+            <span class="badge {{ sec_badge_class }}">{{ sec_badge_text }}</span>
+        </div>
+    </div>
+    <div class="p-24">
+        <h3 class="home-card-title">{{ sec_title }}</h3>
+        <p class="text-muted home-card-desc">
+            {{ sec_desc }}
+        </p>
+    </div>
+</div>

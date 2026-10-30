@@ -25,12 +25,12 @@
   gap: 14px;
 }
 .dash-alert--danger {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(212, 175, 55, 0.1));
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: linear-gradient(90deg, rgba(180, 84, 76, 0.15), rgba(192, 160, 98, 0.1));
+  border: 1px solid rgba(180, 84, 76, 0.4);
 }
 .dash-alert--pending {
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(212, 175, 55, 0.1));
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: linear-gradient(90deg, rgba(192, 139, 78, 0.15), rgba(192, 160, 98, 0.1));
+  border: 1px solid rgba(192, 139, 78, 0.4);
 }
 .dash-alert__body {
   display: flex;
@@ -48,15 +48,15 @@
   flex-shrink: 0;
 }
 .dash-alert--danger .dash-alert__icon {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background: rgba(180, 84, 76, 0.2);
+  color: #d08a82;
 }
 .dash-alert--pending .dash-alert__icon {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  background: rgba(192, 139, 78, 0.2);
+  color: #c08b4e;
 }
 .dash-alert__title {
-  color: #ffffff;
+  color: #f8f6f1;
   font-size: 0.95rem;
 }
 .dash-alert__text {
@@ -131,7 +131,7 @@
 .dash-stat-value {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #f8f6f1;
 }
 .dash-stat-value--gold { color: var(--gold-light); }
 
@@ -146,11 +146,11 @@
 .dash-metric-value {
   font-size: 1.85rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #f8f6f1;
   line-height: 1;
 }
-.dash-metric-value--emerald { color: #34d399; }
-.dash-metric-value--cyan    { color: #67e8f9; }
+.dash-metric-value--emerald { color: #7fb894; }
+.dash-metric-value--cyan    { color: #b3c3d3; }
 .dash-metric-foot {
   margin-top: 12px;
   display: flex;
@@ -184,7 +184,7 @@
 }
 .dash-inv-roi-box {
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(79, 138, 107, 0.35);
   border-radius: var(--radius-sm);
   padding: 18px;
   margin-bottom: 20px;
@@ -192,7 +192,7 @@
 .dash-inv-roi-val {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #34d399;
+  color: #7fb894;
 }
 .dash-progress-label-row {
   display: flex;
@@ -203,7 +203,7 @@
 }
 .dash-progress-track {
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(242, 239, 233, 0.08);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -211,7 +211,7 @@
    live-synced by main.js via style.width — no inline style needed. */
 .dash-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #d4af37, #10b981);
+  background: var(--gold-primary);
   transition: width 0.5s ease;
 }
 .dash-inv-footer {
@@ -262,7 +262,7 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(242, 239, 233, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 12px 18px;
@@ -309,32 +309,32 @@
 .dash-border-gold { border-color: var(--border-gold); }
 .dash-h2-lg { font-size: 1.8rem; }
 .dash-facility-box {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(79, 138, 107, 0.15);
+  border: 1px solid rgba(79, 138, 107, 0.4);
   border-radius: var(--radius-sm);
   padding: 12px 20px;
   text-align: right;
 }
 .dash-facility-box--danger {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(180, 84, 76, 0.15);
+  border-color: rgba(180, 84, 76, 0.4);
 }
 .dash-facility-label {
   font-size: 0.75rem;
   text-transform: uppercase;
-  color: #a7f3d0;
+  color: #bcdcc8;
   font-weight: 700;
 }
-.dash-facility-label--danger { color: #fca5a5; }
+.dash-facility-label--danger { color: #e0a9a2; }
 .dash-facility-value {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #34d399;
+  color: #7fb894;
 }
 .dash-facility-value--danger {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #f87171;
+  color: #d08a82;
 }
 .dash-tier-grid {
   margin-top: 36px;
@@ -345,11 +345,11 @@
 .dash-tier-tile {
   padding: 18px;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(242, 239, 233, 0.03);
   border: 1px solid var(--border-subtle);
 }
 .dash-tier-tile--unlocked {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(192, 160, 98, 0.15);
   border: 1px solid var(--border-gold);
 }
 .dash-tier-badge-label {
@@ -360,7 +360,7 @@
 .dash-tier-amount {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #f8f6f1;
 }
 .dash-tier-eligible {
   font-size: 0.8rem;
@@ -380,7 +380,7 @@
 /* form-label override: sits inside a flex row with a trailing value */
 .dash-label-inline { margin-bottom: 0; }
 .dash-schedule-box {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(242, 239, 233, 0.03);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-sm);
   padding: 20px;
@@ -394,7 +394,7 @@
 .dash-sched-row--total {
   margin-bottom: 18px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(242, 239, 233, 0.08);
 }
 .dash-sched-row--final { margin-bottom: 0; }
 .dash-sched-note {
@@ -417,25 +417,25 @@
   margin-top: 6px;
 }
 .dash-cum-box {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(79, 138, 107, 0.1);
+  border: 1px solid rgba(79, 138, 107, 0.3);
   border-radius: var(--radius-sm);
   padding: 10px 16px;
   text-align: right;
 }
 .dash-cum-label {
   font-size: 0.72rem;
-  color: #a7f3d0;
+  color: #bcdcc8;
   text-transform: uppercase;
   font-weight: 700;
 }
 /* Fixed colour palette for the gateway tab icons (mirrors each network's
    brand colour that was previously written inline on .crypto-tab-icon). */
-.dash-icon-tron { color: #10b981; }
-.dash-icon-btc  { color: #f59e0b; }
-.dash-icon-erc  { color: #60a5fa; }
-.dash-icon-eth  { color: #a78bfa; }
-.dash-icon-wire { color: #f7d774; }
+.dash-icon-tron { color: #4f8a6b; }
+.dash-icon-btc  { color: #c08b4e; }
+.dash-icon-erc  { color: #a3b4c9; }
+.dash-icon-eth  { color: #b6a6cf; }
+.dash-icon-wire { color: #e0c98f; }
 .dash-gw-title  { font-size: 1.4rem; margin-top: 6px; }
 .dash-qr-caption {
   text-align: center;
@@ -460,7 +460,7 @@
 }
 .dash-addr-text {
   font-size: 0.88rem;
-  color: #ffffff;
+  color: #f8f6f1;
   word-break: break-all;
 }
 /* Initial-hidden state for JS-toggled blocks (gateway switches set
@@ -476,7 +476,7 @@
   line-height: 1.9;
 }
 .dash-estimator {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(242, 239, 233, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 14px;
@@ -485,7 +485,7 @@
 .dash-estimator-output {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #34d399;
+  color: #7fb894;
 }
 .dash-gw-select-box {
   padding: 10px 14px;
@@ -506,7 +506,7 @@
 
 /* ---------- Tab 5: KYC compliance centre ---------- */
 .dash-mb-30 { margin-bottom: 30px; }
-.dash-border-amber { border-color: rgba(245, 158, 11, 0.5); }
+.dash-border-amber { border-color: rgba(192, 139, 78, 0.5); }
 .dash-cert-head {
   display: flex;
   justify-content: space-between;
@@ -540,7 +540,7 @@
   gap: 20px;
 }
 .dash-cert-panel {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(242, 239, 233, 0.02);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 18px;
@@ -562,11 +562,11 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(192, 139, 78, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f59e0b;
+  color: #c08b4e;
   font-size: 1.8rem;
   flex-shrink: 0;
 }
@@ -592,7 +592,7 @@
 .dash-kyc-grid--rule {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(242, 239, 233, 0.05);
 }
 .dash-kyc-field-label {
   color: var(--text-dim);
@@ -636,7 +636,7 @@
   margin-bottom: 20px;
 }
 .dash-modal-balance {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(242, 239, 233, 0.04);
   border-radius: var(--radius-sm);
   padding: 14px;
   margin-bottom: 20px;
@@ -648,7 +648,7 @@
 
 /* ---------- Page-scoped micro sizes & colours ----------
    Exact values used across the dashboard that have no equivalent
-   in the shared scale (fs-sm is 0.82rem, text-emerald is #10b981, etc.). */
+   in the shared scale (fs-sm is 0.82rem, text-emerald is #4f8a6b, etc.). */
 .dash-fs-88 { font-size: 0.88rem; }
 .dash-fs-90 { font-size: 0.90rem; }
 .dash-fs-85 { font-size: 0.85rem; }
@@ -660,8 +660,8 @@
 .dash-fs-14 { font-size: 1.4rem; }
 .dash-fs-125 { font-size: 1.25rem; }
 .dash-badge-xs { font-size: 0.7rem; }
-/* #34d399 is the brighter accent used by the live tickers — distinct from
-   --emerald-accent (#10b981), so it needs its own class to stay exact. */
-.dash-emerald { color: #34d399; }
-.dash-blue    { color: #60a5fa; }
+/* #7fb894 is the brighter accent used by the live tickers — distinct from
+   --emerald-accent (#4f8a6b), so it needs its own class to stay exact. */
+.dash-emerald { color: #7fb894; }
+.dash-blue    { color: #a3b4c9; }
 .dash-subhead { font-size: 1.35rem; }

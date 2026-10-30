@@ -1,0 +1,14 @@
+{# Crest + badge row + title + subtitle header used by all auth pages. #}
+{# Params: header_class, crest_class, badge_row_class, title_class, subtitle_class, #}
+{#         title, subtitle, badge1_class/_icon/_text, badge2_class/_icon/_text #}
+<div class="auth-header {{ header_class|default:'' }}">
+    <div class="brand-crest {{ crest_class|default:'auth-crest' }}">EH</div>
+    <div class="auth-badge-row {{ badge_row_class|default:'' }}">
+        {% include 'partials/auth/_badge.html' with badge_class=badge1_class badge_icon=badge1_icon badge_text=badge1_text %}
+        {% include 'partials/auth/_badge.html' with badge_class=badge2_class badge_icon=badge2_icon badge_text=badge2_text %}
+    </div>
+    <h2 class="{{ title_class|default:'auth-title' }}">{{ title }}</h2>
+    <p class="{{ subtitle_class|default:'auth-subtitle' }}">
+        {{ subtitle }}
+    </p>
+</div>

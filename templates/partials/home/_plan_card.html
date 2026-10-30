@@ -1,0 +1,32 @@
+{# Home: featured investment plan card. #}
+<div class="glass-card-luxury plan-card">
+    <div>
+        <div class="u-flex u-justify-between u-items-center">
+            <span class="badge badge-gold">{{ plan.badge }}</span>
+            <span class="badge badge-cyan">{{ plan.area.name }}</span>
+        </div>
+
+        <h3 class="home-plan-title">{{ plan.title }}</h3>
+        <p class="text-muted home-plan-desc">{{ plan.description }}</p>
+
+        <div class="plan-roi-header">
+            <div class="plan-roi-val">{{ plan.roi_percentage }}%</div>
+            <div class="plan-duration-badge">
+                {{ plan.duration_count }} {{ plan.get_duration_unit_display }} Payout Cycle
+            </div>
+        </div>
+
+        <ul class="features-list">
+            <li><i class="fas fa-check-circle"></i> Minimum Allocation: <strong class="mono-num text-white">${{ plan.min_deposit|floatformat:0 }}</strong></li>
+            <li><i class="fas fa-check-circle"></i> Maximum Capacity: <strong class="mono-num text-white">${{ plan.max_deposit|floatformat:0 }}</strong></li>
+            <li><i class="fas fa-check-circle"></i> Total Projected Term ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
+            <li><i class="fas fa-check-circle"></i> 100% Capital Returned Upon Maturity</li>
+        </ul>
+    </div>
+
+    <div>
+        <a href="{% url 'register' %}" class="btn btn-gold u-w-full">
+            <i class="fas fa-vault"></i> Allocate Capital Now
+        </a>
+    </div>
+</div>

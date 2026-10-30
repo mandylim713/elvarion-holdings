@@ -1,0 +1,27 @@
+{# Directorate header: identity badges, title, meta line and quick action buttons #}
+<div class="mgmt-header-row">
+    <div>
+        <div class="mgmt-badge-row">
+            <span class="badge badge-gold"><i class="fas fa-shield"></i> DIRECTORATE CONTROL DESK</span>
+            <span class="badge badge-emerald">STATUTORY GOVERNANCE</span>
+        </div>
+        <h1 class="mgmt-title">
+            Underwriting & <span class="gold-gradient-text">Portfolio Administration</span>
+        </h1>
+        <p class="mgmt-sub">
+            Configure investment durations (daily, weekly, monthly, yearly), customize ROIs, adjust loan criteria thresholds, and approve/disapprove applications.
+        </p>
+    </div>
+
+    <div class="u-flex gap-12 u-items-center u-flex-wrap">
+        <a href="/admin/" target="_blank" class="btn btn-outline-gold btn-sm">
+            <i class="fas fa-database"></i> Full Django Admin
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-gold btn-sm">
+            <i class="fas fa-eye"></i> View Client Dashboard
+        </a>
+        <a href="{% url 'admin_logout' %}" class="btn btn-outline-subtle btn-sm" title="Sign Out of Directorate Desk">
+            <i class="fas fa-right-from-bracket"></i> Directorate Sign Out
+        </a>
+    </div>
+</div>

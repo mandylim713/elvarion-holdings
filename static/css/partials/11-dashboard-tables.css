@@ -16,5 +16,5 @@
 }
 
 /* Colour one-offs that were inline on <td> cells */
-.dash-td-credit { color: #34d399; font-size: 1rem; } /* deposit amount cell */
+.dash-td-credit { color: #7fb894; font-size: 1rem; } /* deposit amount cell */
 .dash-td-proof  { color: var(--text-muted); }

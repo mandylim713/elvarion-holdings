@@ -1,0 +1,54 @@
+{# Home: one investment-area card for the #areas section. #}
+<div class="glass-card-luxury area-card home-edge-card">
+    <!-- Area Image Banner -->
+    <div class="home-area-media">
+        {% if area.hero_image %}
+            <img src="{{ area.hero_image }}" alt="{{ area.name }}" class="home-zoom-img">
+        {% else %}
+            <div class="home-img-fallback">
+                <i class="fas fa-{{ area.icon }}"></i>
+            </div>
+        {% endif %}
+        <div class="home-media-shade home-media-shade--soft"></div>
+
+        <div class="home-area-icon-slot">
+            <div class="area-icon-wrap home-area-icon-wrap home-glass-blur">
+                <i class="fas fa-{{ area.icon }}"></i>
+            </div>
+        </div>
+
+        <div class="home-area-badge-slot">
+            <span class="badge badge-gold home-glass-blur">{{ area.risk_level }}</span>
+        </div>
+
+        <div class="home-area-roi-slot">
+            <span class="home-area-roi-text">
+                {{ area.expected_roi_range }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Card Content Body -->
+    <div class="home-area-body">
+        <div>
+            <h3 class="area-name home-area-name">{{ area.name }}</h3>
+            <p class="area-desc home-area-desc">
+                {{ area.description }}
+            </p>
+        </div>
+
+        <div>
+            <div class="area-meta-row home-area-meta-row">
+                <span class="area-meta-label">Configured Plans</span>
+                <span class="area-meta-val">{{ area.plans.count }} Active Portfolios</span>
+            </div>
+            <div class="area-meta-row home-area-meta-row">
+                <span class="area-meta-label">Duration Cycles</span>
+                <span class="area-meta-val text-gold-l">Daily &bull; Weekly &bull; Monthly &bull; Yearly</span>
+            </div>
+            <a href="{% url 'register' %}" class="btn btn-outline-gold btn-sm u-w-full home-area-cta">
+                <i class="fas fa-layer-group"></i> Explore {{ area.name }}
+            </a>
+        </div>
+    </div>
+</div>

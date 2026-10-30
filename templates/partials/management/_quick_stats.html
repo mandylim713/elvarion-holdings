@@ -1,0 +1,8 @@
+{# Quick stats bar — 5 identical control-desk counters (see _stat_card.html) #}
+<div class="mgmt-stat-grid">
+    {% include 'partials/management/_stat_card.html' with label='Pending Loan Reviews' value=pending_loans|length tone='amber' %}
+    {% include 'partials/management/_stat_card.html' with label='Pending Deposits' value=pending_deposits|length tone='mint' %}
+    {% include 'partials/management/_stat_card.html' with label='Pending KYC Reviews' value=pending_kyc|length tone='violet' %}
+    {% include 'partials/management/_stat_card.html' with label='Configured Plans' value=plans|length tone='plain' %}
+    {% include 'partials/management/_stat_card.html' with label='Registered Investors' value=users|length tone='cyan' %}
+</div>

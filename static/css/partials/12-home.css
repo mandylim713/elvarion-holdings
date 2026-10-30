@@ -1,0 +1,447 @@
+/* =========================================================
+   12-HOME — page CSS for templates/index.html and
+   templates/partials/home/*.html
+   Linked from index.html's {% block extra_css %}. Every rule
+   below was transplanted from a previously inline style attribute;
+   colours, radii, shadows and spacing are kept exactly as they
+   rendered before the refactor.
+   ========================================================= */
+
+/* --- Hero copy -------------------------------------------------- */
+.home-title-glow { text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9); }
+
+.home-hero-desc {
+  color: #d8d4cc;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.home-hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+/* Inline styles beat the :hover rules, so keep the static glow on hover too. */
+.home-cta-gold,
+.home-cta-gold:hover {
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
+}
+
+.home-btn-glass,
+.home-btn-glass:hover {
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.home-hero-stats {
+  background: rgba(20, 20, 23, 0.7);
+  backdrop-filter: blur(16px);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  margin-top: 30px;
+}
+
+/* The page's signature mint read-out (#7fb894), distinct from --emerald-accent. */
+.home-num-mint { color: #7fb894; }
+
+/* --- Shared media headers --------------------------------------- */
+.home-edge-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-roi-media,
+.home-area-media,
+.home-showcase-media,
+.home-security-media {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-roi-media { height: 160px; }
+.home-area-media { width: 100%; height: 180px; }
+.home-showcase-media { height: 260px; }
+.home-security-media { height: 180px; }
+
+.home-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-zoom-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.home-zoom-img--contain {
+  object-fit: contain;
+  padding: 12px;
+}
+
+.home-area-media:hover .home-zoom-img { transform: scale(1.08); }
+.home-showcase-media:hover .home-zoom-img,
+.home-security-media:hover .home-zoom-img { transform: scale(1.05); }
+
+.home-img-fallback {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-img-fallback i {
+  font-size: 3rem;
+  color: var(--gold-light);
+}
+
+.home-media-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.2) 0%, rgba(20, 20, 23, 0.95) 100%);
+}
+
+.home-media-shade--soft {
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.1) 0%, rgba(20, 20, 23, 0.95) 100%);
+}
+
+.home-media-shade--deep {
+  background: linear-gradient(180deg, rgba(11, 11, 13, 0.3) 0%, rgba(20, 20, 23, 0.98) 100%);
+}
+
+.home-media-topbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.home-roi-flag { position: absolute; bottom: 12px; left: 20px; }
+.home-showcase-flag { position: absolute; bottom: 20px; left: 24px; }
+.home-security-flag { position: absolute; bottom: 12px; left: 16px; }
+
+.home-glass-blur { backdrop-filter: blur(8px); }
+
+/* --- ROI estimator card ------------------------------------------ */
+.home-roi-card {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+}
+
+.home-roi-media-title {
+  font-size: 1.35rem;
+  color: #f8f6f1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.home-roi-media-sub {
+  font-size: 0.78rem;
+  color: var(--gold-light);
+}
+
+.home-roi-body { padding: 24px 28px 28px; }
+
+.home-badge-rate { font-size: 0.75rem; }
+
+.home-calc-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  margin: 20px 0;
+}
+
+.home-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.home-calc-row--rule {
+  margin-bottom: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(242, 239, 233, 0.08);
+}
+
+.home-calc-key { font-size: 0.88rem; }
+
+.home-value-profit {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.home-value-total { font-size: 1.25rem; }
+
+/* --- Investment area cards ---------------------------------------- */
+.home-area-icon-slot { position: absolute; top: 12px; left: 14px; }
+.home-area-badge-slot { position: absolute; top: 12px; right: 14px; }
+
+.home-area-icon-wrap {
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+.home-area-roi-slot {
+  position: absolute;
+  bottom: 10px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.home-area-roi-text {
+  font-size: 0.78rem;
+  color: #7fb894;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.home-area-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.home-area-name {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+
+.home-area-desc {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+
+.home-area-meta-row { padding: 10px 0; }
+
+.home-area-cta { margin-top: 14px; }
+
+/* --- Sections / showcase / plans --------------------------------- */
+.home-section-tight { padding-top: 0; }
+
+.home-showcase-title {
+  font-size: 1.6rem;
+  color: #f8f6f1;
+}
+
+.home-badge-overline { margin-bottom: 6px; }
+
+.home-showcase-desc {
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.home-stat-strip {
+  display: flex;
+  gap: 20px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+
+.home-stat-strip-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.home-stat-cap {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.home-plan-title {
+  font-size: 1.35rem;
+  margin-top: 16px;
+}
+
+.home-plan-desc {
+  font-size: 0.88rem;
+  margin-top: 6px;
+}
+
+.home-desc-sm { font-size: 0.88rem; }
+
+/* --- Private credit / loans section -------------------------------- */
+.home-loans-shell {
+  background: radial-gradient(circle at 50% 50%, rgba(20, 20, 23, 0.7) 0%, rgba(11, 11, 13, 0.95) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-gold);
+  padding: 80px 40px;
+  margin-top: 40px;
+  overflow: hidden;
+}
+
+.home-loans-ambient {
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 350px;
+  height: 350px;
+  opacity: 0.08;
+  pointer-events: none;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.home-tiers-grid { margin-bottom: 60px; }
+
+.home-tier-caps {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.home-tier-perks {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 16px 0 20px;
+}
+
+.home-loan-calc {
+  background: rgba(11, 11, 13, 0.92);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  max-width: 960px;
+  margin: 0 auto;
+  box-shadow: var(--shadow-luxury);
+}
+
+.home-calc-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border-gold);
+}
+
+.home-calc-title { font-size: 1.4rem; }
+
+.home-calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.home-slider-val { font-size: 1.15rem; }
+
+.home-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.home-loan-out {
+  background: rgba(242, 239, 233, 0.03);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.home-loan-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.home-loan-row--rule {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(242, 239, 233, 0.08);
+}
+
+.home-loan-row--final {
+  margin-bottom: 0;
+  align-items: center;
+}
+
+.home-loan-final-key { font-size: 0.95rem; }
+
+.home-loan-final-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* --- Security / fiduciary section --------------------------------- */
+.home-media-tint { background: #141417; }
+
+.home-card-title {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+
+.home-card-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.home-custody-card {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.home-custody-title {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.home-custody-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.home-icon-cyan {
+  color: var(--cyan-accent);
+  border-color: rgba(143, 163, 184, 0.4);
+  background: rgba(143, 163, 184, 0.1);
+}
+
+/* --- Closing call to action --------------------------------------- */
+.home-cta-banner {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(192, 160, 98, 0.2) 0%, rgba(79, 138, 107, 0.15) 100%), #141417;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: var(--shadow-luxury);
+}
+
+.home-cta-title {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+}
+
+.home-cta-sub {
+  font-size: 1.1rem;
+  max-width: 650px;
+  margin: 0 auto 32px;
+}

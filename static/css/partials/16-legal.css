@@ -1,0 +1,63 @@
+/* =========================================================
+   LEGAL PAGES (privacy / terms / regulatory)
+   Shared document shell + clause typography. Only rules the
+   07/09 utilities do not already cover live here.
+   ========================================================= */
+
+/* Page shell */
+.legal-page {
+  padding: 140px 24px 100px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+.legal-header { margin-bottom: 48px; }
+.legal-title {
+  text-align: left;
+  font-size: 2.8rem;
+  margin-top: 12px;
+}
+.legal-meta { font-size: 0.88rem; }
+
+/* Document card + clause stack */
+.legal-card { padding: 48px; }
+.legal-card-sm { padding: 40px; }
+.legal-stack { display: flex; flex-direction: column; }
+.legal-stack-40 { gap: 40px; }
+.legal-stack-36 { gap: 36px; }
+.legal-stack-28 { gap: 28px; }
+
+/* Clause heading bullet icon (inside .block-title) */
+.legal-bullet {
+  font-size: 0.6rem;
+  color: var(--gold-primary);
+}
+
+/* Clause lists */
+.legal-list {
+  color: var(--text-muted);
+  font-size: 0.93rem;
+  line-height: 1.9;
+  padding-left: 20px;
+}
+.legal-list-loose { line-height: 2; }
+.legal-list-top { margin-top: 10px; }
+
+/* Regulatory notice banner */
+.legal-banner {
+  background: rgba(192, 160, 98, 0.08);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 28px 32px;
+}
+.legal-banner-icon {
+  font-size: 1.6rem;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.legal-banner-title { font-size: 0.95rem; }
+.legal-banner-text {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin-top: 6px;
+}
