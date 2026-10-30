@@ -27,4 +27,9 @@ urlpatterns = [
     path('management/kyc/<int:submission_id>/<str:action>/', views.admin_kyc_action, name='admin_kyc_action'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
+
+    # Legal pages
+    path('privacy/', views.privacy_policy, name='privacy'),
+    path('terms/', views.terms_of_custody, name='terms'),
+    path('regulatory/', views.regulatory_filings, name='regulatory'),
 ]

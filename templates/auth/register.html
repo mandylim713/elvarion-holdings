@@ -17,15 +17,6 @@
                 Provision sovereign multi-asset custody across Real Estate, Bullion, Trusts & Credit
             </p>
         </div>
-
-        <!-- Quick Evaluation Preset Helper -->
-        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div style="font-size: 0.8rem; color: var(--gold-light); display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt"></i> <span><strong>Fast Demo Preset:</strong> Populate institutional test credentials</span>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillRegisterPreset()" style="padding: 5px 14px; font-size: 0.78rem;">
-                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Test Investor
-            </button>
         </div>
 
         <!-- Onboarding Progress Indicator -->
@@ -350,16 +341,5 @@ function checkPasswordMatch() {
     }
 }
 
-function autofillRegisterPreset() {
-    const randNum = Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('reg-fullname').value = 'Lord Alexander Sterling';
-    document.getElementById('reg-email').value = `sterling.${randNum}@elvarion-wealth.com`;
-    document.getElementById('reg-username').value = `sterling_${randNum}`;
-    document.getElementById('reg-password').value = 'Sterling@Vault2026';
-    document.getElementById('reg-confirm').value = 'Sterling@Vault2026';
-    document.getElementById('reg-phone').value = '202 555 0194';
-    checkPasswordStrength();
-    checkPasswordMatch();
-}
 </script>
 {% endblock %}

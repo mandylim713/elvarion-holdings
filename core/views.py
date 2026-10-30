@@ -757,3 +757,15 @@ def admin_save_tier(request):
             messages.success(request, f"New loan tier '{tier_name}' created.")
 
     return redirect('admin_management')
+
+
+# ─── Legal / Static Pages ───────────────────────────────────
+
+def privacy_policy(request):
+    return render(request, 'legal/privacy.html')
+
+def terms_of_custody(request):
+    return render(request, 'legal/terms.html')
+
+def regulatory_filings(request):
+    return render(request, 'legal/regulatory.html')
