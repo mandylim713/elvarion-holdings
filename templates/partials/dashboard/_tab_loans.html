@@ -1,0 +1,202 @@
+{# TAB 3: Private Credit & Loans Session #}
+<div id="tab-loans" class="tab-pane">
+    <!-- Eligibility Status Overview -->
+    <div class="glass-card-luxury dash-p-36 dash-border-gold dash-mb-36">
+        <div class="u-flex u-justify-between u-items-center u-flex-wrap gap-20">
+            <div>
+                <span class="badge badge-gold mb-8"><i class="fas fa-shield-alt"></i> PRIVATE UNDERWRITING STATUS</span>
+                <h2 class="dash-h2-lg">Private Credit Eligibility Status</h2>
+                <p class="dash-desc mt-4">
+                    Borrowing privileges are calibrated directly against your verified cumulative deposits (${{ profile.total_deposited|floatformat:2 }}).
+                </p>
+            </div>
+
+            <div>
+                {% if eligible_tier %}
+                    <div class="dash-facility-box">
+                        <div class="dash-facility-label">Unlocked Loan Facility</div>
+                        <div class="mono-num dash-facility-value">
+                            ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="dash-facility-box dash-facility-box--danger">
+                        <div class="dash-facility-label dash-facility-label--danger">Deposit Qualification Pending</div>
+                        <div class="mono-num dash-facility-value dash-facility-value--danger">
+                            Requires $25,000 Deposit
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Step Criteria Visual Bar -->
+        <div class="dash-tier-grid">
+            {% for tier in loan_tiers %}
+            <div class="dash-tier-tile{% if profile.total_deposited >= tier.min_deposit_required %} dash-tier-tile--unlocked{% endif %}">
+                <div class="u-flex u-justify-between u-items-center mb-8">
+                    <span class="dash-tier-badge-label">{{ tier.badge }}</span>
+                    {% if profile.total_deposited >= tier.min_deposit_required %}
+                        <i class="fas fa-check-circle text-emerald"></i>
+                    {% else %}
+                        <i class="fas fa-lock text-dim"></i>
+                    {% endif %}
+                </div>
+                <div class="mono-num dash-tier-amount">
+                    ${{ tier.min_deposit_required|floatformat:0 }} Deposit
+                </div>
+                <div class="dash-tier-eligible">
+                    Eligible: ${{ tier.min_loan_amount|floatformat:0 }} &ndash; ${{ tier.max_loan_amount|floatformat:0 }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Loan Application Form if Qualified -->
+    {% if eligible_tier %}
+    <div class="grid-2 mb-40">
+        <!-- Application Form -->
+        <div class="glass-card-luxury dash-p-32">
+            <h3 class="dash-card-title">Submit Loan Application</h3>
+            <p class="dash-card-sub">
+                Funds will be credited directly to your Loan Balance upon Director approval.
+            </p>
+
+            <form method="POST" action="{% url 'apply_loan' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Repayment Facility Term</label>
+                    <select id="user-loan-term" name="term_months" class="form-control" onchange="recalcUserLoan()">
+                        {% for term in loan_terms %}
+                            <option value="{{ term.term_months }}" data-rate="{{ term.monthly_interest_rate }}">
+                                {{ term.term_months }} Months Repayment ({{ term.monthly_interest_rate }}% Interest / Month)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div class="u-flex u-justify-between mb-8">
+                        <label class="form-label dash-label-inline">Loan Principal ($ USD)</label>
+                        <span class="mono-num dash-fs-85 text-gold-l">
+                            Allowed: ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                        </span>
+                    </div>
+                    <input type="number" id="user-loan-amount" name="loan_amount" class="form-control mono-num"
+                        value="{{ eligible_tier.min_loan_amount|floatformat:0 }}"
+                        min="{{ eligible_tier.min_loan_amount|floatformat:0 }}"
+                        max="{{ eligible_tier.max_loan_amount|floatformat:0 }}"
+                        step="10000" oninput="recalcUserLoan()" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Intended Allocation / Purpose</label>
+                    <select name="purpose" class="form-control">
+                        <option value="Real Estate Expansion & Acquisition">Real Estate Expansion & Acquisition</option>
+                        <option value="Private Portfolio Liquidity">Private Portfolio Liquidity</option>
+                        <option value="Institutional Working Capital">Institutional Working Capital</option>
+                        <option value="High-Yield Arbitrage Allocation">High-Yield Arbitrage Allocation</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-gold u-w-full mt-12">
+                    <i class="fas fa-file-signature"></i> Submit Application for Underwriter Approval
+                </button>
+            </form>
+        </div>
+
+        <!-- Instant Repayment Breakdown -->
+        <div class="glass-card-luxury dash-p-32 u-flex u-flex-col u-justify-between">
+            <div>
+                <h3 class="dash-card-title">Facility Financial Schedule</h3>
+                <p class="dash-card-sub">
+                    Transparent amortization calculated per month.
+                </p>
+
+                <div class="dash-schedule-box">
+                    <div class="dash-sched-row">
+                        <span class="text-muted">Selected Principal:</span>
+                        <span id="schedule-principal" class="mono-num text-white font-bold">$0.00</span>
+                    </div>
+                    <div class="dash-sched-row">
+                        <span class="text-muted">Monthly Interest Rate:</span>
+                        <span id="schedule-rate" class="badge badge-gold">0.5% / month</span>
+                    </div>
+                    <div class="dash-sched-row">
+                        <span class="text-muted">Total Term Interest:</span>
+                        <span id="schedule-interest" class="mono-num text-gold-l font-bold">$0.00</span>
+                    </div>
+                    <div class="dash-sched-row dash-sched-row--total">
+                        <span class="text-muted">Total Repayment:</span>
+                        <span id="schedule-total" class="mono-num font-bold text-white">$0.00</span>
+                    </div>
+                    <div class="dash-sched-row dash-sched-row--final u-items-center">
+                        <span class="font-semi text-white">Monthly Installment:</span>
+                        <span id="schedule-monthly" class="mono-num dash-facility-value">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-sched-note">
+                <i class="fas fa-info-circle text-gold"></i> Approvals are reviewed by the Director desk. Loan disbursements are allocated to your client account upon approval.
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Unqualified Guidance -->
+    <div class="glass-card-luxury dash-p-40 u-text-center">
+        <i class="fas fa-lock text-gold dash-lock-icon"></i>
+        <h3 class="dash-card-title">Private Credit Tier Locked</h3>
+        <p class="dash-empty-text dash-empty-text--wide">
+            To qualify for the entry-level loan range ($300,000 – $799,000), your account requires a minimum cumulative deposit of $25,000. You currently have ${{ profile.total_deposited|floatformat:2 }}.
+        </p>
+        <button class="btn btn-gold" onclick="switchDashboardTab('tab-deposit')">
+            <i class="fas fa-plus"></i> Fund Deposit to Unlock Loans
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- User Loan History -->
+    <h3 class="dash-subhead mb-16">My Loan Applications & Facilities</h3>
+    {% if user_loans %}
+    <div class="glass-card-luxury p-20 table-scroll">
+        <table class="data-table dash-table">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Principal</th>
+                    <th>Term</th>
+                    <th>Monthly Installment</th>
+                    <th>Total Repayable</th>
+                    <th>Status</th>
+                    <th>Applied Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in user_loans %}
+                <tr>
+                    <td class="mono-num font-semi text-gold-l">#{{ loan.loan_reference|slice:":8" }}</td>
+                    <td class="mono-num font-bold text-white">${{ loan.amount_requested|floatformat:2 }}</td>
+                    <td>{{ loan.term_months }} Months ({{ loan.monthly_interest_rate }}%/mo)</td>
+                    <td class="mono-num dash-emerald">${{ loan.monthly_installment|floatformat:2 }}</td>
+                    <td class="mono-num">${{ loan.total_repayable|floatformat:2 }}</td>
+                    <td>
+                        {% if loan.status == 'approved' %}
+                            <span class="badge badge-emerald"><i class="fas fa-check"></i> DISBURSED</span>
+                        {% elif loan.status == 'pending' %}
+                            <span class="badge badge-gold"><i class="fas fa-clock"></i> UNDER REVIEW</span>
+                        {% else %}
+                            <span class="badge badge-purple">{{ loan.status|upper }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-dim">{{ loan.applied_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-dim dash-fs-88">No loan requests registered yet.</p>
+    {% endif %}
+</div>

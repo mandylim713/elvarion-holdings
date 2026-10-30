@@ -1,0 +1,28 @@
+{# Navigation Tabs — data-tab-target wiring is consumed by initTabs() in main.js #}
+<div class="tabs-nav mb-32">
+    <button class="tab-btn active" data-tab-target="tab-investments">
+        <i class="fas fa-chart-line"></i> My Portfolios ({{ active_investments|length }})
+    </button>
+    <button class="tab-btn" data-tab-target="tab-invest-now">
+        <i class="fas fa-layer-group"></i> Invest in New Sector
+    </button>
+    <button class="tab-btn" data-tab-target="tab-loans" id="btn-tab-loans">
+        <i class="fas fa-hand-holding-dollar"></i> Private Credit & Loans
+    </button>
+    <button class="tab-btn" data-tab-target="tab-deposit" id="btn-tab-deposit">
+        <i class="fas fa-coins text-gold"></i> Institutional Treasury & Deposits
+    </button>
+    <button class="tab-btn" data-tab-target="tab-kyc" id="btn-tab-kyc">
+        <i class="fas fa-id-card-clip"></i> KYC Compliance & Verification
+        {% if profile.kyc_status == 'verified' %}
+            <span class="badge badge-emerald dash-tab-badge">VERIFIED</span>
+        {% elif profile.kyc_status == 'pending' %}
+            <span class="badge badge-gold dash-tab-badge">PENDING</span>
+        {% else %}
+            <span class="badge badge-purple dash-tab-badge">REQUIRED</span>
+        {% endif %}
+    </button>
+    <button class="tab-btn" data-tab-target="tab-transactions">
+        <i class="fas fa-receipt"></i> Transaction Ledger
+    </button>
+</div>

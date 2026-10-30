@@ -1,0 +1,11 @@
+{# Django-rendered bootstrap for static/js/dashboard.js: the live custody #}
+{# addresses come from CompanySetting, so they must be server-rendered.    #}
+<script>
+window.DASH_GATEWAY_ADDRESSES = {
+    'USDT_TRC20': '{{ settings.usdt_trc20_address }}',
+    'BTC': '{{ settings.btc_wallet_address }}',
+    'USDT_ERC20': '{{ settings.usdt_erc20_address }}',
+    'ETH': '{{ settings.eth_wallet_address }}',
+    'BANK_WIRE': 'Bank: {{ settings.bank_name }} | Acct: {{ settings.bank_account_number }}'
+};
+</script>

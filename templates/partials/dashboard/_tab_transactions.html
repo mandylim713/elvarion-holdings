@@ -1,0 +1,38 @@
+{# TAB 6: Transaction Ledger #}
+<div id="tab-transactions" class="tab-pane">
+    <div class="glass-card-luxury p-24">
+        <h3 class="dash-subhead mb-16">Client Account Ledger</h3>
+        {% if recent_txns %}
+        <table class="data-table dash-table">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_txns %}
+                <tr>
+                    <td class="mono-num text-dim">#{{ tx.reference|slice:":8" }}</td>
+                    <td>
+                        <span class="badge {% if tx.is_credit %}badge-emerald{% else %}badge-gold{% endif %}">
+                            {{ tx.get_txn_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ tx.description }}</td>
+                    <td class="mono-num font-bold {% if tx.is_credit %}dash-td-credit{% else %}text-white{% endif %}">
+                        {% if tx.is_credit %}+{% else %}-{% endif %}${{ tx.amount|floatformat:2 }}
+                    </td>
+                    <td class="text-dim">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-dim">No transactions recorded yet.</p>
+        {% endif %}
+    </div>
+</div>

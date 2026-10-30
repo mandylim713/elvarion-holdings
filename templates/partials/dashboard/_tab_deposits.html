@@ -1,0 +1,229 @@
+{# TAB 4: Enhanced Institutional Treasury & Hybrid Deposit Center #}
+<div id="tab-deposit" class="tab-pane">
+    <div class="mb-24">
+        <div class="dash-deposit-head">
+            <div>
+                <span class="badge badge-gold"><i class="fas fa-building-columns"></i> SEGREGATED CUSTODY</span>
+                <h2 class="dash-tab-page-title">Institutional Treasury & Hybrid Deposit Gateways</h2>
+                <p class="dash-desc">
+                    Direct segregated deposit channels via Blockchain (BTC, USDT TRC-20, USDT ERC-20, ETH) and JPMorgan Chase Private Bank Wire.
+                </p>
+            </div>
+            <div class="dash-cum-box">
+                <span class="dash-cum-label">Account Cumulative Total</span>
+                <div class="mono-num text-emerald font-bold dash-fs-125">${{ profile.total_deposited|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currency Selection Tabs -->
+    <div class="crypto-selector-tabs">
+        <div class="crypto-tab-card active" onclick="selectDepositGateway('USDT_TRC20', this)">
+            <div class="crypto-tab-icon dash-icon-tron"><i class="fas fa-coins"></i></div>
+            <div class="crypto-tab-name">USDT (TRC-20)</div>
+            <div class="crypto-tab-network">Tron &bull; Fast & Low Fee</div>
+        </div>
+        <div class="crypto-tab-card" onclick="selectDepositGateway('BTC', this)">
+            <div class="crypto-tab-icon dash-icon-btc"><i class="fab fa-bitcoin"></i></div>
+            <div class="crypto-tab-name">Bitcoin (BTC)</div>
+            <div class="crypto-tab-network">Native SegWit &bull; 3 Confs</div>
+        </div>
+        <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_ERC20', this)">
+            <div class="crypto-tab-icon dash-icon-erc"><i class="fas fa-diamond"></i></div>
+            <div class="crypto-tab-name">USDT (ERC-20)</div>
+            <div class="crypto-tab-network">Ethereum Mainnet</div>
+        </div>
+        <div class="crypto-tab-card" onclick="selectDepositGateway('ETH', this)">
+            <div class="crypto-tab-icon dash-icon-eth"><i class="fab fa-ethereum"></i></div>
+            <div class="crypto-tab-name">Ethereum (ETH)</div>
+            <div class="crypto-tab-network">Native ERC-20</div>
+        </div>
+        <div class="crypto-tab-card" onclick="selectDepositGateway('BANK_WIRE', this)">
+            <div class="crypto-tab-icon dash-icon-wire"><i class="fas fa-landmark"></i></div>
+            <div class="crypto-tab-name">Bank Wire (USD)</div>
+            <div class="crypto-tab-network">JPMorgan Chase Private</div>
+        </div>
+    </div>
+
+    <!-- Gateway Interactive Box -->
+    <div class="grid-2 mb-32">
+        <!-- Left: Dynamic Gateway Coordinates & QR Code -->
+        <div class="glass-card-luxury dash-p-32" id="gateway-info-box">
+            <div class="u-flex u-justify-between u-items-center mb-20">
+                <div>
+                    <span class="badge badge-gold" id="gw-badge">TRON NETWORK (TRC-20)</span>
+                    <h3 id="gw-title" class="dash-gw-title">USDT Custody Gateway</h3>
+                </div>
+                <div class="fs-sm text-dim" id="gw-status">
+                    <i class="fas fa-circle-check text-emerald"></i> Channel Active
+                </div>
+            </div>
+
+            <!-- Dynamic QR Container -->
+            <div id="crypto-qr-wrapper">
+                <div class="qr-container" id="qr-code-display">
+                    <!-- Dynamic SVG QR Code renders here -->
+                </div>
+                <p class="dash-qr-caption mb-16">
+                    Scan QR Code with your institutional wallet or corporate exchange
+                </p>
+            </div>
+
+            <!-- Address & Copy Button -->
+            <div id="crypto-address-wrapper">
+                <label class="form-label dash-label-caps">Designated Inbound Wallet Address</label>
+                <div class="dash-addr-box">
+                    <span class="mono-num dash-addr-text" id="gw-address-text">
+                        {{ settings.usdt_trc20_address }}
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-gold copy-btn u-nowrap" id="gw-copy-btn" data-clipboard-text="{{ settings.usdt_trc20_address }}">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bank Wire Details (Hidden by default, shown when Wire selected) -->
+            <div id="bank-wire-wrapper" class="dash-initial-hidden">
+                <div class="dash-wire-details">
+                    <div><strong>Financial Institution:</strong> {{ settings.bank_name }}</div>
+                    <div><strong>Account Title:</strong> {{ settings.bank_account_name }}</div>
+                    <div><strong>Account Number / IBAN:</strong> <span class="mono-num text-white font-bold">{{ settings.bank_account_number }}</span></div>
+                    <div><strong>SWIFT / BIC / ABA:</strong> <span class="mono-num text-gold font-bold">{{ settings.bank_routing_swift }}</span></div>
+                    <div><strong>Jurisdiction:</strong> One World Trade Center, New York, NY</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="Bank: {{ settings.bank_name }} | Title: {{ settings.bank_account_name }} | Acct: {{ settings.bank_account_number }} | SWIFT: {{ settings.bank_routing_swift }}">
+                    <i class="fas fa-copy"></i> Copy Full Wire Coordinates
+                </button>
+            </div>
+
+            <!-- Real-Time Crypto Conversion Estimator -->
+            <div class="dash-estimator">
+                <div class="u-flex u-justify-between dash-fs-80 text-dim mb-4">
+                    <span>Estimated Crypto Transfer Equivalent:</span>
+                    <span id="calc-crypto-rate" class="mono-num text-gold-l">1 USDT ≈ $1.00 USD</span>
+                </div>
+                <div id="calc-crypto-output" class="mono-num dash-estimator-output">
+                    25,000.00 USDT
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Deposit Dispatch Submission Form -->
+        <div class="glass-card-luxury dash-p-32">
+            <div class="u-flex u-justify-between u-items-center mb-20">
+                <h3 class="dash-subhead">Deposit Dispatch Notification</h3>
+                <span class="badge badge-emerald">STEP 2 OF 2</span>
+            </div>
+
+            <form method="POST" action="{% url 'submit_deposit' %}" enctype="multipart/form-data" id="depositForm">
+                {% csrf_token %}
+
+                <!-- Hidden method synced with tabs -->
+                <input type="hidden" name="method" id="form-deposit-method" value="USDT_TRC20">
+
+                <div class="form-group">
+                    <label class="form-label">Deposit Amount ($ USD) <span class="text-danger">*</span></label>
+                    <input type="number" id="deposit-amount-input" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="500" value="25000" oninput="updateCryptoConversion()" required>
+
+                    <!-- Preset Amount Chips -->
+                    <div class="preset-chips">
+                        <span class="preset-chip" onclick="setPresetDeposit(1000)">+$1,000</span>
+                        <span class="preset-chip" onclick="setPresetDeposit(5000)">+$5,000</span>
+                        <span class="preset-chip dash-chip-tier1" onclick="setPresetDeposit(25000)">+$25,000 (Tier-1 Loan)</span>
+                        <span class="preset-chip" onclick="setPresetDeposit(50000)">+$50,000 (Tier-2 Loan)</span>
+                        <span class="preset-chip" onclick="setPresetDeposit(100000)">+$100,000 (Tier-3 Loan)</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Selected Gateway Network</label>
+                    <div class="dash-gw-select-box">
+                        <strong id="form-selected-method-label" class="text-gold-l">USDT (TRC-20 Tron Network)</strong>
+                        <span class="badge badge-cyan" id="form-selected-badge">INSTANT AUDIT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Blockchain TxID / Wire Transfer Reference <span class="text-danger">*</span></label>
+                    <input type="text" name="proof_hash" id="deposit-proof-hash" class="form-control" placeholder="e.g. 5e89a4cf98d10... or Bank Reference #89421" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Transfer Receipt / Confirmation Screenshot (Optional)</label>
+                    <div class="file-dropzone" onclick="document.getElementById('receipt-file-input').click()">
+                        <input type="file" id="receipt-file-input" name="receipt_image" accept="image/*,.pdf" onchange="handleReceiptSelected(this)">
+                        <i class="fas fa-cloud-arrow-up text-gold dash-fs-15"></i>
+                        <div class="dropzone-label">Click to upload deposit slip or transfer screenshot</div>
+                        <div class="dropzone-sub">Supports PNG, JPG, or PDF (Max 10MB)</div>
+                        <div id="receipt-filename" class="dropzone-selected-name dash-initial-hidden"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gold u-w-full dash-btn-submit">
+                    <i class="fas fa-check-circle"></i> Confirm & Dispatch Treasury Notice
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Deposit Ledger History Table -->
+    <div class="glass-card-luxury p-24">
+        <div class="u-flex u-justify-between u-items-center mb-16">
+            <h3 class="dash-subhead">Inbound Treasury Deposit History</h3>
+            <span class="badge badge-gold">{{ user_deposits|length }} Total Records</span>
+        </div>
+
+        {% if user_deposits %}
+        <div class="table-scroll">
+            <table class="data-table dash-table">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Method / Gateway</th>
+                        <th>Amount ($ USD)</th>
+                        <th>Proof Hash / Reference</th>
+                        <th>Status</th>
+                        <th>Audit Note</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dep in user_deposits %}
+                    <tr>
+                        <td class="mono-num font-semi text-gold-l">
+                            #{{ dep.reference_id|slice:":8" }}
+                        </td>
+                        <td>
+                            <span class="badge badge-cyan">{{ dep.get_method_display }}</span>
+                        </td>
+                        <td class="mono-num font-bold dash-td-credit">
+                            +${{ dep.amount|floatformat:2 }}
+                        </td>
+                        <td class="mono-num dash-td-proof dash-fs-78">
+                            {{ dep.proof_hash|truncatechars:20 }}
+                        </td>
+                        <td>
+                            {% if dep.status == 'approved' %}
+                                <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> CONFIRMED</span>
+                            {% elif dep.status == 'pending' %}
+                                <span class="badge badge-gold"><i class="fas fa-clock"></i> PENDING AUDIT</span>
+                            {% else %}
+                                <span class="badge badge-purple">{{ dep.status|upper }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-dim dash-fs-80">
+                            {{ dep.admin_notes|default:"Audited & Credited" }}
+                        </td>
+                        <td class="text-dim dash-fs-80">
+                            {{ dep.created_at|date:"M d, Y H:i" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-dim dash-fs-88">No deposit records submitted yet.</p>
+        {% endif %}
+    </div>
+</div>

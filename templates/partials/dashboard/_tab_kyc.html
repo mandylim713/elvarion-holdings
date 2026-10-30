@@ -1,0 +1,288 @@
+{# TAB 5: AML / KYC Compliance & Accredited Investor Verification #}
+<div id="tab-kyc" class="tab-pane">
+    <div class="mb-24">
+        <span class="badge badge-gold"><i class="fas fa-stamp"></i> REGULATORY STATUTORY FILING</span>
+        <h2 class="dash-tab-page-title">AML &amp; KYC Investor Compliance Center</h2>
+        <p class="dash-desc">
+            Institutional accreditation, statutory anti-money laundering verification, and segregated custody accreditation.
+        </p>
+    </div>
+
+    {% if profile.kyc_status == 'verified' %}
+    <!-- Verified Accredited Certificate View -->
+    <div class="kyc-certificate-card dash-mb-30">
+        <div class="dash-cert-head">
+            <div>
+                <div class="dash-badge-row mb-8">
+                    <span class="badge badge-gold"><i class="fas fa-crown"></i> ELVARION HOLDINGS STATUTORY CERTIFICATE</span>
+                    <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> VERIFIED TIER-1 ACCREDITED</span>
+                </div>
+                <h2 class="dash-cert-title">
+                    Certificate of Sovereign Investor Accreditation
+                </h2>
+                <p class="dash-desc">
+                    Issued under the fiduciary regulatory framework of Elvarion Holdings Private Wealth Management Ltd.
+                </p>
+            </div>
+            <div class="certificate-seal">
+                <i class="fas fa-award"></i>
+            </div>
+        </div>
+
+        <div class="dash-cert-grid">
+            <div>
+                <div class="text-caps">Certified Entity</div>
+                <div class="dash-cert-value text-white mt-4">
+                    {{ user.first_name|default:user.username }} {{ user.last_name }}
+                </div>
+            </div>
+            <div>
+                <div class="text-caps">Compliance Tier</div>
+                <div class="dash-cert-value dash-emerald mt-4">
+                    Tier-1 Institutional
+                </div>
+            </div>
+            <div>
+                <div class="text-caps">Jurisdiction</div>
+                <div class="dash-cert-value text-gold-l mt-4">
+                    {{ profile.country }}
+                </div>
+            </div>
+            <div>
+                <div class="text-caps">Fiduciary Status</div>
+                <div class="dash-cert-value dash-blue mt-4">
+                    Active &amp; Compliant
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-cert-columns">
+            <div class="dash-cert-panel">
+                <h4 class="dash-cert-panel-title">
+                    <i class="fas fa-check-double text-emerald"></i> Granted Institutional Privileges
+                </h4>
+                <ul class="dash-cert-list dash-cert-ul">
+                    <li>Eligible for Private Credit borrowing lines up to $5,000,000.</li>
+                    <li>Unlimited cryptocurrency and multi-million bank wire liquidity gateways.</li>
+                    <li>Direct segregated custody with Lloyds Insured Vaults.</li>
+                    <li>Dedicated Senior Wealth Partner &amp; Private Concierge Desk.</li>
+                </ul>
+            </div>
+
+            <div class="dash-cert-panel">
+                <h4 class="dash-cert-panel-title">
+                    <i class="fas fa-shield text-cyan"></i> Compliance Dossier Records
+                </h4>
+                {% if latest_kyc %}
+                <div class="dash-cert-list">
+                    <div><strong>Dossier Ref:</strong> <span class="mono-num text-white">#{{ latest_kyc.submission_id|slice:":8" }}</span></div>
+                    <div><strong>Document Type:</strong> {{ latest_kyc.get_id_type_display }} ({{ latest_kyc.id_number|truncatechars:15 }})</div>
+                    <div><strong>Source of Wealth:</strong> {{ latest_kyc.get_source_of_wealth_display }}</div>
+                    <div><strong>Verified On:</strong> {{ latest_kyc.reviewed_at|date:"M d, Y H:i"|default:"Verified" }}</div>
+                </div>
+                {% else %}
+                <div class="dash-cert-list">
+                    Pre-approved Accredited Institutional Account.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% elif profile.kyc_status == 'pending' %}
+    <!-- Pending Verification Review State -->
+    <div class="glass-card-luxury dash-p-36 dash-border-amber dash-mb-30">
+        <div class="u-flex u-items-center gap-16 mb-24">
+            <div class="dash-kyc-hourglass">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div>
+                <span class="badge badge-gold">COMPLIANCE REVIEW IN PROGRESS</span>
+                <h3 class="dash-kyc-status-title">KYC Identification Under Evaluation</h3>
+                <p class="text-muted dash-fs-88">
+                    Your identity dossier has been received and queued for Senior Compliance Officer verification.
+                </p>
+            </div>
+        </div>
+
+        {% if latest_kyc %}
+        <div class="dash-kyc-detail-box">
+            <div class="dash-kyc-grid">
+                <div>
+                    <span class="dash-kyc-field-label">Dossier Reference</span>
+                    <div class="mono-num text-gold font-bold">#{{ latest_kyc.submission_id|slice:":8" }}</div>
+                </div>
+                <div>
+                    <span class="dash-kyc-field-label">Full Legal Name</span>
+                    <div class="text-white font-bold">{{ latest_kyc.full_legal_name }}</div>
+                </div>
+                <div>
+                    <span class="dash-kyc-field-label">Submitted Timestamp</span>
+                    <div class="text-muted">{{ latest_kyc.submitted_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            <div class="dash-kyc-grid dash-kyc-grid--rule">
+                <div>
+                    <span class="dash-kyc-field-label">Identification Document</span>
+                    <div class="text-white">{{ latest_kyc.get_id_type_display }} ({{ latest_kyc.id_number }})</div>
+                </div>
+                <div>
+                    <span class="dash-kyc-field-label">Declared Wealth Source</span>
+                    <div class="text-emerald">{{ latest_kyc.get_source_of_wealth_display }}</div>
+                </div>
+                <div>
+                    <span class="dash-kyc-field-label">Estimated SLA</span>
+                    <div class="dash-blue"><i class="fas fa-clock"></i> &lt; 2 Business Hours</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <p class="text-dim dash-fs-84">
+            <i class="fas fa-circle-info text-gold"></i> Need urgent expediting for high-capital deployment? Contact our Compliance Desk at <strong>compliance@elvarionholdings.com</strong>.
+        </p>
+    </div>
+
+    {% else %}
+    <!-- Unverified Submission Form -->
+    <div class="glass-card-luxury dash-p-36 dash-border-gold dash-mb-30">
+        <div class="u-flex u-justify-between u-items-center u-flex-wrap gap-16 mb-24">
+            <div>
+                <h3 class="dash-kyc-form-title">Tier-1 Institutional KYC Verification</h3>
+                <p class="text-muted dash-fs-88">
+                    Fulfill statutory identity verification under International Fiduciary &amp; Anti-Money Laundering Regulations.
+                </p>
+            </div>
+
+        </div>
+
+        <form method="POST" action="{% url 'submit_kyc' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Section 1: Legal Identity & Address -->
+            <div class="mb-28">
+                <h4 class="dash-form-section-title">
+                    <i class="fas fa-user-shield"></i> 1. Legal Identity &amp; Tax Jurisdiction
+                </h4>
+
+                <div class="form-group">
+                    <label class="form-label">Full Legal Name (as shown on official Government ID) <span class="text-danger">*</span></label>
+                    <input type="text" id="kyc-fullname" name="full_legal_name" class="form-control" value="{{ user.get_full_name|default:user.username }}" required>
+                </div>
+
+                <div class="dash-form-rows">
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                        <input type="date" id="kyc-dob" name="date_of_birth" class="form-control" value="1985-06-15" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax Residency / Jurisdiction <span class="text-danger">*</span></label>
+                        <input type="text" id="kyc-country" name="country" class="form-control" value="{{ profile.country|default:'United States' }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Permanent Residential / Corporate Address <span class="text-danger">*</span></label>
+                    <input type="text" id="kyc-address" name="residential_address" class="form-control" placeholder="Street Address, Suite / Unit" value="742 Evergreen Terrace, Suite 400" required>
+                </div>
+
+                <div class="dash-form-rows">
+                    <div class="form-group">
+                        <label class="form-label">City <span class="text-danger">*</span></label>
+                        <input type="text" id="kyc-city" name="city" class="form-control" value="New York" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Postal / ZIP Code <span class="text-danger">*</span></label>
+                        <input type="text" id="kyc-postal" name="postal_code" class="form-control" value="10001" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Identification Document Uploads -->
+            <div class="mb-28">
+                <h4 class="dash-form-section-title">
+                    <i class="fas fa-id-card"></i> 2. Official Identification Document
+                </h4>
+
+                <div class="dash-form-rows mb-16">
+                    <div class="form-group">
+                        <label class="form-label">Identification Document Type <span class="text-danger">*</span></label>
+                        <select name="id_type" id="kyc-idtype" class="form-control">
+                            <option value="passport">International Passport</option>
+                            <option value="national_id">National Identity Card</option>
+                            <option value="drivers_license">Driver's License</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Document Serial / Passport Number <span class="text-danger">*</span></label>
+                        <input type="text" id="kyc-idnumber" name="id_number" class="form-control" placeholder="e.g. A92830192" value="US8940281" required>
+                    </div>
+                </div>
+
+                <div class="dash-form-rows">
+                    <div class="form-group">
+                        <label class="form-label">ID Document Front / Bio Page (Image / PDF)</label>
+                        <div class="file-dropzone" onclick="document.getElementById('kyc-front-file').click()">
+                            <input type="file" id="kyc-front-file" name="id_front_image" accept="image/*,.pdf" onchange="handleDocSelected(this, 'front-name')">
+                            <i class="fas fa-passport text-gold dash-fs-14"></i>
+                            <div class="dropzone-label">Upload ID Front / Bio Page</div>
+                            <div class="dropzone-sub">PNG, JPG, PDF up to 10MB</div>
+                            <div id="front-name" class="dropzone-selected-name dash-initial-hidden"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Proof of Address (Utility Bill / Bank Statement)</label>
+                        <div class="file-dropzone" onclick="document.getElementById('kyc-proof-file').click()">
+                            <input type="file" id="kyc-proof-file" name="proof_of_address" accept="image/*,.pdf" onchange="handleDocSelected(this, 'proof-name')">
+                            <i class="fas fa-file-invoice text-emerald dash-fs-14"></i>
+                            <div class="dropzone-label">Upload Proof of Address</div>
+                            <div class="dropzone-sub">Dated within 90 days</div>
+                            <div id="proof-name" class="dropzone-selected-name dash-initial-hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Source of Wealth & Financial Attestation -->
+            <div class="mb-28">
+                <h4 class="dash-form-section-title">
+                    <i class="fas fa-sack-dollar"></i> 3. Source of Wealth &amp; PEP Attestation
+                </h4>
+
+                <div class="dash-form-rows">
+                    <div class="form-group">
+                        <label class="form-label">Primary Source of Wealth <span class="text-danger">*</span></label>
+                        <select name="source_of_wealth" class="form-control">
+                            <option value="employment">Executive Employment &amp; Compensation</option>
+                            <option value="business">Corporate Dividends &amp; Business Profits</option>
+                            <option value="investments">Investment Portfolio &amp; Capital Gains</option>
+                            <option value="inheritance">Family Office, Trust &amp; Inheritance</option>
+                            <option value="crypto">Cryptocurrency &amp; Digital Asset Yields</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estimated Liquid Net Worth</label>
+                        <select name="estimated_net_worth" class="form-control">
+                            <option value="$500,000 - $1,000,000">$500,000 – $1,000,000</option>
+                            <option value="$1,000,000 - $5,000,000" selected>$1,000,000 – $5,000,000</option>
+                            <option value="$5,000,000 - $20,000,000">$5,000,000 – $20,000,000</option>
+                            <option value="$20,000,000+">$20,000,000+ (Ultra High Net Worth)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group dash-mt-14">
+                    <label class="dash-pep-label">
+                        <input type="checkbox" name="pep_status" value="1" class="dash-pep-checkbox">
+                        <span>I affirm that neither I nor any close family member is a Politically Exposed Person (PEP) or subject to international OFAC/UN sanctions.</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold u-w-full dash-btn-kyc">
+                <i class="fas fa-file-shield"></i> Submit KYC Compliance Dossier for Verification
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>

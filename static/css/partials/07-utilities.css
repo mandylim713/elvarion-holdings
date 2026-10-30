@@ -1,0 +1,122 @@
+/* =========================================================
+   DESIGN SYSTEM UTILITIES
+   Load last: replaces the ad-hoc inline style="" attributes
+   that previously littered the templates.
+   ========================================================= */
+
+/* Layout helpers */
+.u-hidden { display: none !important; }
+.u-block { display: block; }
+.u-flex { display: flex; }
+.u-inline-flex { display: inline-flex; }
+.u-flex-col { flex-direction: column; }
+.u-items-center { align-items: center; }
+.u-items-start { align-items: flex-start; }
+.u-justify-between { justify-content: space-between; }
+.u-justify-center { justify-content: center; }
+.u-flex-1 { flex: 1; }
+.u-flex-wrap { flex-wrap: wrap; }
+.u-text-center { text-align: center; }
+.u-text-right { text-align: right; }
+.u-nowrap { white-space: nowrap; }
+.u-w-full { width: 100%; }
+.u-m0 { margin: 0; }
+.u-p0 { padding: 0; }
+
+/* Spacing scale — mirrors the --space tokens */
+.mt-4 { margin-top: 4px; }   .mt-8 { margin-top: 8px; }   .mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; } .mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; } .mt-48 { margin-top: 48px; }
+.mb-4 { margin-bottom: 4px; }  .mb-8 { margin-bottom: 8px; }   .mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; } .mb-20 { margin-bottom: 20px; } .mb-24 { margin-bottom: 24px; }
+.mb-28 { margin-bottom: 28px; }  .mb-32 { margin-bottom: 32px; }  .mb-40 { margin-bottom: 40px; }
+.gap-8 { gap: 8px; }  .gap-10 { gap: 10px; } .gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; } .gap-20 { gap: 20px; } .gap-24 { gap: 24px; }
+.p-8 { padding: 8px; } .p-10 { padding: 10px; } .p-12 { padding: 12px; }
+.p-14 { padding: 14px; } .p-16 { padding: 16px; } .p-20 { padding: 20px; }
+.p-22 { padding: 22px; } .p-24 { padding: 24px; } .p-28 { padding: 28px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+.py-14 { padding-top: 14px; padding-bottom: 14px; }
+.px-12 { padding-left: 12px; padding-right: 12px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+
+/* Data tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+.data-table thead th {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.data-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+/* Section / panel primitives */
+.block-title {
+  font-size: 1.35rem;
+  color: var(--gold-light);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.block-title i { font-size: inherit; }
+.block-subtitle {
+  color: var(--text-muted);
+  font-size: 0.93rem;
+  line-height: 1.8;
+}
+.panel-body {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.divider-left {
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 20px;
+}
+.stack-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.stack-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* Typography helpers (accent colours live in 09-system-additions.css) */
+.text-caps {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.text-caps-sm {
+  font-size: 0.6rem;
+  color: var(--gold-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.text-value-lg { font-size: 1.4rem; }
+.text-value-xl { font-size: 1.4rem; margin-bottom: 8px; }
+
+/* Full-width buttons (mobile nav + form actions) */
+.btn-block { width: 100%; display: block; }
+.btn + .btn, .btn-block + .btn-block { margin-top: 12px; }
+
+/* Repeating table markup primitives */
+.table-scroll { overflow-x: auto; }
+.table-empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}

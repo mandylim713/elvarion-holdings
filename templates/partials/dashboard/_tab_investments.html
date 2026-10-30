@@ -1,0 +1,63 @@
+{# TAB 1: Active Investments & Live Reading ROI — per-card tickers driven by #inv-roi-* / #inv-prog-* IDs + data-investment-id #}
+<div id="tab-investments" class="tab-pane active">
+    {% if active_investments %}
+    <div class="grid-3">
+        {% for item in active_investments %}
+        <div class="glass-card-luxury p-28" data-investment-id="{{ item.obj.id }}">
+            <div class="u-flex u-justify-between u-items-center mb-16">
+                <span class="badge badge-gold">{{ item.obj.plan.area.name }}</span>
+                <div class="live-indicator dash-live-mini">
+                    <span class="pulse-dot"></span> READING
+                </div>
+            </div>
+
+            <h3 class="dash-inv-title">{{ item.obj.plan.title }}</h3>
+            <div class="fs-sm text-muted mb-16">
+                Allocated: <strong class="mono-num text-white">${{ item.obj.amount|floatformat:2 }}</strong> &bull; Term: <strong>{{ item.obj.plan.duration_count }} {{ item.obj.plan.get_duration_unit_display }}</strong>
+            </div>
+
+            <!-- Live Reading Ticker Card -->
+            <div class="dash-inv-roi-box">
+                <div class="u-flex u-justify-between dash-fs-80 text-dim mb-4">
+                    <span>Accrued Real-Time ROI</span>
+                    <span class="badge badge-emerald dash-badge-xs">{{ item.obj.plan.roi_percentage }}% {{ item.obj.plan.duration_unit|upper }}</span>
+                </div>
+                <div id="inv-roi-{{ item.obj.id }}" class="mono-num dash-inv-roi-val" data-target-value="{{ item.accrued_roi|floatformat:4 }}">
+                    ${{ item.accrued_roi|floatformat:4 }}
+                </div>
+                <div class="dash-fs-78 text-dim mt-4">
+                    Target Return: <strong class="mono-num text-white">${{ item.obj.total_projected_roi|floatformat:2 }}</strong>
+                </div>
+            </div>
+
+            <!-- Progress Bar to Maturity -->
+            <div class="mb-8">
+                <div class="dash-progress-label-row">
+                    <span>Term Progression</span>
+                    <span class="mono-num text-muted">{{ item.progress_pct }}%</span>
+                </div>
+                <div class="dash-progress-track">
+                    <div id="inv-prog-{{ item.obj.id }}" class="dash-progress-fill" data-initial-progress="{{ item.progress_pct }}"></div>
+                </div>
+            </div>
+
+            <div class="dash-inv-footer">
+                <span>Started: {{ item.obj.start_date|date:"M d, Y" }}</span>
+                <span>Maturity: {{ item.obj.end_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card-luxury dash-empty-hero">
+        <i class="fas fa-layer-group text-gold dash-empty-icon"></i>
+        <h3 class="dash-empty-title">No Active Investments Yet</h3>
+        <p class="dash-empty-text">
+            Allocate your funds into Real Estate, Gold, Trust Funds, or Money Markets to start watching your ROI tick up in real time.
+        </p>
+        <button class="btn btn-gold" onclick="switchDashboardTab('tab-invest-now')">
+            <i class="fas fa-arrow-trend-up"></i> Explore Investment Sectors
+        </button>
+    </div>
+    {% endif %}
+</div>

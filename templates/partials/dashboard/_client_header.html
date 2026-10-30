@@ -1,0 +1,43 @@
+{# Client header: identity badges, title, account meta and quick actions #}
+<div class="dash-header-row">
+    <div>
+        <div class="dash-badge-row">
+            <span class="badge badge-gold"><i class="fas fa-crown"></i> PRIVATE WEALTH CLIENT</span>
+            {% if profile.kyc_status == 'verified' %}
+                <span class="badge badge-emerald"><i class="fas fa-circle-check"></i> TIER-1 KYC VERIFIED</span>
+            {% elif profile.kyc_status == 'pending' %}
+                <span class="badge badge-gold"><i class="fas fa-clock"></i> KYC UNDER REVIEW</span>
+            {% else %}
+                <span class="badge badge-purple"><i class="fas fa-shield"></i> KYC UNVERIFIED</span>
+            {% endif %}
+
+            {% if eligible_tier %}
+                <span class="badge badge-emerald"><i class="fas fa-certificate"></i> {{ eligible_tier.tier_name }}</span>
+            {% else %}
+                <span class="badge badge-cyan"><i class="fas fa-shield-alt"></i> STANDARD TIER</span>
+            {% endif %}
+        </div>
+        <h1 class="dash-title">
+            Portfolio Desk &bull; <span class="gold-gradient-text">{{ user.first_name|default:user.username }}</span>
+        </h1>
+        <p class="dash-meta-line">
+            Client UID: <span class="mono-num text-muted">EH-{{ user.id|stringformat:"05d" }}</span> &bull; 
+            Entity Type: <strong class="dash-cap">{{ profile.get_account_type_display|default:profile.account_type }}</strong> &bull; 
+            Jurisdiction: {{ profile.country }}
+        </p>
+    </div>
+
+    <div class="u-flex gap-12 u-flex-wrap">
+        <button class="btn btn-gold btn-sm" onclick="switchDashboardTab('tab-deposit')">
+            <i class="fas fa-plus-circle"></i> Institutional Treasury Deposit
+        </button>
+        <button class="btn btn-outline-gold btn-sm" onclick="openModal('withdrawModal')">
+            <i class="fas fa-arrow-up-from-bracket"></i> Request Withdrawal
+        </button>
+        {% if eligible_tier %}
+            <button class="btn btn-emerald btn-sm" onclick="switchDashboardTab('tab-loans')">
+                <i class="fas fa-hand-holding-dollar"></i> Apply for Loan
+            </button>
+        {% endif %}
+    </div>
+</div>

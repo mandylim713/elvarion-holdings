@@ -1,0 +1,73 @@
+{# Modals: Invest Allocation + Withdrawal (opened via openModal/closeModal in main.js) #}
+
+<!-- Modal: Invest Allocation -->
+<div id="investModal" class="modal-backdrop">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('investModal')">&times;</button>
+        <div class="mb-20">
+            <span class="badge badge-gold" id="invest-modal-area">SECTOR</span>
+            <h3 id="invest-modal-title" class="dash-modal-title mt-8">Allocate Capital</h3>
+            <div id="invest-modal-roi" class="mono-num dash-modal-roi dash-emerald font-bold mt-4"></div>
+        </div>
+
+        <form method="POST" action="{% url 'create_investment' %}">
+            {% csrf_token %}
+            <input type="hidden" id="invest-plan-id" name="plan_id" value="">
+
+            <div class="form-group">
+                <div class="u-flex u-justify-between mb-8">
+                    <label class="form-label dash-label-inline">Investment Amount ($ USD)</label>
+                    <span id="invest-min-max-label" class="mono-num dash-fs-78 text-dim"></span>
+                </div>
+                <input type="number" id="invest-amount-input" name="amount" class="form-control mono-num" min="1000" step="500" required>
+            </div>
+
+            <div class="dash-modal-balance">
+                <span class="text-muted">Available Wallet Balance:</span>
+                <strong class="mono-num text-white">${{ profile.wallet_balance|floatformat:2 }}</strong>
+            </div>
+
+            <button type="submit" class="btn btn-gold u-w-full">
+                <i class="fas fa-lock"></i> Confirm &amp; Activate Investment
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Withdrawal -->
+<div id="withdrawModal" class="modal-backdrop">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('withdrawModal')">&times;</button>
+        <h3 class="dash-modal-title mb-8">Request Capital Withdrawal</h3>
+        <p class="dash-modal-sub">
+            Liquid balance available for withdrawal: <strong class="mono-num dash-emerald">${{ profile.wallet_balance|floatformat:2 }}</strong>
+        </p>
+
+        <form method="POST" action="{% url 'submit_withdrawal' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Withdrawal Amount ($ USD)</label>
+                <input type="number" name="amount" class="form-control mono-num" max="{{ profile.wallet_balance|floatformat:2 }}" min="50" step="50" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Disbursement Channel</label>
+                <select name="payout_method" class="form-control">
+                    <option value="USDT (TRC-20)">USDT (TRC-20)</option>
+                    <option value="Bitcoin (BTC)">Bitcoin (BTC)</option>
+                    <option value="USDT (ERC-20)">USDT (ERC-20)</option>
+                    <option value="Bank Wire Transfer">International Bank Wire Transfer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Destination Address / Wire Coordinates</label>
+                <textarea name="destination_details" class="form-control" rows="3" placeholder="Enter recipient wallet address or full institutional bank wire details" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-gold u-w-full">
+                <i class="fas fa-paper-plane"></i> Authorize Treasury Dispatch
+            </button>
+        </form>
+    </div>
+</div>
