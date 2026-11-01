@@ -1,30 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}Open Institutional Investor Vault | Elvarion Holdings{% endblock %}
+{% block title %}Open an Account | Elvarion Holdings{% endblock %}
+{% block utility_bar %}{% endblock %}
 
 {% block content %}
 <div class="auth-wrapper">
     <div class="auth-card-wide">
-        <!-- Brand & Title Header -->
-        <div style="text-align: center; margin-bottom: 28px;">
-            <div class="brand-crest" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 1.7rem;">EH</div>
-            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                <span class="badge badge-gold"><i class="fas fa-crown"></i> INSTITUTIONAL ONBOARDING</span>
-                <span class="badge badge-emerald"><i class="fas fa-shield-halved"></i> REGULATED FIDUCIARY</span>
-            </div>
-            <h2 style="font-size: 2rem; margin-bottom: 6px;">Open Investor Vault</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">
-                Provision sovereign multi-asset custody across Real Estate, Bullion, Trusts & Credit
-            </p>
+        <div class="auth-heading">
+            <div class="brand-crest">EH</div>
+            <span class="eyebrow center">Client Onboarding</span>
+            <h2 style="margin-top: 14px;">Open an Account</h2>
+            <p>Real Estate, Physical Gold, Trusts, Money Markets &amp; Private Credit &mdash; in three short steps</p>
         </div>
 
-        <!-- Quick Evaluation Preset Helper -->
-        <div style="background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--border-gold); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div style="font-size: 0.8rem; color: var(--gold-light); display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt"></i> <span><strong>Fast Demo Preset:</strong> Populate institutional test credentials</span>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillRegisterPreset()" style="padding: 5px 14px; font-size: 0.78rem;">
-                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Test Investor
+        <div class="demo-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div class="head" style="margin: 0;"><span><i class="fas fa-bolt"></i> Demo Preset &mdash; fill test investor details</span></div>
+            <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillRegisterPreset()">
+                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill
             </button>
         </div>
 
@@ -32,15 +24,15 @@
         <div class="onboarding-steps">
             <div class="step-indicator active" id="step-tab-1" onclick="switchStep(1)">
                 <div class="step-circle"><i class="fas fa-user-tie"></i></div>
-                <div class="step-title">1. Entity & Profile</div>
+                <div class="step-title">Profile</div>
             </div>
             <div class="step-indicator" id="step-tab-2" onclick="switchStep(2)">
                 <div class="step-circle"><i class="fas fa-lock"></i></div>
-                <div class="step-title">2. Credentials</div>
+                <div class="step-title">Credentials</div>
             </div>
             <div class="step-indicator" id="step-tab-3" onclick="switchStep(3)">
                 <div class="step-circle"><i class="fas fa-file-contract"></i></div>
-                <div class="step-title">3. Compliance</div>
+                <div class="step-title">Compliance</div>
             </div>
         </div>
 

@@ -105,7 +105,7 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
             <div>
                 <div id="live-total-roi" class="live-ticker-val" data-target-value="{{ total_live_roi|floatformat:4 }}">
-                    ${{ total_live_roi|floatformat:4 }}
+                    ${{ total_live_roi|floatformat:"4g" }}
                 </div>
                 <div style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
                     Currently generating real-time returns from <strong>{{ active_investments|length }}</strong> simultaneous active investment portfolios.
@@ -138,7 +138,7 @@
                 <i class="fas fa-wallet text-gold"></i>
             </div>
             <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #ffffff; line-height: 1;">
-                ${{ profile.wallet_balance|floatformat:2 }}
+                ${{ profile.wallet_balance|floatformat:"2g" }}
             </div>
             <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.8rem;">
                 <span style="color: var(--text-muted);">Available for deployment</span>
@@ -153,11 +153,11 @@
                 <i class="fas fa-vault text-emerald"></i>
             </div>
             <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #34d399; line-height: 1;">
-                ${{ profile.total_deposited|floatformat:2 }}
+                ${{ profile.total_deposited|floatformat:"2g" }}
             </div>
             <div style="margin-top: 12px; font-size: 0.8rem;">
                 {% if next_tier %}
-                    <span style="color: var(--text-muted);">Deposit <strong style="color: #ffffff;">${{ next_tier_remaining|floatformat:0 }}</strong> more to unlock <strong>{{ next_tier.tier_name }}</strong> (${{ next_tier.min_loan_amount|floatformat:0 }} loan).</span>
+                    <span style="color: var(--text-muted);">Deposit <strong style="color: #ffffff;">${{ next_tier_remaining|floatformat:"0g" }}</strong> more to unlock <strong>{{ next_tier.tier_name }}</strong> (${{ next_tier.min_loan_amount|floatformat:"0g" }} loan).</span>
                 {% else %}
                     <span style="color: var(--gold-light);"><i class="fas fa-crown"></i> Maximum Chairman Loan Tier Unlocked ($5,000,000)!</span>
                 {% endif %}
@@ -171,11 +171,11 @@
                 <i class="fas fa-hand-holding-dollar text-cyan"></i>
             </div>
             <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #67e8f9; line-height: 1;">
-                ${{ profile.loan_balance|floatformat:2 }}
+                ${{ profile.loan_balance|floatformat:"2g" }}
             </div>
             <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
                 {% if eligible_tier %}
-                    Qualified Limit: <strong style="color: #ffffff;">${{ eligible_tier.max_loan_amount|floatformat:0 }}</strong>
+                    Qualified Limit: <strong style="color: #ffffff;">${{ eligible_tier.max_loan_amount|floatformat:"0g" }}</strong>
                 {% else %}
                     Deposit $25k+ to unlock loans
                 {% endif %}
@@ -189,7 +189,7 @@
                 <i class="fas fa-money-bill-transfer text-gold"></i>
             </div>
             <div class="mono-num" style="font-size: 1.85rem; font-weight: 800; color: #ffffff; line-height: 1;">
-                ${{ profile.total_withdrawn|floatformat:2 }}
+                ${{ profile.total_withdrawn|floatformat:"2g" }}
             </div>
             <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
                 Dispatched to verified accounts
@@ -242,7 +242,7 @@
 
                     <h3 style="font-size: 1.3rem; margin-bottom: 4px;">{{ item.obj.plan.title }}</h3>
                     <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
-                        Allocated: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.amount|floatformat:2 }}</strong> &bull; Term: <strong>{{ item.obj.plan.duration_count }} {{ item.obj.plan.get_duration_unit_display }}</strong>
+                        Allocated: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.amount|floatformat:"2g" }}</strong> &bull; Term: <strong>{{ item.obj.plan.duration_count }} {{ item.obj.plan.get_duration_unit_display }}</strong>
                     </div>
 
                     <!-- Live Reading Ticker Card -->
@@ -252,10 +252,10 @@
                             <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ item.obj.plan.roi_percentage }}% {{ item.obj.plan.duration_unit|upper }}</span>
                         </div>
                         <div id="inv-roi-{{ item.obj.id }}" class="mono-num" data-target-value="{{ item.accrued_roi|floatformat:4 }}" style="font-size: 1.75rem; font-weight: 800; color: #34d399;">
-                            ${{ item.accrued_roi|floatformat:4 }}
+                            ${{ item.accrued_roi|floatformat:"4g" }}
                         </div>
                         <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 4px;">
-                            Target Return: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.total_projected_roi|floatformat:2 }}</strong>
+                            Target Return: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.total_projected_roi|floatformat:"2g" }}</strong>
                         </div>
                     </div>
 
@@ -334,7 +334,7 @@
                             </div>
 
                             <ul class="features-list" style="margin-bottom: 16px;">
-                                <li><i class="fas fa-check"></i> Min: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:0 }}</strong> &bull; Max: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:0 }}</strong></li>
+                                <li><i class="fas fa-check"></i> Min: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:"0g" }}</strong> &bull; Max: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:"0g" }}</strong></li>
                                 <li><i class="fas fa-check"></i> Cumulative Expected ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
                                 <li><i class="fas fa-check"></i> Capital Returned at Term Completion</li>
                             </ul>
@@ -343,7 +343,7 @@
                         <div>
                             <button class="btn btn-gold" style="width: 100%;" 
                                 onclick="selectPlanForInvest('{{ plan.id }}', '{{ plan.title }}', '{{ area.name }}', '{{ plan.min_deposit }}', '{{ plan.max_deposit }}', '{{ plan.roi_percentage }}% {{ plan.get_duration_unit_display }}')">
-                                <i class="fas fa-plus"></i> Allocate Capital (${{ plan.min_deposit|floatformat:0 }}+)
+                                <i class="fas fa-plus"></i> Allocate Capital (${{ plan.min_deposit|floatformat:"0g" }}+)
                             </button>
                         </div>
                     </div>
@@ -362,7 +362,7 @@
                         <span class="badge badge-gold" style="margin-bottom: 8px;"><i class="fas fa-shield-alt"></i> PRIVATE UNDERWRITING STATUS</span>
                         <h2 style="font-size: 1.8rem;">Private Credit Eligibility Status</h2>
                         <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">
-                            Borrowing privileges are calibrated directly against your verified cumulative deposits (${{ profile.total_deposited|floatformat:2 }}).
+                            Borrowing privileges are calibrated directly against your verified cumulative deposits (${{ profile.total_deposited|floatformat:"2g" }}).
                         </p>
                     </div>
 
@@ -371,7 +371,7 @@
                             <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm); padding: 12px 20px; text-align: right;">
                                 <div style="font-size: 0.75rem; text-transform: uppercase; color: #a7f3d0; font-weight: 700;">Unlocked Loan Facility</div>
                                 <div class="mono-num" style="font-size: 1.5rem; font-weight: 800; color: #34d399;">
-                                    ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                                    ${{ eligible_tier.min_loan_amount|floatformat:"0g" }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:"0g" }}
                                 </div>
                             </div>
                         {% else %}
@@ -398,10 +398,10 @@
                             {% endif %}
                         </div>
                         <div class="mono-num" style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">
-                            ${{ tier.min_deposit_required|floatformat:0 }} Deposit
+                            ${{ tier.min_deposit_required|floatformat:"0g" }} Deposit
                         </div>
                         <div style="font-size: 0.8rem; color: var(--emerald-accent); font-weight: 600; margin-top: 4px;">
-                            Eligible: ${{ tier.min_loan_amount|floatformat:0 }} &ndash; ${{ tier.max_loan_amount|floatformat:0 }}
+                            Eligible: ${{ tier.min_loan_amount|floatformat:"0g" }} &ndash; ${{ tier.max_loan_amount|floatformat:"0g" }}
                         </div>
                     </div>
                     {% endfor %}
@@ -435,7 +435,7 @@
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <label class="form-label" style="margin-bottom: 0;">Loan Principal ($ USD)</label>
                                 <span class="mono-num" style="font-size: 0.85rem; color: var(--gold-light);">
-                                    Allowed: ${{ eligible_tier.min_loan_amount|floatformat:0 }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:0 }}
+                                    Allowed: ${{ eligible_tier.min_loan_amount|floatformat:"0g" }} &ndash; ${{ eligible_tier.max_loan_amount|floatformat:"0g" }}
                                 </span>
                             </div>
                             <input type="number" id="user-loan-amount" name="loan_amount" class="form-control mono-num" 
@@ -504,7 +504,7 @@
                 <i class="fas fa-lock text-gold" style="font-size: 2.8rem; margin-bottom: 16px;"></i>
                 <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Private Credit Tier Locked</h3>
                 <p style="color: var(--text-muted); max-width: 550px; margin: 0 auto 24px;">
-                    To qualify for the entry-level loan range ($300,000 – $799,000), your account requires a minimum cumulative deposit of $25,000. You currently have ${{ profile.total_deposited|floatformat:2 }}.
+                    To qualify for the entry-level loan range ($300,000 – $799,000), your account requires a minimum cumulative deposit of $25,000. You currently have ${{ profile.total_deposited|floatformat:"2g" }}.
                 </p>
                 <button class="btn btn-gold" onclick="switchDashboardTab('tab-deposit')">
                     <i class="fas fa-plus"></i> Fund Deposit to Unlock Loans
@@ -532,10 +532,10 @@
                         {% for loan in user_loans %}
                         <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
                             <td class="mono-num" style="padding: 14px; font-weight: 600; color: var(--gold-light);">#{{ loan.loan_reference|slice:":8" }}</td>
-                            <td class="mono-num font-bold" style="padding: 14px; color: #ffffff;">${{ loan.amount_requested|floatformat:2 }}</td>
+                            <td class="mono-num font-bold" style="padding: 14px; color: #ffffff;">${{ loan.amount_requested|floatformat:"2g" }}</td>
                             <td style="padding: 14px;">{{ loan.term_months }} Months ({{ loan.monthly_interest_rate }}%/mo)</td>
-                            <td class="mono-num" style="padding: 14px; color: #34d399;">${{ loan.monthly_installment|floatformat:2 }}</td>
-                            <td class="mono-num" style="padding: 14px;">${{ loan.total_repayable|floatformat:2 }}</td>
+                            <td class="mono-num" style="padding: 14px; color: #34d399;">${{ loan.monthly_installment|floatformat:"2g" }}</td>
+                            <td class="mono-num" style="padding: 14px;">${{ loan.total_repayable|floatformat:"2g" }}</td>
                             <td style="padding: 14px;">
                                 {% if loan.status == 'approved' %}
                                     <span class="badge badge-emerald"><i class="fas fa-check"></i> DISBURSED</span>
@@ -569,7 +569,7 @@
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
                         <span style="font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700;">Account Cumulative Total</span>
-                        <div class="mono-num text-emerald font-bold" style="font-size: 1.25rem;">${{ profile.total_deposited|floatformat:2 }}</div>
+                        <div class="mono-num text-emerald font-bold" style="font-size: 1.25rem;">${{ profile.total_deposited|floatformat:"2g" }}</div>
                     </div>
                 </div>
             </div>
@@ -763,7 +763,7 @@
                                     <span class="badge badge-cyan">{{ dep.get_method_display }}</span>
                                 </td>
                                 <td class="mono-num font-bold" style="padding: 14px; color: #34d399; font-size: 1rem;">
-                                    +${{ dep.amount|floatformat:2 }}
+                                    +${{ dep.amount|floatformat:"2g" }}
                                 </td>
                                 <td class="mono-num" style="padding: 14px; color: var(--text-muted); font-size: 0.78rem;">
                                     {{ dep.proof_hash|truncatechars:20 }}
@@ -1113,7 +1113,7 @@
                             </td>
                             <td style="padding: 14px; color: var(--text-main);">{{ tx.description }}</td>
                             <td class="mono-num" style="padding: 14px; font-weight: 700; color: {% if tx.is_credit %}#34d399{% else %}#ffffff{% endif %};">
-                                {% if tx.is_credit %}+{% else %}-{% endif %}${{ tx.amount|floatformat:2 }}
+                                {% if tx.is_credit %}+{% else %}-{% endif %}${{ tx.amount|floatformat:"2g" }}
                             </td>
                             <td style="padding: 14px; color: var(--text-dim);">{{ tx.created_at|date:"M d, Y H:i" }}</td>
                         </tr>
@@ -1152,7 +1152,7 @@
 
             <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; font-size: 0.85rem; display: flex; justify-content: space-between;">
                 <span style="color: var(--text-muted);">Available Wallet Balance:</span>
-                <strong class="mono-num text-white">${{ profile.wallet_balance|floatformat:2 }}</strong>
+                <strong class="mono-num text-white">${{ profile.wallet_balance|floatformat:"2g" }}</strong>
             </div>
 
             <button type="submit" class="btn btn-gold" style="width: 100%;">
@@ -1168,7 +1168,7 @@
         <button class="modal-close" onclick="closeModal('withdrawModal')">&times;</button>
         <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Request Capital Withdrawal</h3>
         <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
-            Liquid balance available for withdrawal: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:2 }}</strong>
+            Liquid balance available for withdrawal: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:"2g" }}</strong>
         </p>
 
         <form method="POST" action="{% url 'submit_withdrawal' %}">

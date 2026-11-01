@@ -116,26 +116,26 @@
                                 <div class="mono-num" style="font-size: 0.75rem; color: var(--gold-light);">#{{ loan.loan_reference|slice:":8" }}</div>
                             </td>
                             <td class="mono-num" style="padding: 16px 12px; color: #34d399; font-weight: 700;">
-                                ${{ loan.user.profile.total_deposited|floatformat:2 }}
+                                ${{ loan.user.profile.total_deposited|floatformat:"2g" }}
                             </td>
                             <td class="mono-num" style="padding: 16px 12px; font-weight: 800; font-size: 1.05rem; color: #ffffff;">
-                                ${{ loan.amount_requested|floatformat:2 }}
+                                ${{ loan.amount_requested|floatformat:"2g" }}
                             </td>
                             <td style="padding: 16px 12px;">
                                 <strong>{{ loan.term_months }} Months</strong><br>
                                 <span class="badge badge-gold">{{ loan.monthly_interest_rate }}% / mo</span>
                             </td>
                             <td class="mono-num" style="padding: 16px 12px; color: #67e8f9;">
-                                ${{ loan.monthly_installment|floatformat:2 }}
+                                ${{ loan.monthly_installment|floatformat:"2g" }}
                             </td>
                             <td class="mono-num" style="padding: 16px 12px;">
-                                ${{ loan.total_repayable|floatformat:2 }}
+                                ${{ loan.total_repayable|floatformat:"2g" }}
                             </td>
                             <td style="padding: 16px 12px; text-align: right;">
                                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                                     <form method="POST" action="{% url 'admin_loan_action' loan.id 'approve' %}" style="display: inline;">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-emerald" onclick="return confirm('Approve and disburse ${{ loan.amount_requested|floatformat:0 }} loan to {{ loan.user.username }}?');">
+                                        <button type="submit" class="btn btn-sm btn-emerald" onclick="return confirm('Approve and disburse ${{ loan.amount_requested|floatformat:"0g" }} loan to {{ loan.user.username }}?');">
                                             <i class="fas fa-check"></i> Approve & Disburse
                                         </button>
                                     </form>
@@ -178,7 +178,7 @@
                         <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
                             <td class="mono-num" style="padding: 12px; color: var(--gold-light);">#{{ l.loan_reference|slice:":8" }}</td>
                             <td style="padding: 12px; color: #ffffff;">{{ l.user.username }}</td>
-                            <td class="mono-num" style="padding: 12px; font-weight: 700;">${{ l.amount_requested|floatformat:2 }}</td>
+                            <td class="mono-num" style="padding: 12px; font-weight: 700;">${{ l.amount_requested|floatformat:"2g" }}</td>
                             <td style="padding: 12px;">{{ l.term_months }} Months ({{ l.monthly_interest_rate }}%/mo)</td>
                             <td style="padding: 12px;">
                                 {% if l.status == 'approved' %}
@@ -225,7 +225,7 @@
                                 <span class="badge badge-cyan">{{ dep.get_method_display }}</span>
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; font-weight: 800; font-size: 1.1rem; color: #34d399;">
-                                +${{ dep.amount|floatformat:2 }}
+                                +${{ dep.amount|floatformat:"2g" }}
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; color: var(--text-muted); font-size: 0.8rem;">
                                 {{ dep.proof_hash|default:"Direct Submission" }}
@@ -349,8 +349,8 @@
                             <td class="mono-num" style="padding: 12px; font-weight: 800; color: #34d399;">
                                 {{ plan.roi_percentage }}%
                             </td>
-                            <td class="mono-num" style="padding: 12px;">${{ plan.min_deposit|floatformat:0 }}</td>
-                            <td class="mono-num" style="padding: 12px;">${{ plan.max_deposit|floatformat:0 }}</td>
+                            <td class="mono-num" style="padding: 12px;">${{ plan.min_deposit|floatformat:"0g" }}</td>
+                            <td class="mono-num" style="padding: 12px;">${{ plan.max_deposit|floatformat:"0g" }}</td>
                             <td style="padding: 12px;">
                                 <span class="badge badge-emerald">ACTIVE</span>
                             </td>
@@ -417,10 +417,10 @@
                         <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
                             <td style="padding: 14px 12px; font-weight: 700; color: #ffffff;">{{ t.tier_name }}</td>
                             <td class="mono-num" style="padding: 14px 12px; font-weight: 800; color: var(--gold-light);">
-                                ${{ t.min_deposit_required|floatformat:0 }}+
+                                ${{ t.min_deposit_required|floatformat:"0g" }}+
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; color: #34d399; font-weight: 700;">
-                                ${{ t.min_loan_amount|floatformat:0 }} &ndash; ${{ t.max_loan_amount|floatformat:0 }}
+                                ${{ t.min_loan_amount|floatformat:"0g" }} &ndash; ${{ t.max_loan_amount|floatformat:"0g" }}
                             </td>
                             <td style="padding: 14px 12px;"><span class="badge badge-gold">{{ t.badge }}</span></td>
                             <td style="padding: 14px 12px;"><span class="badge badge-emerald">ACTIVE</span></td>
@@ -478,23 +478,23 @@
                                 </span>
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; font-weight: 700; color: #34d399;">
-                                ${{ u.profile.total_deposited|floatformat:2 }}
+                                ${{ u.profile.total_deposited|floatformat:"2g" }}
                             </td>
                             <td style="padding: 14px 12px;">
                                 {% with tier=u.profile.get_eligible_loan_tier %}
                                     {% if tier %}
                                         <span class="badge badge-gold">{{ tier.badge }}</span><br>
-                                        <span class="mono-num" style="font-size: 0.75rem; color: var(--text-muted);">${{ tier.min_loan_amount|floatformat:0 }} - ${{ tier.max_loan_amount|floatformat:0 }}</span>
+                                        <span class="mono-num" style="font-size: 0.75rem; color: var(--text-muted);">${{ tier.min_loan_amount|floatformat:"0g" }} - ${{ tier.max_loan_amount|floatformat:"0g" }}</span>
                                     {% else %}
                                         <span class="badge badge-purple">No Loan Tier</span>
                                     {% endif %}
                                 {% endwith %}
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; font-weight: 700;">
-                                ${{ u.profile.wallet_balance|floatformat:2 }}
+                                ${{ u.profile.wallet_balance|floatformat:"2g" }}
                             </td>
                             <td class="mono-num" style="padding: 14px 12px; color: #67e8f9;">
-                                ${{ u.profile.loan_balance|floatformat:2 }}
+                                ${{ u.profile.loan_balance|floatformat:"2g" }}
                             </td>
                             <td style="padding: 14px 12px;">
                                 {% if u.profile.kyc_status == 'verified' %}
