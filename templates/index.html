@@ -119,7 +119,7 @@
 <section class="section-wrapper">
     <div class="intro-grid">
         <div class="intro-figure reveal">
-            <img src="/static/img/money_market.jpg" alt="Private wealth advisory">
+            <img src="/static/img/advisory.jpg" alt="An advisor reviewing portfolio performance">
             <div class="seal">
                 <b>12</b>
                 <small>Years of<br>Stewardship</small>
@@ -159,7 +159,7 @@
             {% for area in areas %}
             <article class="glass-card-luxury area-card pillar-card reveal">
                 <div class="pillar-media">
-                    {% if area.hero_image and 'trust_fund' not in area.hero_image %}
+                    {% if area.hero_image %}
                         <img src="{{ area.hero_image }}" alt="{{ area.name }}" loading="lazy">
                     {% else %}
                         <div class="placeholder"><i class="fas fa-{{ area.icon }}"></i></div>
@@ -224,6 +224,23 @@
             <div class="feature-figures">
                 <div><div class="k">1.10%</div><div class="v">Daily Yield</div></div>
                 <div><div class="k pos">24.0%</div><div class="v">Annual Return</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-row reveal">
+        <div class="feature-media">
+            <img src="/static/img/digital.jpg" alt="Digital asset deposits" loading="lazy">
+        </div>
+        <div class="feature-copy">
+            <span class="eyebrow">Funding</span>
+            <h3>Fund your portfolio in the currency you prefer.</h3>
+            <p>
+                Deposit by private bank wire or digital assets &mdash; Bitcoin, Ethereum and USDT on TRC-20 or ERC-20. Every deposit is verified by our treasury desk before it is credited to your account.
+            </p>
+            <div class="feature-figures">
+                <div><div class="k">4</div><div class="v">Digital Gateways</div></div>
+                <div><div class="k">Bank</div><div class="v">Wire Supported</div></div>
             </div>
         </div>
     </div>
@@ -396,7 +413,7 @@
 
     <div class="grid-3">
         <article class="glass-card-luxury trust-card reveal">
-            <div class="tc-media icon"><i class="fas fa-scroll"></i></div>
+            <div class="tc-media"><img src="/static/img/trust_fund.jpg" alt="Wealth growing over generations" loading="lazy"></div>
             <div class="tc-body">
                 <span class="eyebrow">Heritage Trust</span>
                 <h3>Multi-generational trusts</h3>
@@ -414,7 +431,7 @@
         </article>
 
         <article class="glass-card-luxury trust-card reveal">
-            <div class="tc-media icon"><i class="fas fa-coins"></i></div>
+            <div class="tc-media"><img src="/static/img/money_market.jpg" alt="Trading desk and money markets" loading="lazy"></div>
             <div class="tc-body">
                 <span class="eyebrow">Money Markets</span>
                 <h3>Repo &amp; treasury bills</h3>
@@ -426,7 +443,7 @@
 
 <!-- ============ CTA ============ -->
 <section class="cta-classic band-ink">
-    <div class="bg" style="background-image: url('/static/img/hero_bg.jpg');"></div>
+    <div class="bg" style="background-image: url('/static/img/cta_bg.jpg');"></div>
     <div class="inner reveal">
         <div class="rule-ornament"><span></span></div>
         <h2>Begin your <em class="gold-gradient-text">private</em> investment journey.</h2>
