@@ -549,7 +549,7 @@ def submit_kyc(request):
 
 # ---------------- ADMIN MANAGEMENT PORTAL ----------------
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_management(request):
     """Executive Admin Management View for quick control over areas, plans, loans, KYC, and deposits"""
     pending_loans = LoanApplication.objects.filter(status='pending')
@@ -582,7 +582,7 @@ def admin_management(request):
     return render(request, 'management/index.html', context)
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_kyc_action(request, submission_id, action):
     """Compliance Director approves or declines a KYC submission"""
     submission = get_object_or_404(KYCSubmission, id=submission_id)
@@ -614,7 +614,7 @@ def admin_kyc_action(request, submission_id, action):
     return redirect('admin_management')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_loan_action(request, loan_id, action):
     """Admin approves or rejects a loan request"""
     loan = get_object_or_404(LoanApplication, id=loan_id)
@@ -652,7 +652,7 @@ def admin_loan_action(request, loan_id, action):
     return redirect('admin_management')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_deposit_action(request, deposit_id, action):
     """Admin approves or rejects a deposit"""
     deposit = get_object_or_404(DepositRequest, id=deposit_id)
@@ -685,7 +685,7 @@ def admin_deposit_action(request, deposit_id, action):
     return redirect('admin_management')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_save_plan(request):
     """Quick edit or create investment plan directly from admin dashboard"""
     if request.method == 'POST':
@@ -726,7 +726,7 @@ def admin_save_plan(request):
     return redirect('admin_management')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_save_tier(request):
     """Quick edit or add loan tier criteria"""
     if request.method == 'POST':
@@ -757,67 +757,3 @@ def admin_save_tier(request):
             messages.success(request, f"New loan tier '{tier_name}' created.")
 
     return redirect('admin_management')
-
-
-# ─── Legal / Static Pages ───────────────────────────────────
-
-def privacy_policy(request):
-    return render(request, 'legal/privacy.html')
-
-def terms_of_custody(request):
-    return render(request, 'legal/terms.html')
-
-def regulatory_filings(request):
-    return render(request, 'legal/regulatory.html')
-
-
-def admin_login_view(request):
-    """Dedicated Executive Directorate & Staff Login Portal"""
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            return redirect('admin_management')
-        else:
-            messages.warning(request, 'Your account does not possess Directorate administrative clearance.')
-            return redirect('dashboard')
-
-    if request.method == 'POST':
-        identifier = request.POST.get('identifier', '').strip()
-        password = request.POST.get('password', '')
-        remember_me = request.POST.get('remember_me') == '1'
-
-        user = authenticate(request, username=identifier, password=password)
-        if not user and '@' in identifier:
-            try:
-                user_obj = User.objects.get(email__iexact=identifier)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
-
-        if user is not None:
-            if not user.is_staff:
-                messages.error(request, 'Access Denied: Account lacks executive underwriting clearance.')
-                return render(request, 'management/login.html')
-
-            login(request, user)
-            if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
-            else:
-                request.session.set_expiry(0)
-
-            UserProfile.objects.get_or_create(user=user)
-            messages.success(request, f'Directorate terminal authorized. Welcome, {user.first_name or user.username}.')
-            next_url = request.GET.get('next')
-            if next_url and next_url.startswith('/management/'):
-                return redirect(next_url)
-            return redirect('admin_management')
-        else:
-            messages.error(request, 'Authentication Failed: Invalid Directorate credentials. This attempt has been logged.')
-
-    return render(request, 'management/login.html')
-
-
-def admin_logout_view(request):
-    """Sign out of executive directorate terminal"""
-    logout(request)
-    messages.info(request, 'Directorate session terminated securely.')
-    return redirect('admin_login')

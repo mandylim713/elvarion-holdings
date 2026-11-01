@@ -20,10 +20,6 @@ urlpatterns = [
     path('api/realtime-roi/', views.api_realtime_roi, name='api_realtime_roi'),
     path('api/loan-calculator/', views.api_loan_calculator, name='api_loan_calculator'),
 
-    # Dedicated Executive Directorate Authentication
-    path('management/login/', views.admin_login_view, name='admin_login'),
-    path('management/logout/', views.admin_logout_view, name='admin_logout'),
-
     # Admin Management Portal
     path('management/', views.admin_management, name='admin_management'),
     path('management/loan/<int:loan_id>/<str:action>/', views.admin_loan_action, name='admin_loan_action'),
@@ -31,9 +27,4 @@ urlpatterns = [
     path('management/kyc/<int:submission_id>/<str:action>/', views.admin_kyc_action, name='admin_kyc_action'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
-
-    # Legal pages
-    path('privacy/', views.privacy_policy, name='privacy'),
-    path('terms/', views.terms_of_custody, name='terms'),
-    path('regulatory/', views.regulatory_filings, name='regulatory'),
 ]

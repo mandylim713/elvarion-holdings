@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initPublicRoiEstimator();
     initTabs();
     initCopyButtons();
-    initMobileNav();
 });
 
 // Toast Auto-dismiss
@@ -201,11 +200,17 @@ function initTabs() {
             btn.classList.add('active');
 
             // Hide all tab panes in this container
-            parent.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            parent.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.style.display = 'none';
+                pane.classList.remove('active');
+            });
 
             // Show target
             const targetPane = document.getElementById(targetId);
-            if (targetPane) targetPane.classList.add('active');
+            if (targetPane) {
+                targetPane.style.display = 'block';
+                targetPane.classList.add('active');
+            }
         });
     });
 }
@@ -265,25 +270,4 @@ function selectPlanForInvest(planId, planTitle, areaName, minDeposit, maxDeposit
     if (minMaxLabel) minMaxLabel.innerText = `Range: $${parseFloat(minDeposit).toLocaleString()} - $${parseFloat(maxDeposit).toLocaleString()}`;
 
     openModal('investModal');
-}
-
-// Mobile navigation sheet (moved out of the inline script in base.html)
-function initMobileNav() {
-    const hamburger = document.getElementById('navHamburger');
-    const overlay = document.getElementById('mobileNavOverlay');
-    const closeBtn = document.getElementById('mobileNavClose');
-    if (!hamburger || !overlay) return;
-
-    const close = () => {
-        overlay.classList.remove('open');
-        document.body.classList.remove('nav-locked');
-    };
-
-    hamburger.addEventListener('click', () => {
-        overlay.classList.add('open');
-        document.body.classList.add('nav-locked');
-    });
-    if (closeBtn) closeBtn.addEventListener('click', close);
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-    overlay.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
 }

@@ -1,21 +1,185 @@
-{% load static %}
-{% include 'partials/_head.html' %}
-{% include 'styles.html' %}
-{% block extra_css %}{% endblock %}
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Elvarion Holdings | Private Wealth, Multi-Asset Investment & Private Credit{% endblock %}</title>
+    <meta name="description" content="Elvarion Holdings — private multi-asset investment management across Real Estate, Physical Gold, Heritage Trust Funds and Money Markets, with private credit facilities for qualified clients.">
+    <meta name="theme-color" content="#0a1424">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}theme-ink{% endblock %}">
+    <div class="ambient-glow">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+        <div class="glow-orb-3"></div>
+    </div>
 
-{% include 'partials/_mobile_nav.html' %}
-{% include 'partials/_top_nav.html' %}
-{% include 'partials/_flash.html' %}
+    {% block utility_bar %}
+    <div class="utility-bar">
+        <div class="inner">
+            <span><i class="fas fa-landmark"></i> Private Wealth &amp; Credit &middot; Est. 2014</span>
+            <div class="u-right">
+                <span><i class="fas fa-envelope"></i> concierge@elvarionholdings.com</span>
+                <span><i class="fas fa-location-dot"></i> New York</span>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
 
-<main class="page-content">
-    {% block content %}{% endblock %}
-</main>
+    <nav class="luxury-navbar" id="siteNav">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="brand-logo">
+                <div class="brand-crest">EH</div>
+                <div>
+                    <div class="brand-title">ELVARION</div>
+                    <div class="brand-sub">Holdings &middot; Asset Management</div>
+                </div>
+            </a>
 
-{% include 'partials/_footer.html' %}
+            <ul class="nav-links" id="navLinks">
+                <li><a href="{% url 'home' %}#areas"><i class="fas fa-layer-group"></i> Investments</a></li>
+                <li><a href="{% url 'home' %}#calculator"><i class="fas fa-calculator"></i> Yield Estimator</a></li>
+                <li><a href="{% url 'home' %}#loans"><i class="fas fa-hand-holding-dollar"></i> Private Credit</a></li>
+                <li><a href="{% url 'home' %}#security"><i class="fas fa-shield-halved"></i> Custody</a></li>
+            </ul>
 
-<script src="{% static 'js/main.js' %}"></script>
-{% block extra_js %}{% endblock %}
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin_management' %}" class="btn btn-sm btn-outline-gold">
+                            <i class="fas fa-sliders"></i> Admin Desk
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-gold">
+                        <i class="fas fa-wallet"></i> Portal
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-subtle" title="Sign Out">
+                        <i class="fas fa-right-from-bracket"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-sm btn-outline-gold">Client Sign In</a>
+                    <a href="{% url 'register' %}" class="btn btn-sm btn-gold">Open Account</a>
+                {% endif %}
+                <button class="nav-toggle" type="button" aria-label="Menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast-msg toast-{{ message.tags }}">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-circle-check text-emerald"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-circle-exclamation text-danger"></i>
+            {% else %}
+                <i class="fas fa-circle-info text-cyan"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main style="position: relative; z-index: 5;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="luxury-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <a href="{% url 'home' %}" class="brand-logo" style="margin-bottom: 26px;">
+                    <div class="brand-crest">EH</div>
+                    <div>
+                        <div class="brand-title">ELVARION</div>
+                        <div class="brand-sub">Holdings &middot; Est. 2014</div>
+                    </div>
+                </a>
+                <p style="font-size: 0.9rem; line-height: 1.85; margin-bottom: 26px; max-width: 380px; font-weight: 300;">
+                    A private multi-asset investment house and credit facility, stewarding capital for institutional and accredited clients with discretion, patience and rigour.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span class="badge badge-gold"><i class="fas fa-landmark"></i> Fiduciary Standard</span>
+                    <span class="badge badge-gold"><i class="fas fa-lock"></i> Segregated Custody</span>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h5>Asset Classes</h5>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}#areas">Prime Real Estate</a></li>
+                    <li><a href="{% url 'home' %}#areas">Physical Gold</a></li>
+                    <li><a href="{% url 'home' %}#areas">Heritage Trust Funds</a></li>
+                    <li><a href="{% url 'home' %}#areas">Money Markets</a></li>
+                    <li><a href="{% url 'home' %}#loans">Private Credit</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h5>Clients</h5>
+                <ul class="footer-links">
+                    <li><a href="{% url 'dashboard' %}">Investor Portal</a></li>
+                    <li><a href="{% url 'home' %}#calculator">Yield Estimator</a></li>
+                    <li><a href="{% url 'home' %}#loans">Credit Policy</a></li>
+                    <li><a href="{% url 'login' %}">Client Sign In</a></li>
+                    <li><a href="{% url 'register' %}">Open an Account</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h5>Headquarters</h5>
+                <p style="font-size: 0.88rem; line-height: 1.8; margin-bottom: 14px;">
+                    Tower 49, 12 East 49th Street<br>New York, NY 10017
+                </p>
+                <p style="font-size: 0.88rem; line-height: 1.8; margin-bottom: 14px;">
+                    concierge@elvarionholdings.com
+                </p>
+                <div class="rule-ornament" style="justify-content: flex-start; margin-top: 24px;"><span></span></div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2026 Elvarion Holdings Ltd. All rights reserved.</div>
+            <div style="display: flex; gap: 26px; flex-wrap: wrap;">
+                <span>Privacy Notice</span>
+                <span>Terms of Custody</span>
+                <span>Regulatory Disclosures</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+    (function () {
+        var nav = document.getElementById('siteNav');
+        window.addEventListener('scroll', function () {
+            if (nav) nav.classList.toggle('scrolled', window.scrollY > 10);
+        }, { passive: true });
+        var els = document.querySelectorAll('.reveal');
+        if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+        }, { threshold: 0.12 });
+        els.forEach(function (e) { io.observe(e); });
+        document.querySelectorAll('#navLinks a').forEach(function (a) {
+            a.addEventListener('click', function () { document.getElementById('navLinks').classList.remove('open'); });
+        });
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
