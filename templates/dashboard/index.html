@@ -8,26 +8,27 @@
     <div class="sh-balance">
         <small>Available balance</small>
         <b>${{ profile.wallet_balance|floatformat:"2g" }}</b>
-        <button type="button" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Fund wallet</button>
+        <button type="button" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Add money</button>
     </div>
 
     <div class="sh-label">Portfolio</div>
     <button type="button" class="sh-item active" data-tab="tab-investments" data-title="Portfolio"><i class="fas fa-chart-line"></i> My portfolio {% if active_investments %}<span class="sh-pill ok">{{ active_investments|length }}</span>{% endif %}</button>
-    <button type="button" class="sh-item" data-tab="tab-invest-now" data-title="Invest"><i class="fas fa-layer-group"></i> Invest</button>
+    <button type="button" class="sh-item" data-tab="tab-trade" data-title="Trade"><i class="fas fa-chart-candlestick"></i> Trade <span class="sh-pill ok">LIVE</span></button>
+    <button type="button" class="sh-item" data-tab="tab-invest-now" data-title="Investment Plans"><i class="fas fa-layer-group"></i> Investment plans</button>
     <button type="button" class="sh-item" data-tab="tab-transactions" data-title="Transactions"><i class="fas fa-receipt"></i> Transactions</button>
 
     <div class="sh-label">Money</div>
-    <button type="button" class="sh-item" data-tab="tab-deposit" data-title="Deposit"><i class="fas fa-arrow-down-to-bracket"></i> Deposit</button>
+    <button type="button" class="sh-item" data-tab="tab-deposit" data-title="Add money"><i class="fas fa-arrow-down-to-bracket"></i> Add money</button>
     <button type="button" class="sh-item" onclick="openModal('withdrawModal'); document.body.classList.remove('sh-open')"><i class="fas fa-arrow-up-from-bracket"></i> Withdraw</button>
-    <button type="button" class="sh-item" data-tab="tab-loans" data-title="Private Credit"><i class="fas fa-hand-holding-dollar"></i> Private credit</button>
+    <button type="button" class="sh-item" data-tab="tab-loans" data-title="Loans"><i class="fas fa-hand-holding-dollar"></i> Loans</button>
 
     <div class="sh-label">Account</div>
-    <button type="button" class="sh-item" data-tab="tab-kyc" data-title="Verification"><i class="fas fa-id-card"></i> KYC verification {% if profile.kyc_status == 'verified' %}<span class="sh-pill ok"><i class="fas fa-check" style="font-size:.6rem;width:auto;color:inherit"></i></span>{% else %}<span class="sh-pill">!</span>{% endif %}</button>
+    <button type="button" class="sh-item" data-tab="tab-kyc" data-title="Verify identity"><i class="fas fa-id-card"></i> Verify identity {% if profile.kyc_status == 'verified' %}<span class="sh-pill ok"><i class="fas fa-check" style="font-size:.6rem;width:auto;color:inherit"></i></span>{% else %}<span class="sh-pill">!</span>{% endif %}</button>
 {% endblock %}
 
 {% block top_actions %}
     <span class="sh-chip hide-m"><i class="fas fa-wallet"></i> <b>${{ profile.wallet_balance|floatformat:"2g" }}</b></span>
-    <button type="button" class="sh-chip gold hide-m" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Deposit</button>
+    <button type="button" class="sh-chip gold hide-m" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Add money</button>
     <button type="button" class="sh-chip" style="width:40px;padding:0;justify-content:center" onclick="openModal('withdrawModal')" title="Withdraw" aria-label="Withdraw"><i class="fas fa-arrow-up-from-bracket"></i></button>
 {% endblock %}
 
@@ -42,14 +43,14 @@
                 <i class="fas fa-id-card-clip"></i>
             </div>
             <div>
-                <strong style="color: #ffffff; font-size: 0.95rem;">Identity Verification Required (Tier-1 Compliance)</strong>
+                <strong style="color: #ffffff; font-size: 0.95rem;">Verify your identity to unlock loans and withdrawals</strong>
                 <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 2px;">
-                    Complete institutional KYC to unlock private credit loan borrowing ($300k - $5M) and unlimited treasury withdrawals.
+                    It takes about 2 minutes. Verified accounts can borrow and withdraw without limits.
                 </div>
             </div>
         </div>
         <button class="btn btn-sm btn-gold" onclick="switchDashboardTab('tab-kyc')">
-            <i class="fas fa-file-shield"></i> Complete KYC Verification Now
+            <i class="fas fa-file-shield"></i> Verify now
         </button>
     </div>
     {% elif profile.kyc_status == 'pending' %}
@@ -59,14 +60,14 @@
                 <i class="fas fa-clock-rotate-left"></i>
             </div>
             <div>
-                <strong style="color: #ffffff; font-size: 0.95rem;">KYC Compliance Dossier Under Review</strong>
+                <strong style="color: #ffffff; font-size: 0.95rem;">Your identity check is being reviewed</strong>
                 <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 2px;">
-                    Your identification documents are currently under review by our Compliance Committee. Turnaround SLA &lt; 2 business hours.
+                    We usually finish within 2 business hours. You can keep using your wallet meanwhile.
                 </div>
             </div>
         </div>
         <button class="btn btn-sm btn-outline-gold" onclick="switchDashboardTab('tab-kyc')">
-            <i class="fas fa-eye"></i> View Verification Dossier
+            <i class="fas fa-eye"></i> View status
         </button>
     </div>
     {% endif %}
@@ -91,7 +92,7 @@
                 {% endif %}
             </div>
             <h1 style="font-size: 2.4rem; line-height: 1.1;">
-                Portfolio Desk &bull; <span class="gold-gradient-text">{{ user.first_name|default:user.username }}</span>
+                Welcome, <span class="gold-gradient-text">{{ user.first_name|default:user.username }}</span>
             </h1>
             <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 4px;">
                 Client UID: <span class="mono-num" style="color: var(--text-muted);">EH-{{ user.id|stringformat:"05d" }}</span> &bull; 
@@ -102,14 +103,14 @@
 
         <div class="dash-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button class="btn btn-gold btn-sm" onclick="switchDashboardTab('tab-deposit')">
-                <i class="fas fa-plus-circle"></i> Institutional Treasury Deposit
+                <i class="fas fa-plus-circle"></i> Add Money
             </button>
             <button class="btn btn-outline-gold btn-sm" onclick="openModal('withdrawModal')">
-                <i class="fas fa-arrow-up-from-bracket"></i> Request Withdrawal
+                <i class="fas fa-arrow-up-from-bracket"></i> Withdraw
             </button>
             {% if eligible_tier %}
                 <button class="btn btn-emerald btn-sm" onclick="switchDashboardTab('tab-loans')">
-                    <i class="fas fa-hand-holding-dollar"></i> Apply for Loan
+                    <i class="fas fa-hand-holding-dollar"></i> Get a Loan
                 </button>
             {% endif %}
         </div>
@@ -226,11 +227,20 @@
         </div>
     </div>
 
+    <div class="portfolio-only tr-strip" onclick="switchDashboardTab('tab-trade')">
+        <div><i class="fas fa-chart-line"></i></div>
+        <div><b>Trading</b><span>{% if holdings %}{{ holdings|length }} asset{{ holdings|length|pluralize }} &middot; worth ${{ holdings_value|floatformat:"2g" }}{% else %}Buy crypto, gold and stocks from your wallet{% endif %}</span></div>
+        <div class="go">Open markets <i class="fas fa-arrow-right"></i></div>
+    </div>
+
     <!-- Navigation Tabs -->
     <div class="tabs-container">
         <div class="tabs-nav" style="margin-bottom: 32px;">
             <button class="tab-btn active" data-tab-target="tab-investments">
                 <i class="fas fa-chart-line"></i> My Portfolios ({{ active_investments|length }})
+            </button>
+            <button class="tab-btn" data-tab-target="tab-trade">
+                <i class="fas fa-chart-line"></i> Trade
             </button>
             <button class="tab-btn" data-tab-target="tab-invest-now">
                 <i class="fas fa-layer-group"></i> Invest in New Sector
@@ -317,6 +327,92 @@
                     <i class="fas fa-arrow-trend-up"></i> Explore Investment Sectors
                 </button>
             </div>
+            {% endif %}
+        </div>
+
+        <!-- TRADE: crypto, gold & metals, stocks -->
+        <div id="tab-trade" class="tab-pane" style="display: none;">
+            <div class="tr-top">
+                <div>
+                    <h2 style="font-size: 1.8rem;">Markets</h2>
+                    <p style="color: var(--text-muted); font-size: 0.92rem;">Buy and sell crypto, gold and stocks straight from your wallet. Prices update every few seconds.</p>
+                </div>
+            </div>
+
+            <div class="tr-sum">
+                <div><small>Wallet balance</small><b class="mono-num">${{ profile.wallet_balance|floatformat:"2g" }}</b><a href="javascript:void(0)" onclick="switchDashboardTab('tab-deposit')">+ Add money</a></div>
+                <div><small>Trading holdings</small><b class="mono-num" id="tr-hold-val">${{ holdings_value|floatformat:"2g" }}</b><span>{{ holdings|length }} asset{{ holdings|length|pluralize }}</span></div>
+                <div><small>Profit / loss</small><b class="mono-num {% if holdings_pl >= 0 %}up{% else %}down{% endif %}">{% if holdings_pl >= 0 %}+{% endif %}${{ holdings_pl|floatformat:"2g" }}</b><span>on open positions</span></div>
+            </div>
+
+            <div class="tr-chips" id="tr-chips">
+                <button class="chip active" data-cat="all">All</button>
+                <button class="chip" data-cat="crypto"><i class="fab fa-bitcoin"></i> Crypto</button>
+                <button class="chip" data-cat="metal"><i class="fas fa-ring"></i> Gold &amp; Metals</button>
+                <button class="chip" data-cat="stock"><i class="fas fa-chart-line"></i> Stocks</button>
+            </div>
+
+            <div class="tr-grid" id="tr-grid">
+                {% for m in markets %}
+                <div class="tr-card" data-cat="{{ m.asset.category }}" data-id="{{ m.asset.id }}">
+                    <div class="tr-card-top">
+                        <div class="tr-sym {{ m.asset.category }}">{{ m.asset.symbol|slice:":4" }}</div>
+                        <div class="tr-name"><b>{{ m.asset.symbol }}</b><small>{{ m.asset.name }}</small></div>
+                        <div class="tr-px"><b class="mono-num" id="q-price-{{ m.asset.id }}">${{ m.price|floatformat:"2g" }}</b><small class="mono-num {% if m.change >= 0 %}up{% else %}down{% endif %}" id="q-ch-{{ m.asset.id }}">{% if m.change >= 0 %}+{% endif %}{{ m.change }}%</small></div>
+                    </div>
+                    <div class="tr-card-act">
+                        <button type="button" class="tr-buy" onclick="openTrade({{ m.asset.id }}, 'buy')">Buy</button>
+                        <button type="button" class="tr-sell" onclick="openTrade({{ m.asset.id }}, 'sell')">Sell</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="glass-card-luxury" style="padding: 40px; text-align: center; grid-column: 1/-1;">No markets are open right now. Please check back soon.</div>
+                {% endfor %}
+            </div>
+
+            <h3 class="tr-h">Your holdings</h3>
+            {% if holdings %}
+            <div class="glass-card-luxury" style="padding: 0; overflow-x: auto;">
+                <table class="tr-table">
+                    <thead><tr><th>Asset</th><th>Amount</th><th>Avg. price</th><th>Value now</th><th>Profit / loss</th><th></th></tr></thead>
+                    <tbody>
+                    {% for h in holdings %}
+                    <tr>
+                        <td data-label="Asset"><b>{{ h.obj.asset.symbol }}</b><small>{{ h.obj.asset.name }}</small></td>
+                        <td data-label="Amount" class="mono-num">{{ h.obj.quantity|floatformat:"-8" }}</td>
+                        <td data-label="Avg. price" class="mono-num">${{ h.obj.avg_price|floatformat:"2g" }}</td>
+                        <td data-label="Value now" class="mono-num"><b>${{ h.value|floatformat:"2g" }}</b></td>
+                        <td data-label="Profit / loss" class="mono-num {% if h.pl >= 0 %}up{% else %}down{% endif %}">{% if h.pl >= 0 %}+{% endif %}${{ h.pl|floatformat:"2g" }} <small>({{ h.pl_pct }}%)</small></td>
+                        <td data-label=""><button type="button" class="tr-sell sm" onclick="openTrade({{ h.obj.asset_id }}, 'sell')">Sell</button></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="glass-card-luxury tr-empty"><i class="fas fa-seedling"></i><b>You don't hold any assets yet</b><span>Pick any market above and tap Buy to place your first trade.</span></div>
+            {% endif %}
+
+            <h3 class="tr-h">Recent trades</h3>
+            {% if recent_trades %}
+            <div class="glass-card-luxury" style="padding: 0; overflow-x: auto;">
+                <table class="tr-table">
+                    <thead><tr><th>When</th><th>Trade</th><th>Amount</th><th>Price</th><th>Total</th></tr></thead>
+                    <tbody>
+                    {% for t in recent_trades %}
+                    <tr>
+                        <td data-label="When">{{ t.created_at|date:"M d, H:i" }}</td>
+                        <td data-label="Trade"><span class="tr-tag {{ t.side }}">{{ t.get_side_display }}</span> <b>{{ t.asset.symbol }}</b></td>
+                        <td data-label="Amount" class="mono-num">{{ t.quantity|floatformat:"-8" }}</td>
+                        <td data-label="Price" class="mono-num">${{ t.price|floatformat:"2g" }}</td>
+                        <td data-label="Total" class="mono-num"><b>${{ t.total|floatformat:"2g" }}</b>{% if t.side == 'sell' %} <small class="{% if t.realized_pl >= 0 %}up{% else %}down{% endif %}">({% if t.realized_pl >= 0 %}+{% endif %}${{ t.realized_pl|floatformat:"2g" }})</small>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="glass-card-luxury tr-empty"><i class="fas fa-clock-rotate-left"></i><b>No trades yet</b><span>Your buys and sells will show up here.</span></div>
             {% endif %}
         </div>
 
@@ -590,14 +686,14 @@
             <div style="margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
                     <div>
-                        <span class="badge badge-gold"><i class="fas fa-building-columns"></i> SEGREGATED CUSTODY</span>
-                        <h2 style="font-size: 1.8rem; margin-top: 6px;">Institutional Treasury & Hybrid Deposit Gateways</h2>
+                        <span class="badge badge-gold"><i class="fas fa-wallet"></i> ADD MONEY</span>
+                        <h2 style="font-size: 1.8rem; margin-top: 6px;">Add money to your wallet</h2>
                         <p style="color: var(--text-muted); font-size: 0.92rem;">
-                            Direct segregated deposit channels via Blockchain (BTC, USDT TRC-20, USDT ERC-20, ETH) and JPMorgan Chase Private Bank Wire.
+                            Pay by bank transfer or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
                         </p>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
-                        <span style="font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700;">Account Cumulative Total</span>
+                        <span style="font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700;">Total deposited so far</span>
                         <div class="mono-num text-emerald font-bold" style="font-size: 1.25rem;">${{ profile.total_deposited|floatformat:"2g" }}</div>
                     </div>
                 </div>
@@ -605,7 +701,12 @@
 
             <!-- Currency Selection Tabs -->
             <div class="crypto-selector-tabs">
-                <div class="crypto-tab-card active" onclick="selectDepositGateway('USDT_TRC20', this)">
+                <div class="crypto-tab-card active" onclick="selectDepositGateway('BANK_WIRE', this)">
+                    <div class="crypto-tab-icon" style="color: #f7d774;"><i class="fas fa-landmark"></i></div>
+                    <div class="crypto-tab-name">Bank Transfer</div>
+                    <div class="crypto-tab-network">Wire or local transfer</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_TRC20', this)">
                     <div class="crypto-tab-icon" style="color: #10b981;"><i class="fas fa-coins"></i></div>
                     <div class="crypto-tab-name">USDT (TRC-20)</div>
                     <div class="crypto-tab-network">Tron &bull; Fast & Low Fee</div>
@@ -624,11 +725,6 @@
                     <div class="crypto-tab-icon" style="color: #a78bfa;"><i class="fab fa-ethereum"></i></div>
                     <div class="crypto-tab-name">Ethereum (ETH)</div>
                     <div class="crypto-tab-network">Native ERC-20</div>
-                </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('BANK_WIRE', this)">
-                    <div class="crypto-tab-icon" style="color: #f7d774;"><i class="fas fa-landmark"></i></div>
-                    <div class="crypto-tab-name">Bank Wire (USD)</div>
-                    <div class="crypto-tab-network">JPMorgan Chase Private</div>
                 </div>
             </div>
 
@@ -676,7 +772,7 @@
                             <div><strong>Account Title:</strong> {{ settings.bank_account_name }}</div>
                             <div><strong>Account Number / IBAN:</strong> <span class="mono-num text-white font-bold">{{ settings.bank_account_number }}</span></div>
                             <div><strong>SWIFT / BIC / ABA:</strong> <span class="mono-num text-gold font-bold">{{ settings.bank_routing_swift }}</span></div>
-                            <div><strong>Jurisdiction:</strong> One World Trade Center, New York, NY</div>
+                            <div><strong>Payment reference:</strong> <span class="mono-num text-gold font-bold">EH-{{ user.id|stringformat:"05d" }}</span> <span style="color: var(--text-dim);">(put this in the transfer note)</span></div>
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-gold copy-btn" data-clipboard-text="Bank: {{ settings.bank_name }} | Title: {{ settings.bank_account_name }} | Acct: {{ settings.bank_account_number }} | SWIFT: {{ settings.bank_routing_swift }}">
                             <i class="fas fa-copy"></i> Copy Full Wire Coordinates
@@ -1195,36 +1291,84 @@
 <div id="withdrawModal" class="modal-backdrop">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('withdrawModal')">&times;</button>
-        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Request Capital Withdrawal</h3>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
-            Liquid balance available for withdrawal: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:"2g" }}</strong>
+        <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Withdraw money</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 18px;">
+            Available to withdraw: <strong class="mono-num text-emerald">${{ profile.wallet_balance|floatformat:"2g" }}</strong>
         </p>
 
-        <form method="POST" action="{% url 'submit_withdrawal' %}">
+        <form method="POST" action="{% url 'submit_withdrawal' %}" id="wd-form">
             {% csrf_token %}
-            <div class="form-group">
-                <label class="form-label">Withdrawal Amount ($ USD)</label>
-                <input type="number" name="amount" class="form-control mono-num" max="{{ profile.wallet_balance|floatformat:2 }}" min="50" step="50" required>
+            <input type="hidden" name="payout_method" id="wd-method" value="Bank Transfer">
+
+            <div class="seg" role="tablist">
+                <button type="button" class="seg-btn active" data-wd="bank"><i class="fas fa-landmark"></i> Bank transfer</button>
+                <button type="button" class="seg-btn" data-wd="crypto"><i class="fab fa-bitcoin"></i> Crypto</button>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Disbursement Channel</label>
-                <select name="payout_method" class="form-control">
-                    <option value="USDT (TRC-20)">USDT (TRC-20)</option>
-                    <option value="Bitcoin (BTC)">Bitcoin (BTC)</option>
-                    <option value="USDT (ERC-20)">USDT (ERC-20)</option>
-                    <option value="Bank Wire Transfer">International Bank Wire Transfer</option>
-                </select>
+                <label class="form-label">Amount ($ USD)</label>
+                <input type="number" name="amount" class="form-control mono-num" max="{{ profile.wallet_balance|floatformat:2 }}" min="50" step="0.01" inputmode="decimal" placeholder="Minimum $50" required>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Destination Address / Wire Coordinates</label>
-                <textarea name="destination_details" class="form-control" rows="3" placeholder="Enter recipient wallet address or full institutional bank wire details" required></textarea>
+            <div id="wd-bank">
+                <div class="form-group"><label class="form-label">Bank name</label><input type="text" name="bank_name" class="form-control" placeholder="e.g. Chase, Barclays, GTBank" autocomplete="off"></div>
+                <div class="form-group"><label class="form-label">Account holder name</label><input type="text" name="account_name" class="form-control" placeholder="Exactly as it appears on the account" autocomplete="off"></div>
+                <div class="form-group"><label class="form-label">Account number / IBAN</label><input type="text" name="account_number" class="form-control mono-num" autocomplete="off"></div>
+                <div class="wd-two">
+                    <div class="form-group"><label class="form-label">SWIFT / routing <span style="text-transform:none;opacity:.6">(optional)</span></label><input type="text" name="swift" class="form-control" autocomplete="off"></div>
+                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="bank_country" class="form-control" placeholder="e.g. Nigeria" autocomplete="off"></div>
+                </div>
+                <p class="wd-note"><i class="fas fa-clock"></i> Bank transfers are reviewed by our team and usually arrive in 1&ndash;3 business days.</p>
+            </div>
+
+            <div id="wd-crypto" style="display:none">
+                <div class="form-group">
+                    <label class="form-label">Network</label>
+                    <select id="wd-network" class="form-control">
+                        <option value="USDT (TRC-20)">USDT (TRC-20) &middot; low fee</option>
+                        <option value="Bitcoin (BTC)">Bitcoin (BTC)</option>
+                        <option value="USDT (ERC-20)">USDT (ERC-20)</option>
+                        <option value="Ethereum (ETH)">Ethereum (ETH)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Your wallet address</label><textarea name="destination_details" class="form-control" rows="2" placeholder="Paste the address you want to receive on" disabled></textarea></div>
+                <p class="wd-note"><i class="fas fa-triangle-exclamation"></i> Double-check the address and network. Crypto payments cannot be reversed.</p>
             </div>
 
             <button type="submit" class="btn btn-gold" style="width: 100%;">
-                <i class="fas fa-paper-plane"></i> Authorize Treasury Dispatch
+                <i class="fas fa-paper-plane"></i> Request withdrawal
             </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Trade -->
+<div id="tradeModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 460px;">
+        <button class="modal-close" onclick="closeModal('tradeModal')">&times;</button>
+        <div class="tm-head">
+            <div class="tm-badge" id="tm-badge">BTC</div>
+            <div><h3 id="tm-name" style="font-size: 1.4rem; line-height: 1.1;">Bitcoin</h3><div class="mono-num" id="tm-price" style="color: var(--gold-light); font-size: 1.05rem;">$0.00</div></div>
+        </div>
+        <form method="POST" action="{% url 'trade_order' %}" id="tm-form">
+            {% csrf_token %}
+            <input type="hidden" name="asset_id" id="tm-asset">
+            <input type="hidden" name="side" id="tm-side" value="buy">
+            <input type="hidden" name="sell_all" id="tm-sellall" value="0">
+            <div class="seg">
+                <button type="button" class="seg-btn buy active" data-side="buy">Buy</button>
+                <button type="button" class="seg-btn sell" data-side="sell">Sell</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="display:flex;justify-content:space-between"><span>Amount ($ USD)</span><span id="tm-avail" style="text-transform:none;letter-spacing:0"></span></label>
+                <input type="number" name="amount" id="tm-amount" class="form-control mono-num" min="10" step="0.01" inputmode="decimal" placeholder="Minimum $10" required>
+            </div>
+            <div class="chip-row">
+                <button type="button" data-pct="25">25%</button><button type="button" data-pct="50">50%</button><button type="button" data-pct="75">75%</button><button type="button" data-pct="100">Max</button>
+            </div>
+            <div class="tm-est"><span id="tm-est-label">You will get about</span><b class="mono-num" id="tm-est">0 BTC</b></div>
+            <button type="submit" class="btn btn-gold" id="tm-submit" style="width: 100%;">Buy BTC</button>
+            <p class="wd-note" style="margin-top:12px"><i class="fas fa-circle-info"></i> Trades fill instantly at the price shown. Prices are indicative and refresh every few seconds.</p>
         </form>
     </div>
 </div>
@@ -1470,10 +1614,113 @@ function recalcUserLoan() {
     if (elM) elM.innerText = `$${monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+
+// ---------------- Trading + withdrawal UI ----------------
+const MARKET = {
+{% for m in markets %}    {{ m.asset.id }}: { id: {{ m.asset.id }}, symbol: "{{ m.asset.symbol }}", name: "{{ m.asset.name|escapejs }}", price: {{ m.price }}, dec: {{ m.asset.decimals }} },
+{% endfor %}};
+const HOLD = {
+{% for h in holdings %}    {{ h.obj.asset_id }}: {{ h.obj.quantity.normalize|stringformat:"f" }},
+{% endfor %}};
+const WALLET = {{ profile.wallet_balance|stringformat:"f" }};
+let tradeAsset = null, tradeSide = 'buy';
+
+function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function tradeRefresh() {
+    if (!tradeAsset) return;
+    const a = MARKET[tradeAsset];
+    const amt = parseFloat(document.getElementById('tm-amount').value) || 0;
+    const qty = a.price ? amt / a.price : 0;
+    document.getElementById('tm-price').innerText = money(a.price);
+    document.getElementById('tm-est-label').innerText = tradeSide === 'buy' ? 'You will get about' : 'You will sell about';
+    document.getElementById('tm-est').innerText = qty.toLocaleString('en-US', { maximumFractionDigits: Math.min(8, a.dec + 2) }) + ' ' + a.symbol;
+    const held = HOLD[tradeAsset] || 0;
+    document.getElementById('tm-avail').innerText = tradeSide === 'buy' ? 'Balance ' + money(WALLET) : 'You hold ' + held + ' ' + a.symbol + ' (' + money(held * a.price) + ')';
+    const btn = document.getElementById('tm-submit');
+    btn.innerText = (tradeSide === 'buy' ? 'Buy ' : 'Sell ') + a.symbol;
+    btn.className = 'btn ' + (tradeSide === 'buy' ? 'btn-gold' : 'btn-danger-soft');
+}
+
+function openTrade(id, side) {
+    tradeAsset = id; tradeSide = side || 'buy';
+    const a = MARKET[id]; if (!a) return;
+    document.getElementById('tm-asset').value = id;
+    document.getElementById('tm-badge').innerText = a.symbol.slice(0, 4);
+    document.getElementById('tm-name').innerText = a.name;
+    document.getElementById('tm-amount').value = '';
+    document.getElementById('tm-sellall').value = '0';
+    setTradeSide(tradeSide);
+    openModal('tradeModal');
+}
+
+function setTradeSide(side) {
+    tradeSide = side;
+    document.getElementById('tm-side').value = side;
+    document.querySelectorAll('#tm-form .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.side === side));
+    tradeRefresh();
+}
+
+function initTradeUI() {
+    // trade side toggle + quick % chips
+    document.querySelectorAll('#tm-form .seg-btn').forEach(b => b.addEventListener('click', () => setTradeSide(b.dataset.side)));
+    document.querySelectorAll('#tm-form .chip-row button').forEach(b => b.addEventListener('click', () => {
+        const a = MARKET[tradeAsset]; if (!a) return;
+        const pct = parseFloat(b.dataset.pct) / 100;
+        const base = tradeSide === 'buy' ? WALLET : (HOLD[tradeAsset] || 0) * a.price;
+        document.getElementById('tm-amount').value = (Math.floor(base * pct * 100) / 100).toFixed(2);
+        document.getElementById('tm-sellall').value = (tradeSide === 'sell' && pct === 1) ? '1' : '0';
+        tradeRefresh();
+    }));
+    const amt = document.getElementById('tm-amount');
+    if (amt) amt.addEventListener('input', () => { document.getElementById('tm-sellall').value = '0'; tradeRefresh(); });
+
+    // category chips
+    document.querySelectorAll('#tr-chips .chip').forEach(c => c.addEventListener('click', () => {
+        document.querySelectorAll('#tr-chips .chip').forEach(x => x.classList.toggle('active', x === c));
+        document.querySelectorAll('#tr-grid .tr-card').forEach(card => { card.style.display = (c.dataset.cat === 'all' || card.dataset.cat === c.dataset.cat) ? '' : 'none'; });
+    }));
+
+    // live prices
+    function poll() {
+        fetch('/api/market/').then(r => r.json()).then(d => {
+            if (d.status !== 'success') return;
+            d.quotes.forEach(q => {
+                const a = MARKET[q.id]; if (!a) return;
+                const old = a.price; a.price = parseFloat(q.price);
+                const pe = document.getElementById('q-price-' + q.id), ce = document.getElementById('q-ch-' + q.id), ch = parseFloat(q.change);
+                if (pe) { pe.innerText = money(a.price); if (a.price !== old) { pe.classList.remove('flash-up', 'flash-down'); void pe.offsetWidth; pe.classList.add(a.price > old ? 'flash-up' : 'flash-down'); } }
+                if (ce) { ce.innerText = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '%'; ce.className = 'mono-num ' + (ch >= 0 ? 'up' : 'down'); }
+            });
+            tradeRefresh();
+        }).catch(() => {});
+    }
+    setInterval(poll, 5000);
+
+    // withdrawal: bank vs crypto
+    const wdMethod = document.getElementById('wd-method');
+    document.querySelectorAll('[data-wd]').forEach(b => b.addEventListener('click', () => {
+        const bank = b.dataset.wd === 'bank';
+        document.querySelectorAll('[data-wd]').forEach(x => x.classList.toggle('active', x === b));
+        document.getElementById('wd-bank').style.display = bank ? '' : 'none';
+        document.getElementById('wd-crypto').style.display = bank ? 'none' : '';
+        document.querySelectorAll('#wd-bank input').forEach(i => { i.disabled = !bank; });
+        document.querySelectorAll('#wd-crypto textarea').forEach(i => { i.disabled = bank; i.required = !bank; });
+        ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = bank; });
+        wdMethod.value = bank ? 'Bank Transfer' : document.getElementById('wd-network').value;
+    }));
+    const net = document.getElementById('wd-network');
+    if (net) net.addEventListener('change', () => { wdMethod.value = net.value; });
+    ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = true; });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     recalcUserLoan();
     renderInlineQRCode('{{ settings.usdt_trc20_address }}');
+    const firstGw = document.querySelector('.crypto-tab-card.active');
+    if (firstGw) selectDepositGateway('BANK_WIRE', firstGw);
     updateCryptoConversion();
+    initTradeUI();
 });
 </script>
 {% endblock %}

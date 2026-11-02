@@ -339,6 +339,7 @@ class Transaction(models.Model):
         ('loan_disbursement', 'Loan Disbursement'),
         ('loan_repayment', 'Loan Repayment'),
         ('withdrawal', 'Withdrawal Request'),
+        ('trade', 'Market Trade'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     txn_type = models.CharField(max_length=30, choices=TYPE_CHOICES)
@@ -433,3 +434,61 @@ class KYCSubmission(models.Model):
     def __str__(self):
         return f"KYC: {self.full_legal_name} ({self.user.username}) [{self.status}]"
 
+
+
+# ---------------- TRADING (crypto, metals, stocks) ----------------
+
+class TradingAsset(models.Model):
+    CATEGORY_CHOICES = (
+        ('crypto', 'Crypto'),
+        ('metal', 'Gold & Metals'),
+        ('stock', 'Stocks'),
+        ('forex', 'Forex'),
+    )
+    symbol = models.CharField(max_length=12, unique=True)
+    name = models.CharField(max_length=80)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, default='crypto')
+    base_price = models.DecimalField(max_digits=18, decimal_places=4, help_text='Reference price in USD. The live feed moves around this value.')
+    volatility = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('1.00'), help_text='1.00 = normal movement, 2.00 = twice as lively')
+    decimals = models.PositiveSmallIntegerField(default=2, help_text='Decimals shown for quantity')
+    icon = models.CharField(max_length=40, default='coins', help_text='Font Awesome icon name')
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'symbol']
+
+    def __str__(self):
+        return f"{self.symbol} - {self.name}"
+
+
+class Holding(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='holdings')
+    asset = models.ForeignKey(TradingAsset, on_delete=models.CASCADE, related_name='holdings')
+    quantity = models.DecimalField(max_digits=24, decimal_places=8, default=Decimal('0'))
+    avg_price = models.DecimalField(max_digits=18, decimal_places=4, default=Decimal('0'))
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'asset')
+
+    def __str__(self):
+        return f"{self.user.username}: {self.quantity} {self.asset.symbol}"
+
+
+class Trade(models.Model):
+    SIDE_CHOICES = (('buy', 'Buy'), ('sell', 'Sell'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trades')
+    asset = models.ForeignKey(TradingAsset, on_delete=models.PROTECT, related_name='trades')
+    side = models.CharField(max_length=4, choices=SIDE_CHOICES)
+    quantity = models.DecimalField(max_digits=24, decimal_places=8)
+    price = models.DecimalField(max_digits=18, decimal_places=4)
+    total = models.DecimalField(max_digits=18, decimal_places=2)
+    realized_pl = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} {self.side} {self.quantity} {self.asset.symbol} @ {self.price}"
