@@ -55,5 +55,5 @@
     if (t) sync(t.getAttribute('data-tab-target'));
   });
   var first = $('.tab-pane.active'); if (first) sync(first.id);
-  if (location.hash && $(location.hash) && $(location.hash).classList.contains('tab-pane')) { setTimeout(function () { window.switchDashboardTab(location.hash.slice(1)); }, 0); }
+  window.addEventListener('load', function () { var h = location.hash; if (h && $(h) && $(h).classList.contains('tab-pane') && typeof window.switchDashboardTab === 'function') window.switchDashboardTab(h.slice(1)); });
 })();

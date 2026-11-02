@@ -14,8 +14,9 @@ from .models import (
     UserProfile, InvestmentArea, InvestmentPlan, UserInvestment,
     LoanTierCriteria, LoanTermConfig, LoanApplication,
     DepositRequest, WithdrawalRequest, Transaction, CompanySetting,
-    KYCSubmission
+    KYCSubmission, TradingAsset, Holding, Trade
 )
+from .market import quote
 
 def home(request):
     """Public luxury landing page for elvarionholdings.com"""
@@ -184,7 +185,35 @@ def dashboard(request):
     user_deposits = DepositRequest.objects.filter(user=request.user).order_by('-created_at')[:15]
     latest_kyc = KYCSubmission.objects.filter(user=request.user).order_by('-submitted_at').first()
 
+    # Markets + holdings (indicative live prices)
+    prices = {}
+    markets = []
+    for a in TradingAsset.objects.filter(is_active=True):
+        pr, ch = quote(a)
+        prices[a.id] = pr
+        markets.append({'asset': a, 'price': pr, 'change': ch})
+    holdings_data = []
+    holdings_value = Decimal('0.00')
+    holdings_cost = Decimal('0.00')
+    for h in Holding.objects.filter(user=request.user, quantity__gt=0).select_related('asset'):
+        pr = prices.get(h.asset_id) or quote(h.asset)[0]
+        value = (h.quantity * pr).quantize(Decimal('0.01'))
+        cost = (h.quantity * h.avg_price).quantize(Decimal('0.01'))
+        holdings_value += value
+        holdings_cost += cost
+        holdings_data.append({
+            'obj': h, 'price': pr, 'value': value, 'cost': cost,
+            'pl': value - cost,
+            'pl_pct': ((value - cost) / cost * 100).quantize(Decimal('0.01')) if cost else Decimal('0.00'),
+        })
+    recent_trades = Trade.objects.filter(user=request.user).select_related('asset')[:12]
+
     context = {
+        'markets': markets,
+        'holdings': holdings_data,
+        'holdings_value': holdings_value,
+        'holdings_pl': holdings_value - holdings_cost,
+        'recent_trades': recent_trades,
         'profile': profile,
         'active_investments': active_investments_data,
         'completed_investments': completed_investments,
@@ -385,6 +414,17 @@ def submit_withdrawal(request):
     method = request.POST.get('payout_method', 'USDT (TRC-20)')
     details = request.POST.get('destination_details', '').strip()
 
+    if method == 'Bank Transfer':
+        f = lambda k: request.POST.get(k, '').strip()
+        if not (f('bank_name') and f('account_name') and f('account_number')):
+            messages.error(request, 'Please fill in the bank name, account name and account number.')
+            return redirect('/dashboard/#tab-investments')
+        details = (f"Bank: {f('bank_name')} | Account name: {f('account_name')} | "
+                   f"Account no / IBAN: {f('account_number')} | SWIFT / routing: {f('swift') or '-'} | Country: {f('bank_country') or '-'}")
+    elif not details:
+        messages.error(request, 'Please enter the wallet address to send to.')
+        return redirect('/dashboard/#tab-investments')
+
     try:
         amount = Decimal(amount_str)
         if amount <= 0:
@@ -420,6 +460,79 @@ def submit_withdrawal(request):
 
     messages.success(request, f"Withdrawal request for ${amount:,.2f} submitted for treasury dispatch.")
     return redirect('dashboard')
+
+
+# ---------------- TRADING ----------------
+
+@login_required
+def trade_order(request):
+    """Buy or sell a market asset using the wallet balance at the current indicative price"""
+    back = '/dashboard/#tab-trade'
+    if request.method != 'POST':
+        return redirect(back)
+    asset = get_object_or_404(TradingAsset, id=request.POST.get('asset_id'), is_active=True)
+    side = request.POST.get('side')
+    try:
+        amount = Decimal(request.POST.get('amount', '0')).quantize(Decimal('0.01'))
+    except Exception:
+        amount = Decimal('0')
+    if side not in ('buy', 'sell') or amount < Decimal('10'):
+        messages.error(request, 'Enter an amount of at least $10.')
+        return redirect(back)
+
+    price, _ = quote(asset)
+    q8 = Decimal('0.00000001')
+    with db_transaction.atomic():
+        profile = UserProfile.objects.select_for_update().get(user=request.user)
+        holding, _ = Holding.objects.select_for_update().get_or_create(user=request.user, asset=asset)
+        if side == 'buy':
+            if profile.wallet_balance < amount:
+                messages.error(request, f'Not enough balance (${profile.wallet_balance:,.2f}). Add funds in Deposit first.')
+                return redirect(back)
+            qty = (amount / price).quantize(q8)
+            new_total = holding.quantity + qty
+            holding.avg_price = ((holding.quantity * holding.avg_price) + (qty * price)) / new_total if new_total else price
+            holding.quantity = new_total
+            holding.save()
+            profile.wallet_balance -= amount
+            profile.save()
+            Trade.objects.create(user=request.user, asset=asset, side='buy', quantity=qty, price=price, total=amount)
+            Transaction.objects.create(user=request.user, txn_type='trade', amount=amount, is_credit=False,
+                                       description=f"Bought {qty.normalize():f} {asset.symbol} @ ${price:,.2f}")
+            messages.success(request, f"Bought {qty.normalize():f} {asset.symbol} for ${amount:,.2f}.")
+        else:
+            if request.POST.get('sell_all') == '1' or (holding.quantity * price) - amount < Decimal('0.01'):
+                qty = holding.quantity
+            else:
+                qty = (amount / price).quantize(q8)
+            if qty <= 0 or qty > holding.quantity:
+                messages.error(request, f'You do not hold enough {asset.symbol} to sell that amount.')
+                return redirect(back)
+            proceeds = (qty * price).quantize(Decimal('0.01'))
+            pl = proceeds - (qty * holding.avg_price).quantize(Decimal('0.01'))
+            holding.quantity -= qty
+            if holding.quantity <= 0:
+                holding.quantity = Decimal('0')
+                holding.avg_price = Decimal('0')
+            holding.save()
+            profile.wallet_balance += proceeds
+            profile.save()
+            Trade.objects.create(user=request.user, asset=asset, side='sell', quantity=qty, price=price,
+                                 total=proceeds, realized_pl=pl)
+            Transaction.objects.create(user=request.user, txn_type='trade', amount=proceeds, is_credit=True,
+                                       description=f"Sold {qty.normalize():f} {asset.symbol} @ ${price:,.2f}")
+            messages.success(request, f"Sold {qty.normalize():f} {asset.symbol} for ${proceeds:,.2f} ({'+' if pl >= 0 else '-'}${abs(pl):,.2f}).")
+    return redirect(back)
+
+
+@login_required
+def api_market(request):
+    """Live indicative quotes for the trading screen"""
+    out = []
+    for a in TradingAsset.objects.filter(is_active=True):
+        pr, ch = quote(a)
+        out.append({'id': a.id, 'symbol': a.symbol, 'price': str(pr), 'change': str(ch)})
+    return JsonResponse({'status': 'success', 'quotes': out})
 
 
 # ---------------- API ENDPOINTS ----------------
@@ -617,6 +730,8 @@ def admin_management(request):
         'loan_tiers': loan_tiers,
         'loan_terms': loan_terms,
         'users': users,
+        'assets': TradingAsset.objects.all(),
+        'recent_trades': Trade.objects.select_related('user', 'asset').order_by('-created_at')[:50],
         'stats': stats,
         'daily': daily,
         'queue_total': queue_total,
@@ -901,3 +1016,38 @@ def admin_save_tier(request):
             messages.success(request, f"New loan tier '{tier_name}' created.")
 
     return redirect('/management/#tiers')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_save_asset(request):
+    """Create / edit a tradable asset, or switch it on / off"""
+    if request.method == 'POST':
+        asset_id = request.POST.get('asset_id')
+        try:
+            price = Decimal(request.POST.get('base_price', '0'))
+            vol = Decimal(request.POST.get('volatility', '1'))
+            if price <= 0:
+                raise ValueError()
+        except Exception:
+            messages.error(request, 'Enter a valid price.')
+            return redirect('/management/#markets')
+        data = dict(
+            name=request.POST.get('name', '').strip(),
+            category=request.POST.get('category', 'crypto'),
+            base_price=price, volatility=vol,
+            is_active=request.POST.get('is_active') == '1',
+        )
+        if asset_id:
+            a = get_object_or_404(TradingAsset, id=asset_id)
+            for k, v in data.items():
+                setattr(a, k, v)
+            a.save()
+            messages.success(request, f"{a.symbol} updated.")
+        else:
+            sym = request.POST.get('symbol', '').strip().upper()[:12]
+            if not sym or TradingAsset.objects.filter(symbol=sym).exists():
+                messages.error(request, 'Pick a unique symbol.')
+                return redirect('/management/#markets')
+            TradingAsset.objects.create(symbol=sym, decimals=4 if price < 10 else 3, **data)
+            messages.success(request, f"{sym} added to the markets.")
+    return redirect('/management/#markets')

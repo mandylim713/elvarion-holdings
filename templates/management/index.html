@@ -51,6 +51,7 @@
     <button class="nav-item" data-view="ledger"><i class="fas fa-receipt"></i> Transactions</button>
 
     <div class="nav-label">Configuration</div>
+    <button class="nav-item" data-view="markets"><i class="fas fa-chart-candlestick"></i> Markets &amp; trading</button>
     <button class="nav-item" data-view="plans"><i class="fas fa-layer-group"></i> Plans &amp; ROI</button>
     <button class="nav-item" data-view="tiers"><i class="fas fa-sliders"></i> Loan criteria</button>
   </nav>
@@ -166,7 +167,7 @@
         <td class="main who" data-label="Investor"><b>{{ w.user.username }}</b><small class="ref">#{{ w.reference_id|slice:":8" }}</small></td>
         <td data-label="Amount"><b class="amt out num">${{ w.amount|floatformat:"2g" }}</b></td>
         <td data-label="Channel"><span class="tag">{{ w.payout_method }}</span></td>
-        <td data-label="To" class="wrapv"><span class="ref" style="color:var(--ink-2);max-width:260px;display:inline-block;word-break:break-all">{{ w.destination_details|truncatechars:70 }}</span></td>
+        <td data-label="To" class="wrapv"><span class="ref" style="color:var(--ink-2);max-width:340px;display:inline-block;word-break:break-word;line-height:1.5">{{ w.destination_details }}</span></td>
         <td data-label="Date" style="color:var(--ink-3)">{{ w.created_at|date:"M d, Y H:i" }}</td>
         <td data-label="Status">{% if w.status == 'approved' %}<span class="pill pill-ok">Dispatched</span>{% elif w.status == 'rejected' %}<span class="pill pill-bad">Declined</span>{% else %}<span class="pill pill-warn">Pending</span>{% endif %}</td>
         <td class="act r">{% if w.status == 'pending' %}<div class="acts">
@@ -316,6 +317,37 @@
     </div>
   </section>
 
+  <!-- ============ MARKETS ============ -->
+  <section class="adm-view" id="v-markets" data-title="Markets &amp; trading" data-search="Search asset or trader…">
+    <div class="view-head"><div><h2>Markets &amp; trading</h2><p>The assets investors can trade. The live feed moves around each asset's reference price, so keep these close to the real market, or switch an asset off.</p></div>
+      <button class="btn btn-gold btn-lg" data-asset-new><i class="fas fa-plus"></i> Add asset</button></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="toolbar"><div class="chips" data-chips><button class="chip active" data-f="all">All <b>{{ assets|length }}</b></button><button class="chip" data-f="crypto">Crypto</button><button class="chip" data-f="metal">Gold &amp; metals</button><button class="chip" data-f="stock">Stocks</button><button class="chip" data-f="off">Switched off</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Asset</th><th>Category</th><th>Reference price</th><th>Movement</th><th>Status</th><th class="r">Manage</th></tr></thead><tbody>
+      {% for a in assets %}<tr data-status="{{ a.category }}{% if not a.is_active %} off{% endif %}">
+        <td class="main who" data-label="Asset"><b>{{ a.symbol }}</b><small>{{ a.name }}</small></td>
+        <td data-label="Category"><span class="tag">{{ a.get_category_display }}</span></td>
+        <td data-label="Price" class="num"><b>${{ a.base_price|floatformat:"-4g" }}</b></td>
+        <td data-label="Movement" class="num">{{ a.volatility }}&times;</td>
+        <td data-label="Status">{% if a.is_active %}<span class="pill pill-ok">Open</span>{% else %}<span class="pill pill-mute">Off</span>{% endif %}</td>
+        <td class="act r"><div class="acts"><button type="button" class="btn btn-line btn-sm" data-asset-edit data-id="{{ a.id }}" data-symbol="{{ a.symbol }}" data-name="{{ a.name }}" data-cat="{{ a.category }}" data-price="{{ a.base_price|stringformat:'s' }}" data-vol="{{ a.volatility|stringformat:'s' }}" data-on="{% if a.is_active %}1{% else %}0{% endif %}"><i class="fas fa-pen"></i> Edit</button></div></td></tr>
+      {% endfor %}</tbody></table><div class="no-match">Nothing matches this filter.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Latest trades</h3><small>Last 50 across all investors</small></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Trade</th><th>Amount</th><th>Price</th><th>Total</th><th>Date</th></tr></thead><tbody>
+      {% for t in recent_trades %}<tr>
+        <td class="main who" data-label="Investor"><b>{{ t.user.username }}</b></td>
+        <td data-label="Trade">{% if t.side == 'buy' %}<span class="pill pill-ok">Buy</span>{% else %}<span class="pill pill-bad">Sell</span>{% endif %} <b>{{ t.asset.symbol }}</b></td>
+        <td data-label="Amount" class="num">{{ t.quantity|floatformat:"-8" }}</td>
+        <td data-label="Price" class="num">${{ t.price|floatformat:"2g" }}</td>
+        <td data-label="Total" class="num"><b>${{ t.total|floatformat:"2g" }}</b></td>
+        <td data-label="Date" style="color:var(--ink-3)">{{ t.created_at|date:"M d, H:i" }}</td></tr>
+      {% endfor %}</tbody></table></div>
+      {% if not recent_trades %}<div class="empty-state"><i class="fas fa-chart-line"></i><b>No trades yet</b>Investor trades will appear here.</div>{% endif %}
+    </div>
+  </section>
+
   <!-- ============ TIERS ============ -->
   <section class="adm-view" id="v-tiers" data-title="Loan criteria" data-search="Search tier…">
     <div class="view-head"><div><h2>Loan criteria</h2><p>The cumulative deposit an investor needs before each private-credit bracket unlocks.</p></div>
@@ -382,6 +414,18 @@
     <label class="field"><span>Loan from ($)</span><input type="number" name="min_loan_amount" id="ti-lmin" step="any" min="0" required inputmode="decimal" placeholder="300000"></label>
     <label class="field"><span>Loan up to ($)</span><input type="number" name="max_loan_amount" id="ti-lmax" step="any" min="0" required inputmode="decimal" placeholder="799000"></label></div></div>
   <div class="sheet-foot"><button class="btn btn-line btn-lg" type="button" data-close>Cancel</button><button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-floppy-disk"></i> Save tier</button></div></form></div></div>
+
+<div class="modal" id="m-asset"><div class="sheet"><div class="grabber"></div>
+  <form method="POST" action="{% url 'admin_save_asset' %}">{% csrf_token %}<input type="hidden" name="asset_id" id="as-id">
+  <div class="sheet-head"><div><h3 id="as-h">Add asset</h3><p>Set the reference price the live feed moves around.</p></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body"><div class="f-grid">
+    <label class="field"><span>Symbol</span><input name="symbol" id="as-symbol" maxlength="12" required placeholder="e.g. BTC"></label>
+    <label class="field"><span>Name</span><input name="name" id="as-name" required placeholder="e.g. Bitcoin"></label>
+    <label class="field"><span>Category</span><select name="category" id="as-cat"><option value="crypto">Crypto</option><option value="metal">Gold &amp; metals</option><option value="stock">Stocks</option><option value="forex">Forex</option></select></label>
+    <label class="field"><span>Reference price ($)</span><input type="number" name="base_price" id="as-price" step="any" min="0.0001" required inputmode="decimal"></label>
+    <label class="field"><span>Movement (1 = normal)</span><input type="number" name="volatility" id="as-vol" step="0.1" min="0" value="1" inputmode="decimal"></label>
+    <label class="field"><span>Trading</span><select name="is_active" id="as-on"><option value="1">Open for trading</option><option value="0">Switched off</option></select></label></div></div>
+  <div class="sheet-foot"><button class="btn btn-line btn-lg" type="button" data-close>Cancel</button><button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-floppy-disk"></i> Save asset</button></div></form></div></div>
 
 <div class="modal" id="m-adjust"><div class="sheet sm"><div class="grabber"></div>
   <form method="POST" id="adj-form" action="">{% csrf_token %}

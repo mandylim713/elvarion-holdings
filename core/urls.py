@@ -14,6 +14,8 @@ urlpatterns = [
     path('loans/apply/', views.apply_loan, name='apply_loan'),
     path('deposit/', views.submit_deposit, name='submit_deposit'),
     path('withdraw/', views.submit_withdrawal, name='submit_withdrawal'),
+    path('trade/', views.trade_order, name='trade_order'),
+    path('api/market/', views.api_market, name='api_market'),
     path('kyc/submit/', views.submit_kyc, name='submit_kyc'),
 
     # Real-Time APIs
@@ -29,6 +31,7 @@ urlpatterns = [
     path('management/user/<int:user_id>/<str:action>/', views.admin_user_action, name='admin_user_action'),
     path('management/plan/<int:plan_id>/toggle/', views.admin_toggle_plan, name='admin_toggle_plan'),
     path('management/investment/<int:investment_id>/<str:action>/', views.admin_investment_action, name='admin_investment_action'),
+    path('management/asset/save/', views.admin_save_asset, name='admin_save_asset'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
 ]

@@ -140,9 +140,11 @@
   /* ---------- plan / tier / wallet modals ---------- */
   function set(id, v) { var e = $('#' + id); if (e) e.value = v; }
   d.addEventListener('click', function (e) {
-    var t = e.target.closest && e.target.closest('[data-plan-new],[data-plan-edit],[data-tier-new],[data-tier-edit],[data-adjust]'); if (!t) return;
+    var t = e.target.closest && e.target.closest('[data-plan-new],[data-plan-edit],[data-asset-new],[data-asset-edit],[data-tier-new],[data-tier-edit],[data-adjust]'); if (!t) return;
     if (t.hasAttribute('data-plan-new')) { $('#pl-h').textContent = 'New plan'; set('pl-id', ''); set('pl-title', ''); set('pl-roi', ''); set('pl-unit', 'monthly'); set('pl-count', 6); set('pl-min', 5000); set('pl-max', 250000); openM('m-plan'); }
     else if (t.hasAttribute('data-plan-edit')) { $('#pl-h').textContent = 'Edit plan'; set('pl-id', t.dataset.id); set('pl-title', t.dataset.title); set('pl-area', t.dataset.area); set('pl-roi', t.dataset.roi); set('pl-unit', t.dataset.unit); set('pl-count', t.dataset.count); set('pl-min', t.dataset.min); set('pl-max', t.dataset.max); openM('m-plan'); }
+    else if (t.hasAttribute('data-asset-new')) { $('#as-h').textContent = 'Add asset'; set('as-id', ''); set('as-symbol', ''); $('#as-symbol').readOnly = false; set('as-name', ''); set('as-cat', 'crypto'); set('as-price', ''); set('as-vol', 1); set('as-on', '1'); openM('m-asset'); }
+    else if (t.hasAttribute('data-asset-edit')) { $('#as-h').textContent = 'Edit ' + t.dataset.symbol; set('as-id', t.dataset.id); set('as-symbol', t.dataset.symbol); $('#as-symbol').readOnly = true; set('as-name', t.dataset.name); set('as-cat', t.dataset.cat); set('as-price', t.dataset.price); set('as-vol', t.dataset.vol); set('as-on', t.dataset.on); openM('m-asset'); }
     else if (t.hasAttribute('data-tier-new')) { $('#ti-h').textContent = 'New loan tier'; set('ti-id', ''); set('ti-name', ''); set('ti-badge', 'TIER'); set('ti-dep', ''); set('ti-lmin', ''); set('ti-lmax', ''); openM('m-tier'); }
     else if (t.hasAttribute('data-tier-edit')) { $('#ti-h').textContent = 'Edit loan tier'; set('ti-id', t.dataset.id); set('ti-name', t.dataset.name); set('ti-badge', t.dataset.badge); set('ti-dep', t.dataset.dep); set('ti-lmin', t.dataset.lmin); set('ti-lmax', t.dataset.lmax); openM('m-tier'); }
     else if (t.hasAttribute('data-adjust')) { $('#adj-h').textContent = 'Adjust wallet'; $('#adj-p').textContent = t.dataset.name + ' · balance $' + t.dataset.bal; $('#adj-form').setAttribute('data-uid', t.dataset.uid); set('adj-amt', ''); openM('m-adjust'); }
