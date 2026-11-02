@@ -1,27 +1,38 @@
-{% extends 'base.html' %}
+{% extends 'shell_app.html' %}
 
-{% block title %}Investor Dashboard | Elvarion Holdings{% endblock %}
+{% block title %}Portfolio Desk | Elvarion Holdings{% endblock %}
+{% block page_title %}Portfolio{% endblock %}
+{% block side_role %}Private wealth client{% endblock %}
 
-{% block drawer_extra %}
-            <div class="drawer-label">Portfolio</div>
-            <button type="button" class="drawer-link" data-tab="tab-investments"><i class="fas fa-chart-line"></i> My portfolios</button>
-            <button type="button" class="drawer-link" data-tab="tab-kyc"><i class="fas fa-id-card"></i> KYC verification</button>
-            <button type="button" class="drawer-link" data-tab="tab-transactions"><i class="fas fa-receipt"></i> Transaction ledger</button>
-            <button type="button" class="drawer-link" onclick="openModal('withdrawModal')" data-close-drawer><i class="fas fa-arrow-up-from-bracket"></i> Request withdrawal</button>
+{% block side_nav %}
+    <div class="sh-balance">
+        <small>Available balance</small>
+        <b>${{ profile.wallet_balance|floatformat:"2g" }}</b>
+        <button type="button" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Fund wallet</button>
+    </div>
+
+    <div class="sh-label">Portfolio</div>
+    <button type="button" class="sh-item active" data-tab="tab-investments" data-title="Portfolio"><i class="fas fa-chart-line"></i> My portfolio {% if active_investments %}<span class="sh-pill ok">{{ active_investments|length }}</span>{% endif %}</button>
+    <button type="button" class="sh-item" data-tab="tab-invest-now" data-title="Invest"><i class="fas fa-layer-group"></i> Invest</button>
+    <button type="button" class="sh-item" data-tab="tab-transactions" data-title="Transactions"><i class="fas fa-receipt"></i> Transactions</button>
+
+    <div class="sh-label">Money</div>
+    <button type="button" class="sh-item" data-tab="tab-deposit" data-title="Deposit"><i class="fas fa-arrow-down-to-bracket"></i> Deposit</button>
+    <button type="button" class="sh-item" onclick="openModal('withdrawModal'); document.body.classList.remove('sh-open')"><i class="fas fa-arrow-up-from-bracket"></i> Withdraw</button>
+    <button type="button" class="sh-item" data-tab="tab-loans" data-title="Private Credit"><i class="fas fa-hand-holding-dollar"></i> Private credit</button>
+
+    <div class="sh-label">Account</div>
+    <button type="button" class="sh-item" data-tab="tab-kyc" data-title="Verification"><i class="fas fa-id-card"></i> KYC verification {% if profile.kyc_status == 'verified' %}<span class="sh-pill ok"><i class="fas fa-check" style="font-size:.6rem;width:auto;color:inherit"></i></span>{% else %}<span class="sh-pill">!</span>{% endif %}</button>
 {% endblock %}
 
-{% block bottom_nav %}
-<nav class="tabbar band-ink" aria-label="Portfolio">
-    <button type="button" class="tab-item active" data-tab="tab-investments"><i class="fas fa-chart-line"></i><span>Portfolio</span></button>
-    <button type="button" class="tab-item" data-tab="tab-invest-now"><i class="fas fa-layer-group"></i><span>Invest</span></button>
-    <button type="button" class="tab-fab" data-tab="tab-deposit"><i class="fas fa-plus"></i><span>Deposit</span></button>
-    <button type="button" class="tab-item" data-tab="tab-loans"><i class="fas fa-hand-holding-dollar"></i><span>Credit</span></button>
-    <button type="button" class="tab-item" data-open-drawer data-more><i class="fas fa-bars-staggered"></i><span>More</span></button>
-</nav>
+{% block top_actions %}
+    <span class="sh-chip hide-m"><i class="fas fa-wallet"></i> <b>${{ profile.wallet_balance|floatformat:"2g" }}</b></span>
+    <button type="button" class="sh-chip gold hide-m" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Deposit</button>
+    <button type="button" class="sh-chip" style="width:40px;padding:0;justify-content:center" onclick="openModal('withdrawModal')" title="Withdraw" aria-label="Withdraw"><i class="fas fa-arrow-up-from-bracket"></i></button>
 {% endblock %}
 
 {% block content %}
-<div class="app-page" style="max-width: 1400px; margin: 0 auto;">
+<div class="app-page">
 
     <!-- Top KYC Compliance Alert Banner if Not Fully Verified -->
     {% if profile.kyc_status == 'unverified' %}
@@ -61,7 +72,7 @@
     {% endif %}
 
     <!-- Client Header -->
-    <div class="dash-head" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
+    <div class="dash-head portfolio-only" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 20px;">
         <div>
             <div class="dash-badges" style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
                 <span class="badge badge-gold"><i class="fas fa-crown"></i> PRIVATE WEALTH CLIENT</span>
@@ -105,7 +116,7 @@
     </div>
 
     <!-- Live Accrued ROI Pulsing Hero Banner -->
-    <div class="live-ticker-box" style="margin-bottom: 36px;">
+    <div class="live-ticker-box portfolio-only" style="margin-bottom: 36px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="live-indicator">
@@ -148,7 +159,7 @@
     </div>
 
     <!-- 4 Key Financial Metric Cards -->
-    <div class="grid-4" style="margin-bottom: 40px;">
+    <div class="grid-4 portfolio-only" style="margin-bottom: 40px;">
         <!-- Wallet Balance -->
         <div class="glass-card-luxury" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
