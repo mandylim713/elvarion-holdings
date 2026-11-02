@@ -198,3 +198,17 @@ body.app main.sh-content { animation: none !important; }
   .tr-table td[data-label=""] { display: block; } .tr-table td[data-label=""]::before { display: none; }
   .tr-table td[data-label=""] .tr-sell { width: 100%; height: 40px; }
 }
+
+/* ---- coin / brand logos ---- */
+.tr-sym img, .tm-badge img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tr-sym > span, .tm-badge > span { display: none; }
+.tr-sym.noimg > span, .tm-badge.noimg > span { display: block; }
+.tr-sym.crypto, .tm-badge { background: transparent; padding: 0; }
+.tr-sym.stock, .tr-sym.metal { padding: 9px; background: rgba(255,255,255,.07); }
+.tr-sym.noimg, .tm-badge.noimg { padding: 0; background: rgba(184,149,90,.16); }
+.tr-sym.sm { width: 32px; height: 32px; border-radius: 9px; }
+.tr-sym.sm.stock, .tr-sym.sm.metal { padding: 6px; }
+.tr-inline { display: flex; align-items: center; gap: 10px; }
+.tr-inline small { display: block; }
+.crypto-tab-icon img { width: 34px; height: 34px; object-fit: contain; display: block; margin: 0 auto; }
+.how-steps { margin: 0 0 4px 18px; padding: 0; color: var(--text-muted, #9aa3b2); font-size: .86rem; line-height: 1.7; }

@@ -31,6 +31,7 @@ urlpatterns = [
     path('management/user/<int:user_id>/<str:action>/', views.admin_user_action, name='admin_user_action'),
     path('management/plan/<int:plan_id>/toggle/', views.admin_toggle_plan, name='admin_toggle_plan'),
     path('management/investment/<int:investment_id>/<str:action>/', views.admin_investment_action, name='admin_investment_action'),
+    path('management/settings/save/', views.admin_save_settings, name='admin_save_settings'),
     path('management/asset/save/', views.admin_save_asset, name='admin_save_asset'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),

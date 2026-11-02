@@ -54,6 +54,7 @@
     <button class="nav-item" data-view="markets"><i class="fas fa-chart-candlestick"></i> Markets &amp; trading</button>
     <button class="nav-item" data-view="plans"><i class="fas fa-layer-group"></i> Plans &amp; ROI</button>
     <button class="nav-item" data-view="tiers"><i class="fas fa-sliders"></i> Loan criteria</button>
+    <button class="nav-item" data-view="payments"><i class="fas fa-wallet"></i> Payment details</button>
   </nav>
   <div class="side-foot">
     <div class="side-user">
@@ -370,6 +371,23 @@
         {% for term in loan_terms %}<div class="card card-pad" style="box-shadow:none"><span class="pill pill-ok">{{ term.term_months }} months</span><div class="num" style="font-family:var(--serif);font-size:1.7rem;font-weight:600;margin:10px 0 2px">{{ term.monthly_interest_rate }}% <small style="font-family:var(--sans);font-size:.74rem;color:var(--ink-3)">/ month</small></div><div style="color:var(--ink-3);font-size:.8rem">{{ term.total_interest_rate }}% total interest</div></div>{% endfor %}
       </div></div>
     </div>
+  </section>
+
+  <section class="adm-view" id="v-payments" data-title="Payment details">
+    <div class="view-head"><div><h2>Payment details</h2><p>Where investors send money. These show on the Add money page straight away.</p></div></div>
+    <form method="post" action="{% url 'admin_save_settings' %}" data-confirm="Save payment details?" data-note="Investors will see these details immediately." data-ok="Save">
+      {% csrf_token %}
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Payment apps</h3><div class="f-grid">
+        <label class="field"><span>Zelle email / phone</span><input name="zelle_email" value="{{ settings.zelle_email }}" placeholder=""></label><label class="field"><span>Zelle account name</span><input name="zelle_name" value="{{ settings.zelle_name }}" placeholder=""></label><label class="field"><span>PayPal email</span><input name="paypal_email" value="{{ settings.paypal_email }}" placeholder=""></label><label class="field"><span>Venmo username</span><input name="venmo_handle" value="{{ settings.venmo_handle }}" placeholder=""></label><label class="field"><span>Cash App $cashtag</span><input name="cashapp_tag" value="{{ settings.cashapp_tag }}" placeholder=""></label><label class="field"><span>Wise email</span><input name="wise_email" value="{{ settings.wise_email }}" placeholder=""></label>
+      </div></div>
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Bank transfer</h3><div class="f-grid">
+        <label class="field"><span>Bank name</span><input name="bank_name" value="{{ settings.bank_name }}" placeholder=""></label><label class="field"><span>Account name</span><input name="bank_account_name" value="{{ settings.bank_account_name }}" placeholder=""></label><label class="field"><span>Account number / IBAN</span><input name="bank_account_number" value="{{ settings.bank_account_number }}" placeholder=""></label><label class="field"><span>Routing / SWIFT</span><input name="bank_routing_swift" value="{{ settings.bank_routing_swift }}" placeholder=""></label>
+      </div></div>
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Crypto wallets</h3><div class="f-grid">
+        <label class="field"><span>Bitcoin (BTC)</span><input name="btc_wallet_address" value="{{ settings.btc_wallet_address }}" placeholder=""></label><label class="field"><span>Ethereum (ETH)</span><input name="eth_wallet_address" value="{{ settings.eth_wallet_address }}" placeholder=""></label><label class="field"><span>USDT (TRC-20)</span><input name="usdt_trc20_address" value="{{ settings.usdt_trc20_address }}" placeholder=""></label><label class="field"><span>USDT (ERC-20)</span><input name="usdt_erc20_address" value="{{ settings.usdt_erc20_address }}" placeholder=""></label>
+      </div></div>
+      <button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-check"></i> Save payment details</button>
+    </form>
   </section>
 
   </main>

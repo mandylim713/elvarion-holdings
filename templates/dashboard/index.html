@@ -121,24 +121,24 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="live-indicator">
-                    <span class="pulse-dot"></span> REAL-TIME ENGINE ACTIVE
+                    <span class="pulse-dot"></span> UPDATED <span id="roi-updated">just now</span>
                 </div>
                 <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">
-                    Total Live Accrued ROI Across All Active Sectors
+                    Total profit earned so far
                 </span>
             </div>
             <div style="font-size: 0.82rem; color: var(--text-dim);">
-                <i class="fas fa-rotate"></i> Synchronized with Institutional Ledger
+                <i class="fas fa-rotate"></i> Refreshes automatically every 30 seconds
             </div>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
             <div>
-                <div id="live-total-roi" class="live-ticker-val" data-target-value="{{ total_live_roi|floatformat:4 }}">
-                    ${{ total_live_roi|floatformat:"4g" }}
+                <div id="live-total-roi" class="live-ticker-val" data-target-value="{{ total_live_roi|floatformat:2 }}">
+                    ${{ total_live_roi|floatformat:"2g" }}
                 </div>
                 <div style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
-                    Currently generating real-time returns from <strong>{{ active_investments|length }}</strong> simultaneous active investment portfolios.
+                    Earned across <strong>{{ active_investments|length }}</strong> active investment{{ active_investments|length|pluralize }}.
                 </div>
             </div>
 
@@ -287,11 +287,11 @@
                     <!-- Live Reading Ticker Card -->
                     <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
-                            <span>Accrued Real-Time ROI</span>
+                            <span>Profit earned so far</span>
                             <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ item.obj.plan.roi_percentage }}% {{ item.obj.plan.duration_unit|upper }}</span>
                         </div>
-                        <div id="inv-roi-{{ item.obj.id }}" class="mono-num" data-target-value="{{ item.accrued_roi|floatformat:4 }}" style="font-size: 1.75rem; font-weight: 800; color: #34d399;">
-                            ${{ item.accrued_roi|floatformat:"4g" }}
+                        <div id="inv-roi-{{ item.obj.id }}" class="mono-num" data-target-value="{{ item.accrued_roi|floatformat:2 }}" style="font-size: 1.75rem; font-weight: 800; color: #34d399;">
+                            ${{ item.accrued_roi|floatformat:"2g" }}
                         </div>
                         <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 4px;">
                             Target Return: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.total_projected_roi|floatformat:"2g" }}</strong>
@@ -356,7 +356,7 @@
                 {% for m in markets %}
                 <div class="tr-card" data-cat="{{ m.asset.category }}" data-id="{{ m.asset.id }}">
                     <div class="tr-card-top">
-                        <div class="tr-sym {{ m.asset.category }}">{{ m.asset.symbol|slice:":4" }}</div>
+                        <div class="tr-sym {{ m.asset.category }}"><img src="/static/img/logos/{{ m.asset.symbol|lower }}.svg" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()"><span>{{ m.asset.symbol|slice:":4" }}</span></div>
                         <div class="tr-name"><b>{{ m.asset.symbol }}</b><small>{{ m.asset.name }}</small></div>
                         <div class="tr-px"><b class="mono-num" id="q-price-{{ m.asset.id }}">${{ m.price|floatformat:"2g" }}</b><small class="mono-num {% if m.change >= 0 %}up{% else %}down{% endif %}" id="q-ch-{{ m.asset.id }}">{% if m.change >= 0 %}+{% endif %}{{ m.change }}%</small></div>
                     </div>
@@ -378,7 +378,7 @@
                     <tbody>
                     {% for h in holdings %}
                     <tr>
-                        <td data-label="Asset"><b>{{ h.obj.asset.symbol }}</b><small>{{ h.obj.asset.name }}</small></td>
+                        <td data-label="Asset"><div class="tr-inline"><span class="tr-sym sm {{ h.obj.asset.category }}"><img src="/static/img/logos/{{ h.obj.asset.symbol|lower }}.svg" alt="" onerror="this.parentNode.classList.add('noimg');this.remove()"><span>{{ h.obj.asset.symbol|slice:":4" }}</span></span><div><b>{{ h.obj.asset.symbol }}</b><small>{{ h.obj.asset.name }}</small></div></div></td>
                         <td data-label="Amount" class="mono-num">{{ h.obj.quantity|floatformat:"-8" }}</td>
                         <td data-label="Avg. price" class="mono-num">${{ h.obj.avg_price|floatformat:"2g" }}</td>
                         <td data-label="Value now" class="mono-num"><b>${{ h.value|floatformat:"2g" }}</b></td>
@@ -689,7 +689,7 @@
                         <span class="badge badge-gold"><i class="fas fa-wallet"></i> ADD MONEY</span>
                         <h2 style="font-size: 1.8rem; margin-top: 6px;">Add money to your wallet</h2>
                         <p style="color: var(--text-muted); font-size: 0.92rem;">
-                            Pay by bank transfer or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
+                            Pay by bank transfer, Zelle, PayPal, Venmo, Cash App, Wise or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
                         </p>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
@@ -706,23 +706,48 @@
                     <div class="crypto-tab-name">Bank Transfer</div>
                     <div class="crypto-tab-network">Wire or local transfer</div>
                 </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('ZELLE', this)">
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/zelle.svg" alt=""></div>
+                    <div class="crypto-tab-name">Zelle</div>
+                    <div class="crypto-tab-network">Instant &bull; US banks</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('PAYPAL', this)">
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/paypal.svg" alt=""></div>
+                    <div class="crypto-tab-name">PayPal</div>
+                    <div class="crypto-tab-network">Friends &amp; family</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('VENMO', this)">
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/venmo.svg" alt=""></div>
+                    <div class="crypto-tab-name">Venmo</div>
+                    <div class="crypto-tab-network">Send by @username</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('CASHAPP', this)">
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/cashapp.svg" alt=""></div>
+                    <div class="crypto-tab-name">Cash App</div>
+                    <div class="crypto-tab-network">Send to $cashtag</div>
+                </div>
+                <div class="crypto-tab-card" onclick="selectDepositGateway('WISE', this)">
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/wise.svg" alt=""></div>
+                    <div class="crypto-tab-name">Wise</div>
+                    <div class="crypto-tab-network">International</div>
+                </div>
                 <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_TRC20', this)">
-                    <div class="crypto-tab-icon" style="color: #10b981;"><i class="fas fa-coins"></i></div>
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/usdt.svg" alt=""></div>
                     <div class="crypto-tab-name">USDT (TRC-20)</div>
                     <div class="crypto-tab-network">Tron &bull; Fast & Low Fee</div>
                 </div>
                 <div class="crypto-tab-card" onclick="selectDepositGateway('BTC', this)">
-                    <div class="crypto-tab-icon" style="color: #f59e0b;"><i class="fab fa-bitcoin"></i></div>
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/btc.svg" alt=""></div>
                     <div class="crypto-tab-name">Bitcoin (BTC)</div>
                     <div class="crypto-tab-network">Native SegWit &bull; 3 Confs</div>
                 </div>
                 <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_ERC20', this)">
-                    <div class="crypto-tab-icon" style="color: #60a5fa;"><i class="fas fa-diamond"></i></div>
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/usdt.svg" alt=""></div>
                     <div class="crypto-tab-name">USDT (ERC-20)</div>
                     <div class="crypto-tab-network">Ethereum Mainnet</div>
                 </div>
                 <div class="crypto-tab-card" onclick="selectDepositGateway('ETH', this)">
-                    <div class="crypto-tab-icon" style="color: #a78bfa;"><i class="fab fa-ethereum"></i></div>
+                    <div class="crypto-tab-icon"><img src="/static/img/logos/eth.svg" alt=""></div>
                     <div class="crypto-tab-name">Ethereum (ETH)</div>
                     <div class="crypto-tab-network">Native ERC-20</div>
                 </div>
@@ -779,8 +804,24 @@
                         </button>
                     </div>
 
+                    <!-- Payment app details (Zelle / PayPal / Venmo / Cash App / Wise) -->
+                    <div id="handle-wrapper" style="display: none;">
+                        <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase;" id="hw-label">Send to</label>
+                        <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <span class="mono-num" id="hw-value" style="font-size: 1.05rem; color: #ffffff; word-break: break-all;"></span>
+                            <button type="button" class="btn btn-sm btn-outline-gold copy-btn" id="hw-copy" data-clipboard-text=""><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                        <div id="hw-name-row" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;"></div>
+                        <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;"><strong>Payment note / reference:</strong> <span class="mono-num text-gold font-bold">EH-{{ user.id|stringformat:"05d" }}</span></div>
+                        <ol class="how-steps">
+                            <li>Open the app and send the amount you want to add.</li>
+                            <li>Put your reference <b>EH-{{ user.id|stringformat:"05d" }}</b> in the note.</li>
+                            <li>Fill in the form on the right and attach a screenshot.</li>
+                        </ol>
+                    </div>
+
                     <!-- Real-Time Crypto Conversion Estimator -->
-                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-top: 20px;">
+                    <div id="crypto-est-box" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-top: 20px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
                             <span>Estimated Crypto Transfer Equivalent:</span>
                             <span id="calc-crypto-rate" class="mono-num" style="color: var(--gold-light);">1 USDT ≈ $1.00 USD</span>
@@ -1302,6 +1343,7 @@
 
             <div class="seg" role="tablist">
                 <button type="button" class="seg-btn active" data-wd="bank"><i class="fas fa-landmark"></i> Bank transfer</button>
+                <button type="button" class="seg-btn" data-wd="app"><i class="fas fa-mobile-screen"></i> Zelle / PayPal</button>
                 <button type="button" class="seg-btn" data-wd="crypto"><i class="fab fa-bitcoin"></i> Crypto</button>
             </div>
 
@@ -1319,6 +1361,18 @@
                     <div class="form-group"><label class="form-label">Country</label><input type="text" name="bank_country" class="form-control" placeholder="e.g. Nigeria" autocomplete="off"></div>
                 </div>
                 <p class="wd-note"><i class="fas fa-clock"></i> Bank transfers are reviewed by our team and usually arrive in 1&ndash;3 business days.</p>
+            </div>
+
+            <div id="wd-app" style="display:none">
+                <div class="form-group">
+                    <label class="form-label">Send with</label>
+                    <select id="wd-appname" class="form-control">
+                        <option value="Zelle">Zelle</option><option value="PayPal">PayPal</option><option value="Venmo">Venmo</option><option value="Cash App">Cash App</option><option value="Wise">Wise</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Email, phone or @username</label><input type="text" name="app_handle" class="form-control" placeholder="Where we should send it" autocomplete="off" disabled></div>
+                <div class="form-group"><label class="form-label">Name on the account</label><input type="text" name="app_name" class="form-control" autocomplete="off" disabled></div>
+                <p class="wd-note"><i class="fas fa-clock"></i> App payouts are reviewed by our team and usually arrive within 24 hours.</p>
             </div>
 
             <div id="wd-crypto" style="display:none">
@@ -1347,7 +1401,7 @@
     <div class="modal-content" style="max-width: 460px;">
         <button class="modal-close" onclick="closeModal('tradeModal')">&times;</button>
         <div class="tm-head">
-            <div class="tm-badge" id="tm-badge">BTC</div>
+            <div class="tr-sym tm-badge" id="tm-badge"><img id="tm-logo" src="" alt=""><span id="tm-sym">BTC</span></div>
             <div><h3 id="tm-name" style="font-size: 1.4rem; line-height: 1.1;">Bitcoin</h3><div class="mono-num" id="tm-price" style="color: var(--gold-light); font-size: 1.05rem;">$0.00</div></div>
         </div>
         <form method="POST" action="{% url 'trade_order' %}" id="tm-form">
@@ -1416,10 +1470,15 @@ const GATEWAYS = {
         unit: 'ETH',
         isWire: false
     },
+    'ZELLE': { name: 'Zelle', badge: 'ZELLE TRANSFER', title: 'Pay with Zelle', handleLabel: 'Zelle email or phone', handle: '{{ settings.zelle_email|escapejs }}', holder: '{{ settings.zelle_name|escapejs }}', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
+    'PAYPAL': { name: 'PayPal', badge: 'PAYPAL', title: 'Pay with PayPal', handleLabel: 'PayPal email', handle: '{{ settings.paypal_email|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Send as Friends & Family', unit: 'USD', isHandle: true },
+    'VENMO': { name: 'Venmo', badge: 'VENMO', title: 'Pay with Venmo', handleLabel: 'Venmo username', handle: '{{ settings.venmo_handle|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
+    'CASHAPP': { name: 'Cash App', badge: 'CASH APP', title: 'Pay with Cash App', handleLabel: 'Cash App $cashtag', handle: '{{ settings.cashapp_tag|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
+    'WISE': { name: 'Wise', badge: 'WISE', title: 'Pay with Wise', handleLabel: 'Wise account email', handle: '{{ settings.wise_email|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
     'BANK_WIRE': {
-        name: 'International Bank Wire',
-        badge: 'JPMORGAN CHASE PRIVATE BANK',
-        title: 'Institutional FedWire / SWIFT Coordinates',
+        name: 'Bank Transfer',
+        badge: '{{ settings.bank_name|upper }}',
+        title: 'Bank transfer details',
         address: 'Bank: {{ settings.bank_name }} | Acct: {{ settings.bank_account_number }}',
         rate: 1.0,
         rateLabel: 'Segregated Treasury Wire',
@@ -1450,7 +1509,19 @@ function selectDepositGateway(gwKey, element) {
     if (elBadge) elBadge.innerText = gw.badge;
     if (elTitle) elTitle.innerText = gw.title;
 
-    if (gw.isWire) {
+    const handleWrap = document.getElementById('handle-wrapper');
+    const estBox = document.getElementById('crypto-est-box');
+    if (handleWrap) handleWrap.style.display = gw.isHandle ? 'block' : 'none';
+    if (estBox) estBox.style.display = (gw.isWire || gw.isHandle) ? 'none' : '';
+    if (gw.isHandle) {
+        if (qrWrap) qrWrap.style.display = 'none';
+        if (addrWrap) addrWrap.style.display = 'none';
+        if (wireWrap) wireWrap.style.display = 'none';
+        document.getElementById('hw-label').innerText = gw.handleLabel;
+        document.getElementById('hw-value').innerText = gw.handle;
+        document.getElementById('hw-copy').setAttribute('data-clipboard-text', gw.handle);
+        document.getElementById('hw-name-row').innerHTML = gw.holder ? 'Account name: <b style="color:#fff">' + gw.holder + '</b>' : '';
+    } else if (gw.isWire) {
         if (qrWrap) qrWrap.style.display = 'none';
         if (addrWrap) addrWrap.style.display = 'none';
         if (wireWrap) wireWrap.style.display = 'block';
@@ -1469,7 +1540,7 @@ function selectDepositGateway(gwKey, element) {
     const formBadge = document.getElementById('form-selected-badge');
     if (formMethod) formMethod.value = gwKey;
     if (formMethodLabel) formMethodLabel.innerText = gw.name;
-    if (formBadge) formBadge.innerText = gw.isWire ? 'WIRE AUDIT' : 'BLOCKCHAIN AUDIT';
+    if (formBadge) formBadge.innerText = (gw.isWire || gw.isHandle) ? 'PAYMENT PROOF' : 'BLOCKCHAIN PROOF';
 
     updateCryptoConversion();
 }
@@ -1646,7 +1717,10 @@ function openTrade(id, side) {
     tradeAsset = id; tradeSide = side || 'buy';
     const a = MARKET[id]; if (!a) return;
     document.getElementById('tm-asset').value = id;
-    document.getElementById('tm-badge').innerText = a.symbol.slice(0, 4);
+    const tb = document.getElementById('tm-badge'), tl = document.getElementById('tm-logo');
+    tb.classList.remove('noimg'); tl.style.display = ''; tl.onerror = () => { tb.classList.add('noimg'); tl.style.display = 'none'; };
+    tl.src = '/static/img/logos/' + a.symbol.toLowerCase() + '.svg';
+    document.getElementById('tm-sym').innerText = a.symbol.slice(0, 4);
     document.getElementById('tm-name').innerText = a.name;
     document.getElementById('tm-amount').value = '';
     document.getElementById('tm-sellall').value = '0';
@@ -1662,6 +1736,12 @@ function setTradeSide(side) {
 }
 
 function initTradeUI() {
+    // deposit conversion uses the same market prices as the Trade page
+    Object.values(MARKET).forEach(m => {
+        const map = { BTC: 'BTC', ETH: 'ETH' };
+        const g = GATEWAYS[map[m.symbol]];
+        if (g && m.price > 0) { g.rate = 1 / m.price; g.rateLabel = '1 ' + m.symbol + ' \u2248 ' + money(m.price) + ' USD'; }
+    });
     // trade side toggle + quick % chips
     document.querySelectorAll('#tm-form .seg-btn').forEach(b => b.addEventListener('click', () => setTradeSide(b.dataset.side)));
     document.querySelectorAll('#tm-form .chip-row button').forEach(b => b.addEventListener('click', () => {
@@ -1699,16 +1779,20 @@ function initTradeUI() {
 
     // withdrawal: bank vs crypto
     const wdMethod = document.getElementById('wd-method');
-    document.querySelectorAll('[data-wd]').forEach(b => b.addEventListener('click', () => {
-        const bank = b.dataset.wd === 'bank';
-        document.querySelectorAll('[data-wd]').forEach(x => x.classList.toggle('active', x === b));
-        document.getElementById('wd-bank').style.display = bank ? '' : 'none';
-        document.getElementById('wd-crypto').style.display = bank ? 'none' : '';
-        document.querySelectorAll('#wd-bank input').forEach(i => { i.disabled = !bank; });
-        document.querySelectorAll('#wd-crypto textarea').forEach(i => { i.disabled = bank; i.required = !bank; });
-        ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = bank; });
-        wdMethod.value = bank ? 'Bank Transfer' : document.getElementById('wd-network').value;
-    }));
+    const wdSetMode = (mode) => {
+        document.querySelectorAll('[data-wd]').forEach(x => x.classList.toggle('active', x.dataset.wd === mode));
+        document.getElementById('wd-bank').style.display = mode === 'bank' ? '' : 'none';
+        document.getElementById('wd-app').style.display = mode === 'app' ? '' : 'none';
+        document.getElementById('wd-crypto').style.display = mode === 'crypto' ? '' : 'none';
+        document.querySelectorAll('#wd-bank input').forEach(i => { i.disabled = mode !== 'bank'; i.required = false; });
+        document.querySelectorAll('#wd-app input').forEach(i => { i.disabled = mode !== 'app'; i.required = mode === 'app' && i.name === 'app_handle'; });
+        document.querySelectorAll('#wd-crypto textarea').forEach(i => { i.disabled = mode !== 'crypto'; i.required = mode === 'crypto'; });
+        ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = mode === 'bank'; });
+        wdMethod.value = mode === 'bank' ? 'Bank Transfer' : (mode === 'app' ? document.getElementById('wd-appname').value : document.getElementById('wd-network').value);
+    };
+    document.querySelectorAll('[data-wd]').forEach(b => b.addEventListener('click', () => wdSetMode(b.dataset.wd)));
+    const appSel = document.getElementById('wd-appname');
+    if (appSel) appSel.addEventListener('change', () => { wdMethod.value = appSel.value; });
     const net = document.getElementById('wd-network');
     if (net) net.addEventListener('change', () => { wdMethod.value = net.value; });
     ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = true; });
