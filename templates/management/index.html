@@ -32,8 +32,8 @@
 <!-- ================= SIDEBAR ================= -->
 <aside class="adm-side" id="admSide">
   <div class="side-brand">
-    <div class="crest">EH</div>
-    <div><b>ELVARION</b><small>Admin Console</small></div>
+    <div class="crest" data-open-side role="button" aria-label="Expand menu">EH</div>
+    <div class="brand-text"><b>ELVARION</b><small>Admin Console</small></div>
     <button class="side-close" type="button" data-close-side aria-label="Close menu"><i class="fas fa-xmark"></i></button>
   </div>
   <nav class="side-nav">
@@ -57,7 +57,7 @@
   <div class="side-foot">
     <div class="side-user">
       <div class="avatar">{{ request.user.username|first|upper }}</div>
-      <div><b>{{ request.user.get_full_name|default:request.user.username }}</b><small>Administrator</small></div>
+      <div class="user-text"><b>{{ request.user.get_full_name|default:request.user.username }}</b><small>Administrator</small></div>
     </div>
     <div class="side-links">
       <a href="{% url 'home' %}" target="_blank"><i class="fas fa-globe"></i>Website</a>
