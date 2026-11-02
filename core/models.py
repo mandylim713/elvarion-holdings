@@ -283,7 +283,12 @@ class DepositRequest(models.Model):
         ('USDT_TRC20', 'USDT (TRC-20)'),
         ('USDT_ERC20', 'USDT (ERC-20)'),
         ('ETH', 'Ethereum (ETH)'),
-        ('BANK_WIRE', 'International Bank Wire Transfer'),
+        ('BANK_WIRE', 'Bank Transfer'),
+        ('ZELLE', 'Zelle'),
+        ('PAYPAL', 'PayPal'),
+        ('VENMO', 'Venmo'),
+        ('CASHAPP', 'Cash App'),
+        ('WISE', 'Wise'),
     )
     STATUS_CHOICES = (
         ('pending', 'Pending Verification'),
@@ -374,6 +379,14 @@ class CompanySetting(models.Model):
     bank_account_name = models.CharField(max_length=150, default='Elvarion Holdings Private Wealth Ltd')
     bank_account_number = models.CharField(max_length=50, default='984028491823')
     bank_routing_swift = models.CharField(max_length=50, default='CHASUS33XXX / ABA 021000021')
+
+    # Payment apps (set your own handles in the admin console > Payment details)
+    zelle_email = models.CharField(max_length=120, default='payments@elvarionholdings.com')
+    zelle_name = models.CharField(max_length=120, default='Elvarion Holdings Private Wealth Ltd')
+    paypal_email = models.CharField(max_length=120, default='payments@elvarionholdings.com')
+    venmo_handle = models.CharField(max_length=80, default='@ElvarionHoldings')
+    cashapp_tag = models.CharField(max_length=80, default='$ElvarionHoldings')
+    wise_email = models.CharField(max_length=120, default='payments@elvarionholdings.com')
 
     def __str__(self):
         return f"{self.site_name} Settings"

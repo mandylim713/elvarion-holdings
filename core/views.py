@@ -421,6 +421,12 @@ def submit_withdrawal(request):
             return redirect('/dashboard/#tab-investments')
         details = (f"Bank: {f('bank_name')} | Account name: {f('account_name')} | "
                    f"Account no / IBAN: {f('account_number')} | SWIFT / routing: {f('swift') or '-'} | Country: {f('bank_country') or '-'}")
+    elif method in ('Zelle', 'PayPal', 'Venmo', 'Cash App', 'Wise'):
+        handle = request.POST.get('app_handle', '').strip()
+        if not handle:
+            messages.error(request, f'Please enter the {method} email, phone or username to send to.')
+            return redirect('/dashboard/#tab-investments')
+        details = f"{method}: {handle} | Name on account: {request.POST.get('app_name', '').strip() or '-'}"
     elif not details:
         messages.error(request, 'Please enter the wallet address to send to.')
         return redirect('/dashboard/#tab-investments')
@@ -557,7 +563,7 @@ def api_realtime_roi(request):
             'duration_unit': inv.plan.duration_unit,
             'duration_count': inv.plan.duration_count,
             'projected_roi': float(inv.total_projected_roi),
-            'accrued_roi': round(accrued, 4),
+            'accrued_roi': round(accrued, 2),
             'progress_percentage': round(inv.get_progress_percentage(), 2),
             'status': inv.status,
         })
@@ -565,7 +571,7 @@ def api_realtime_roi(request):
     return JsonResponse({
         'status': 'success',
         'server_time': timezone.now().isoformat(),
-        'total_accrued_roi': round(total_accrued, 4),
+        'total_accrued_roi': round(total_accrued, 2),
         'investments': data,
     })
 
@@ -1016,6 +1022,22 @@ def admin_save_tier(request):
             messages.success(request, f"New loan tier '{tier_name}' created.")
 
     return redirect('/management/#tiers')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_save_settings(request):
+    """Edit bank, wallet and payment-app details shown on the Add money page"""
+    if request.method == 'POST':
+        cs = CompanySetting.get_settings()
+        fields = ['zelle_email', 'zelle_name', 'paypal_email', 'venmo_handle', 'cashapp_tag', 'wise_email',
+                  'bank_name', 'bank_account_name', 'bank_account_number', 'bank_routing_swift',
+                  'btc_wallet_address', 'eth_wallet_address', 'usdt_trc20_address', 'usdt_erc20_address']
+        for k in fields:
+            if k in request.POST:
+                setattr(cs, k, request.POST.get(k, '').strip()[:150])
+        cs.save()
+        messages.success(request, 'Payment details saved.')
+    return redirect('/management/#payments')
 
 
 @user_passes_test(lambda u: u.is_staff)
