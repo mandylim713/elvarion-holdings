@@ -1,0 +1,396 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin Console | Elvarion Holdings</title>
+<meta name="theme-color" content="#0a1424">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" type="image/png" href="/static/img/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/static/img/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Elvarion Admin">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body class="adm">
+<div id="admLoad"></div>
+<div class="boot" id="boot"><div><div class="boot-wrap"><div class="ring"></div><div class="c">EH</div></div><small>Admin Console</small></div></div>
+
+<div class="toasts" id="toasts">
+{% for m in messages %}<div class="toast {{ m.tags }}" role="status"><i class="fas {% if m.tags == 'error' %}fa-circle-xmark{% elif m.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %}"></i><span>{{ m }}</span></div>{% endfor %}
+</div>
+
+<div class="adm-shell">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="adm-side" id="admSide">
+  <div class="side-brand">
+    <div class="crest" data-open-side role="button" aria-label="Expand menu">EH</div>
+    <div class="brand-text"><b>ELVARION</b><small>Admin Console</small></div>
+    <button class="side-close" type="button" data-close-side aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+  </div>
+  <nav class="side-nav">
+    <button class="nav-item active" data-view="overview"><i class="fas fa-gauge-high"></i> Overview</button>
+
+    <div class="nav-label">Operations</div>
+    <button class="nav-item" data-view="deposits"><i class="fas fa-arrow-down-to-bracket"></i> Deposits <span class="nav-count {% if not pending_deposits %}zero{% endif %}">{{ pending_deposits|length }}</span></button>
+    <button class="nav-item" data-view="withdrawals"><i class="fas fa-arrow-up-from-bracket"></i> Withdrawals <span class="nav-count {% if not pending_withdrawals %}zero{% endif %}">{{ pending_withdrawals|length }}</span></button>
+    <button class="nav-item" data-view="loans"><i class="fas fa-hand-holding-dollar"></i> Loan requests <span class="nav-count {% if not pending_loans %}zero{% endif %}">{{ pending_loans|length }}</span></button>
+    <button class="nav-item" data-view="kyc"><i class="fas fa-id-card"></i> KYC reviews <span class="nav-count {% if not pending_kyc %}zero{% endif %}">{{ pending_kyc|length }}</span></button>
+
+    <div class="nav-label">Clients</div>
+    <button class="nav-item" data-view="users"><i class="fas fa-users"></i> Investors <span class="nav-count zero">{{ stats.users }}</span></button>
+    <button class="nav-item" data-view="investments"><i class="fas fa-chart-line"></i> Investments</button>
+    <button class="nav-item" data-view="ledger"><i class="fas fa-receipt"></i> Transactions</button>
+
+    <div class="nav-label">Configuration</div>
+    <button class="nav-item" data-view="plans"><i class="fas fa-layer-group"></i> Plans &amp; ROI</button>
+    <button class="nav-item" data-view="tiers"><i class="fas fa-sliders"></i> Loan criteria</button>
+  </nav>
+  <div class="side-foot">
+    <div class="side-user">
+      <div class="avatar">{{ request.user.username|first|upper }}</div>
+      <div class="user-text"><b>{{ request.user.get_full_name|default:request.user.username }}</b><small>Administrator</small></div>
+    </div>
+    <div class="side-links">
+      <a href="{% url 'home' %}" target="_blank"><i class="fas fa-globe"></i>Website</a>
+      <a href="/admin/" target="_blank"><i class="fas fa-database"></i>Django</a>
+      <a href="{% url 'logout' %}"><i class="fas fa-right-from-bracket"></i>Sign out</a>
+    </div>
+  </div>
+</aside>
+<div class="side-scrim" data-close-side></div>
+
+<!-- ================= MAIN ================= -->
+<div class="adm-main">
+  <header class="adm-top">
+    <button class="top-burger" type="button" data-open-side aria-label="Menu"><i class="fas fa-bars-staggered"></i></button>
+    <div class="titlebox">
+      <span class="top-crumb">Admin Console</span>
+      <div class="top-title" id="admTitle">Overview</div>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="search" id="admSearchBox"><i class="fas fa-magnifying-glass"></i><input id="admSearch" type="search" placeholder="Search this page…" autocomplete="off"></div>
+    <button class="top-btn top-search-btn" type="button" id="searchToggle" aria-label="Search" style="display:none;width:40px;padding:0;justify-content:center;background:transparent;border-color:transparent;color:#fff"><i class="fas fa-magnifying-glass"></i></button>
+    <a class="top-btn" href="{% url 'home' %}" target="_blank"><i class="fas fa-arrow-up-right-from-square"></i> Website</a>
+    <button class="top-btn" type="button" data-go="deposits" title="Items waiting"><span class="dot"></span> {{ queue_total }} pending</button>
+  </header>
+
+  <main class="adm-content">
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="adm-view active" id="v-overview" data-title="Overview">
+    <div class="view-head">
+      <div><h2>Welcome back, {{ request.user.first_name|default:request.user.username }}</h2><p>Here is what needs your attention across the platform today.</p></div>
+    </div>
+
+    <div class="attn">
+      <button class="card attn-tile {% if pending_deposits %}hot{% endif %}" data-go="deposits"><div class="n">{{ pending_deposits|length }}</div><div><div class="t">Deposits</div><div class="s">${{ stats.pending_deposit_value|floatformat:"0g" }} to verify</div></div><i class="fas fa-chevron-right go"></i></button>
+      <button class="card attn-tile {% if pending_withdrawals %}hot{% endif %}" data-go="withdrawals"><div class="n">{{ pending_withdrawals|length }}</div><div><div class="t">Withdrawals</div><div class="s">${{ stats.pending_withdrawal_value|floatformat:"0g" }} to dispatch</div></div><i class="fas fa-chevron-right go"></i></button>
+      <button class="card attn-tile {% if pending_loans %}hot{% endif %}" data-go="loans"><div class="n">{{ pending_loans|length }}</div><div><div class="t">Loan requests</div><div class="s">${{ stats.pending_loan_value|floatformat:"0g" }} requested</div></div><i class="fas fa-chevron-right go"></i></button>
+      <button class="card attn-tile {% if pending_kyc %}hot{% endif %}" data-go="kyc"><div class="n">{{ pending_kyc|length }}</div><div><div class="t">KYC reviews</div><div class="s">Identity dossiers</div></div><i class="fas fa-chevron-right go"></i></button>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi dark"><span class="ico"><i class="fas fa-vault"></i></span><div class="lbl">Assets under management</div><div class="val num">${{ stats.aum|floatformat:"0g" }}</div><div class="sub">{{ stats.active_investments }} active investment{{ stats.active_investments|pluralize }}</div></div>
+      <div class="card kpi"><span class="ico"><i class="fas fa-coins"></i></span><div class="lbl">Deposits received</div><div class="val num">${{ stats.deposits_total|floatformat:"0g" }}</div><div class="sub">All approved deposits</div></div>
+      <div class="card kpi"><span class="ico"><i class="fas fa-wallet"></i></span><div class="lbl">Client wallets</div><div class="val num">${{ stats.wallets_total|floatformat:"0g" }}</div><div class="sub">Available balances held</div></div>
+      <div class="card kpi"><span class="ico"><i class="fas fa-hand-holding-dollar"></i></span><div class="lbl">Credit outstanding</div><div class="val num">${{ stats.loans_out|floatformat:"0g" }}</div><div class="sub">${{ stats.withdrawn_total|floatformat:"0g" }} paid out to date</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Approved deposits &middot; last 7 days</h3><small>{{ stats.users }} investors &middot; {{ stats.new_users_7d }} new this week</small></div>
+        <div class="bars">
+          {% for d in daily %}<div class="bar"><em class="num">{% if d.value %}${{ d.value|floatformat:"0g" }}{% endif %}</em><div class="col {% if not d.value %}empty{% endif %}" style="height: {% if d.value %}{{ d.pct }}{% else %}2{% endif %}%; animation-delay: {{ forloop.counter0 }}00ms"></div><span>{{ d.label }}</span></div>{% endfor %}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Newest investors</h3><button class="btn btn-line btn-sm" data-go="users">View all</button></div>
+        <ul class="list">
+          {% for u in users|slice:":5" %}<li><div class="mini-av">{{ u.username|first }}</div><div class="grow"><b>{{ u.username }}</b><small>{{ u.email|default:"no email" }}</small></div><span class="tag">{{ u.date_joined|date:"M d" }}</span></li>{% empty %}<li><div class="grow"><small>No investors yet.</small></div></li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-head"><h3>Recent activity</h3><button class="btn btn-line btn-sm" data-go="ledger">Full ledger</button></div>
+      <ul class="list">
+        {% for t in transactions|slice:":8" %}<li><div class="mini-av"><i class="fas {% if t.is_credit %}fa-arrow-down{% else %}fa-arrow-up{% endif %}" style="font-size:.7rem"></i></div><div class="grow"><b>{{ t.description }}</b><small>{{ t.user.username }} &middot; {{ t.created_at|date:"M d, H:i" }}</small></div><span class="amt {% if t.is_credit %}in{% else %}out{% endif %}">{% if t.is_credit %}+{% else %}&minus;{% endif %}${{ t.amount|floatformat:"2g" }}</span></li>{% empty %}<li><div class="grow"><small>No activity yet.</small></div></li>{% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ DEPOSITS ============ -->
+  <section class="adm-view" id="v-deposits" data-title="Deposits" data-search="Search investor, method, reference…">
+    <div class="view-head"><div><h2>Deposits</h2><p>Approving credits the investor's wallet and raises their cumulative deposits, which unlocks higher loan tiers.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip {% if pending_deposits %}active{% endif %}" data-f="pending">Pending <b>{{ pending_deposits|length }}</b></button>
+        <button class="chip" data-f="approved">Approved</button><button class="chip" data-f="rejected">Declined</button>
+        <button class="chip {% if not pending_deposits %}active{% endif %}" data-f="all">All</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Method</th><th>Amount</th><th>Reference</th><th>Date</th><th>Status</th><th class="r">Action</th></tr></thead><tbody>
+      {% for d in all_deposits %}<tr data-status="{{ d.status }}">
+        <td class="main who" data-label="Investor"><b>{{ d.user.username }}</b><small class="ref">#{{ d.reference_id|slice:":8" }}</small></td>
+        <td data-label="Method"><span class="tag">{{ d.get_method_display }}</span></td>
+        <td data-label="Amount" class="num"><b class="amt in">+${{ d.amount|floatformat:"2g" }}</b></td>
+        <td data-label="Proof" class="wrapv"><span class="ref" style="color:var(--ink-3)">{{ d.proof_hash|default:"Direct submission" }}</span>{% if d.receipt_image %} <a href="{{ d.receipt_image.url }}" target="_blank" class="pill pill-info">Receipt</a>{% endif %}</td>
+        <td data-label="Date" style="color:var(--ink-3)">{{ d.created_at|date:"M d, Y H:i" }}</td>
+        <td data-label="Status">{% if d.status == 'approved' %}<span class="pill pill-ok">Credited</span>{% elif d.status == 'rejected' %}<span class="pill pill-bad">Declined</span>{% else %}<span class="pill pill-warn">Pending</span>{% endif %}</td>
+        <td class="act r">{% if d.status == 'pending' %}<div class="acts">
+          <form method="POST" action="{% url 'admin_deposit_action' d.id 'approve' %}" data-confirm="Credit ${{ d.amount|floatformat:'2g' }} to {{ d.user.username }}'s wallet?" data-ok="Credit balance">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-check"></i> Credit</button></form>
+          <form method="POST" action="{% url 'admin_deposit_action' d.id 'reject' %}" data-confirm="Decline this ${{ d.amount|floatformat:'2g' }} deposit from {{ d.user.username }}?" data-ok="Decline" data-danger>{% csrf_token %}<button class="btn btn-bad btn-sm"><i class="fas fa-xmark"></i> Decline</button></form></div>{% else %}<span style="color:var(--ink-3);font-size:.78rem">Processed {{ d.processed_at|date:"M d" }}</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not all_deposits %}<div class="empty-state"><i class="fas fa-check"></i><b>No deposits yet</b>New deposit requests will appear here.</div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ WITHDRAWALS ============ -->
+  <section class="adm-view" id="v-withdrawals" data-title="Withdrawals" data-search="Search investor, wallet, method…">
+    <div class="view-head"><div><h2>Withdrawals</h2><p>Funds are held when the investor requests. Mark as dispatched once paid out, or decline to return the money to their wallet.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip {% if pending_withdrawals %}active{% endif %}" data-f="pending">Pending <b>{{ pending_withdrawals|length }}</b></button>
+        <button class="chip" data-f="approved">Dispatched</button><button class="chip" data-f="rejected">Declined</button>
+        <button class="chip {% if not pending_withdrawals %}active{% endif %}" data-f="all">All</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Amount</th><th>Channel</th><th>Destination</th><th>Requested</th><th>Status</th><th class="r">Action</th></tr></thead><tbody>
+      {% for w in all_withdrawals %}<tr data-status="{{ w.status }}">
+        <td class="main who" data-label="Investor"><b>{{ w.user.username }}</b><small class="ref">#{{ w.reference_id|slice:":8" }}</small></td>
+        <td data-label="Amount"><b class="amt out num">${{ w.amount|floatformat:"2g" }}</b></td>
+        <td data-label="Channel"><span class="tag">{{ w.payout_method }}</span></td>
+        <td data-label="To" class="wrapv"><span class="ref" style="color:var(--ink-2);max-width:260px;display:inline-block;word-break:break-all">{{ w.destination_details|truncatechars:70 }}</span></td>
+        <td data-label="Date" style="color:var(--ink-3)">{{ w.created_at|date:"M d, Y H:i" }}</td>
+        <td data-label="Status">{% if w.status == 'approved' %}<span class="pill pill-ok">Dispatched</span>{% elif w.status == 'rejected' %}<span class="pill pill-bad">Declined</span>{% else %}<span class="pill pill-warn">Pending</span>{% endif %}</td>
+        <td class="act r">{% if w.status == 'pending' %}<div class="acts">
+          <form method="POST" action="{% url 'admin_withdrawal_action' w.id 'approve' %}" data-confirm="Mark ${{ w.amount|floatformat:'2g' }} as paid out to {{ w.user.username }}?" data-note="admin_notes" data-note-ph="Payout reference / TxID (optional)" data-ok="Mark dispatched">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-paper-plane"></i> Dispatch</button></form>
+          <form method="POST" action="{% url 'admin_withdrawal_action' w.id 'reject' %}" data-confirm="Decline and return ${{ w.amount|floatformat:'2g' }} to {{ w.user.username }}'s wallet?" data-note="admin_notes" data-note-ph="Reason (optional)" data-ok="Decline &amp; refund" data-danger>{% csrf_token %}<button class="btn btn-bad btn-sm"><i class="fas fa-xmark"></i> Decline</button></form></div>{% else %}<span style="color:var(--ink-3);font-size:.78rem">{{ w.admin_notes|truncatechars:34|default:"Processed" }}</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not all_withdrawals %}<div class="empty-state"><i class="fas fa-check"></i><b>No withdrawals yet</b>Requests from investors will appear here.</div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ LOANS ============ -->
+  <section class="adm-view" id="v-loans" data-title="Loan requests" data-search="Search investor or reference…">
+    <div class="view-head"><div><h2>Loan requests</h2><p>Review each borrower's cumulative deposits, amount and term. Approving disburses straight into their loan balance.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip {% if pending_loans %}active{% endif %}" data-f="pending">Under review <b>{{ pending_loans|length }}</b></button>
+        <button class="chip" data-f="approved">Disbursed</button><button class="chip" data-f="rejected">Declined</button>
+        <button class="chip {% if not pending_loans %}active{% endif %}" data-f="all">All</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Borrower</th><th>Requested</th><th>Term &amp; rate</th><th>Monthly</th><th>Total repayable</th><th>Deposited</th><th>Status</th><th class="r">Decision</th></tr></thead><tbody>
+      {% for l in all_loans %}<tr data-status="{{ l.status }}">
+        <td class="main who" data-label="Borrower"><b>{{ l.user.username }}</b><small class="ref">#{{ l.loan_reference|slice:":8" }} &middot; {{ l.applied_at|date:"M d, Y" }}</small></td>
+        <td data-label="Requested"><b class="num">${{ l.amount_requested|floatformat:"2g" }}</b></td>
+        <td data-label="Term"><span class="tag">{{ l.term_months }} mo &middot; {{ l.monthly_interest_rate }}%</span></td>
+        <td data-label="Monthly" class="num">${{ l.monthly_installment|floatformat:"2g" }}</td>
+        <td data-label="Repayable" class="num">${{ l.total_repayable|floatformat:"2g" }}</td>
+        <td data-label="Deposited" class="num" style="color:var(--ok);font-weight:700">${{ l.user.profile.total_deposited|floatformat:"0g" }}</td>
+        <td data-label="Status">{% if l.status == 'approved' or l.status == 'active' %}<span class="pill pill-ok">Disbursed</span>{% elif l.status == 'rejected' %}<span class="pill pill-bad">Declined</span>{% elif l.status == 'completed' %}<span class="pill pill-info">Repaid</span>{% else %}<span class="pill pill-warn">Review</span>{% endif %}</td>
+        <td class="act r">{% if l.status == 'pending' %}<div class="acts">
+          <form method="POST" action="{% url 'admin_loan_action' l.id 'approve' %}" data-confirm="Approve and disburse ${{ l.amount_requested|floatformat:'0g' }} to {{ l.user.username }}?" data-note="admin_note" data-note-ph="Note to file (optional)" data-ok="Approve &amp; disburse">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-check"></i> Approve</button></form>
+          <form method="POST" action="{% url 'admin_loan_action' l.id 'reject' %}" data-confirm="Decline this loan request from {{ l.user.username }}?" data-note="admin_note" data-note-ph="Reason (optional)" data-ok="Decline" data-danger>{% csrf_token %}<button class="btn btn-bad btn-sm"><i class="fas fa-xmark"></i> Decline</button></form></div>{% else %}<span style="color:var(--ink-3);font-size:.78rem">{{ l.reviewed_at|date:"M d"|default:"—" }}</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not all_loans %}<div class="empty-state"><i class="fas fa-check-double"></i><b>No loan requests</b>Applications will appear here.</div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ KYC ============ -->
+  <section class="adm-view" id="v-kyc" data-title="KYC reviews" data-search="Search name, ID, country…">
+    <div class="view-head"><div><h2>KYC reviews</h2><p>Check identity documents and source of wealth. Approving grants Tier-1 verified status.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip {% if pending_kyc %}active{% endif %}" data-f="pending">Pending <b>{{ pending_kyc|length }}</b></button>
+        <button class="chip" data-f="approved">Verified</button><button class="chip" data-f="rejected">Declined</button>
+        <button class="chip {% if not pending_kyc %}active{% endif %}" data-f="all">All</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Applicant</th><th>Document</th><th>Location</th><th>Source of wealth</th><th>Files</th><th>Status</th><th class="r">Decision</th></tr></thead><tbody>
+      {% for k in all_kyc %}<tr data-status="{{ k.status }}">
+        <td class="main who" data-label="Applicant"><b>{{ k.full_legal_name }}</b><small class="ref">#{{ k.submission_id|slice:":8" }} &middot; {{ k.user.username }} &middot; {{ k.submitted_at|date:"M d, Y" }}</small></td>
+        <td data-label="Document"><div class="who"><b>{{ k.get_id_type_display }}</b><small class="num">{{ k.id_number }}</small></div></td>
+        <td data-label="Location"><div class="who"><b>{{ k.country }}</b><small>{{ k.city }}, {{ k.postal_code }}</small></div></td>
+        <td data-label="Wealth"><div class="who"><b>{{ k.get_source_of_wealth_display }}</b><small>{{ k.estimated_net_worth }}</small></div></td>
+        <td data-label="Files"><div class="acts" style="justify-content:flex-start">{% if k.id_front_image %}<a href="{{ k.id_front_image.url }}" target="_blank" class="pill pill-info">ID</a>{% endif %}{% if k.proof_of_address %}<a href="{{ k.proof_of_address.url }}" target="_blank" class="pill pill-gold">Address</a>{% endif %}{% if not k.id_front_image and not k.proof_of_address %}<span style="color:var(--ink-3);font-size:.78rem">Digital filing</span>{% endif %}</div></td>
+        <td data-label="Status">{% if k.status == 'approved' %}<span class="pill pill-ok">Verified</span>{% elif k.status == 'pending' %}<span class="pill pill-warn">Pending</span>{% else %}<span class="pill pill-bad">{{ k.status }}</span>{% endif %}</td>
+        <td class="act r">{% if k.status == 'pending' %}<div class="acts">
+          <form method="POST" action="{% url 'admin_kyc_action' k.id 'approve' %}" data-confirm="Verify {{ k.full_legal_name }} as a Tier-1 investor?" data-note="admin_notes" data-note-ph="Note (optional)" data-ok="Approve">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-check"></i> Approve</button></form>
+          <form method="POST" action="{% url 'admin_kyc_action' k.id 'reject' %}" data-confirm="Decline {{ k.full_legal_name }}'s dossier?" data-note="admin_notes" data-note-ph="Tell them what to fix (optional)" data-ok="Decline" data-danger>{% csrf_token %}<button class="btn btn-bad btn-sm"><i class="fas fa-xmark"></i> Decline</button></form></div>{% else %}<span style="color:var(--ink-3);font-size:.78rem">Processed</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not all_kyc %}<div class="empty-state"><i class="fas fa-id-card"></i><b>No KYC submissions</b>Dossiers will appear here.</div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ INVESTORS ============ -->
+  <section class="adm-view" id="v-users" data-title="Investors" data-search="Search username or email…">
+    <div class="view-head"><div><h2>Investors</h2><p>Every client account, their balances and standing. Adjust a wallet or suspend access.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip active" data-f="all">All <b>{{ stats.users }}</b></button><button class="chip" data-f="active">Active</button><button class="chip" data-f="suspended">Suspended</button><button class="chip" data-f="staff">Staff</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Type</th><th>KYC</th><th>Deposited</th><th>Wallet</th><th>Loans</th><th>Loan tier</th><th>Status</th><th class="r">Manage</th></tr></thead><tbody>
+      {% for u in users %}<tr data-status="{% if u.is_staff %}staff {% endif %}{% if u.is_active %}active{% else %}suspended{% endif %}">
+        <td class="main who" data-label="Investor"><div style="display:flex;gap:11px;align-items:center"><div class="mini-av">{{ u.username|first }}</div><div><b>{{ u.username }}</b><small>{{ u.email|default:"—" }}</small></div></div></td>
+        <td data-label="Type"><span class="tag" style="text-transform:capitalize">{{ u.profile.get_account_type_display|default:"—" }}</span></td>
+        <td data-label="KYC">{% if u.profile.kyc_status == 'verified' %}<span class="pill pill-ok">Verified</span>{% elif u.profile.kyc_status == 'pending' %}<span class="pill pill-warn">Pending</span>{% else %}<span class="pill pill-mute">None</span>{% endif %}</td>
+        <td data-label="Deposited" class="num" style="color:var(--ok);font-weight:700">${{ u.profile.total_deposited|floatformat:"2g" }}</td>
+        <td data-label="Wallet" class="num"><b>${{ u.profile.wallet_balance|floatformat:"2g" }}</b></td>
+        <td data-label="Loans" class="num">${{ u.profile.loan_balance|floatformat:"2g" }}</td>
+        <td data-label="Tier">{% with tier=u.profile.get_eligible_loan_tier %}{% if tier %}<span class="pill pill-gold">{{ tier.badge }}</span>{% else %}<span class="pill pill-mute">None</span>{% endif %}{% endwith %}</td>
+        <td data-label="Status">{% if u.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-bad">Suspended</span>{% endif %}{% if u.is_staff %} <span class="pill pill-info">Staff</span>{% endif %}</td>
+        <td class="act r"><div class="acts">
+          <button type="button" class="btn btn-line btn-sm" data-adjust data-uid="{{ u.id }}" data-name="{{ u.username }}" data-bal="{{ u.profile.wallet_balance|floatformat:'2g' }}"><i class="fas fa-wallet"></i> Wallet</button>
+          {% if u.id != request.user.id %}<form method="POST" action="{% url 'admin_user_action' u.id 'toggle_active' %}" data-confirm="{% if u.is_active %}Suspend {{ u.username }}? They will not be able to sign in.{% else %}Reactivate {{ u.username }}?{% endif %}" data-ok="{% if u.is_active %}Suspend{% else %}Reactivate{% endif %}" {% if u.is_active %}data-danger{% endif %}>{% csrf_token %}<button class="btn {% if u.is_active %}btn-bad{% else %}btn-ok{% endif %} btn-sm">{% if u.is_active %}<i class="fas fa-ban"></i> Suspend{% else %}<i class="fas fa-rotate-left"></i> Restore{% endif %}</button></form>{% endif %}</div></td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ INVESTMENTS ============ -->
+  <section class="adm-view" id="v-investments" data-title="Investments" data-search="Search investor or plan…">
+    <div class="view-head"><div><h2>Investments</h2><p>Every client allocation across sectors, with live accrued returns.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips>
+        <button class="chip active" data-f="all">All</button><button class="chip" data-f="active">Active</button><button class="chip" data-f="paused">Paused</button><button class="chip" data-f="completed">Completed</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Plan</th><th>Amount</th><th>Accrued ROI</th><th>Projected</th><th>Ends</th><th>Status</th><th class="r">Action</th></tr></thead><tbody>
+      {% for i in investments %}<tr data-status="{{ i.status }}">
+        <td class="main who" data-label="Investor"><b>{{ i.user.username }}</b><small class="ref">{{ i.start_date|date:"M d, Y" }}</small></td>
+        <td data-label="Plan"><div class="who"><b>{{ i.plan.title }}</b><small>{{ i.plan.area.name }} &middot; {{ i.plan.roi_percentage }}%</small></div></td>
+        <td data-label="Amount" class="num"><b>${{ i.amount|floatformat:"2g" }}</b></td>
+        <td data-label="Accrued" class="num" style="color:var(--ok);font-weight:700">+${{ i.accumulated_roi|floatformat:"2g" }}</td>
+        <td data-label="Projected" class="num">${{ i.total_projected_roi|floatformat:"2g" }}</td>
+        <td data-label="Ends" style="color:var(--ink-3)">{{ i.end_date|date:"M d, Y" }}</td>
+        <td data-label="Status">{% if i.status == 'active' %}<span class="pill pill-ok">Active</span>{% elif i.status == 'paused' %}<span class="pill pill-warn">Paused</span>{% elif i.status == 'completed' %}<span class="pill pill-info">Matured</span>{% else %}<span class="pill pill-bad">{{ i.status }}</span>{% endif %}</td>
+        <td class="act r">{% if i.status == 'active' %}<form method="POST" action="{% url 'admin_investment_action' i.id 'pause' %}" data-confirm="Pause this investment? Returns stop accruing until resumed." data-ok="Pause">{% csrf_token %}<button class="btn btn-line btn-sm"><i class="fas fa-pause"></i> Pause</button></form>{% elif i.status == 'paused' %}<form method="POST" action="{% url 'admin_investment_action' i.id 'resume' %}">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-play"></i> Resume</button></form>{% else %}<span style="color:var(--ink-3);font-size:.78rem">—</span>{% endif %}</td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not investments %}<div class="empty-state"><i class="fas fa-chart-line"></i><b>No investments yet</b></div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ LEDGER ============ -->
+  <section class="adm-view" id="v-ledger" data-title="Transactions" data-search="Search investor or description…">
+    <div class="view-head"><div><h2>Transactions</h2><p>The latest 100 movements across all client accounts.</p></div></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips><button class="chip active" data-f="all">All</button><button class="chip" data-f="credit">Money in</button><button class="chip" data-f="debit">Money out</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Description</th><th>Investor</th><th>Type</th><th>Date</th><th class="r">Amount</th></tr></thead><tbody>
+      {% for t in transactions %}<tr data-status="{% if t.is_credit %}credit{% else %}debit{% endif %}">
+        <td class="main who" data-label="Description"><b>{{ t.description }}</b><small class="ref">#{{ t.reference|slice:":8" }}</small></td>
+        <td data-label="Investor">{{ t.user.username }}</td>
+        <td data-label="Type"><span class="tag">{{ t.get_txn_type_display }}</span></td>
+        <td data-label="Date" style="color:var(--ink-3)">{{ t.created_at|date:"M d, Y H:i" }}</td>
+        <td data-label="Amount" class="r"><b class="amt num {% if t.is_credit %}in{% else %}out{% endif %}">{% if t.is_credit %}+{% else %}&minus;{% endif %}${{ t.amount|floatformat:"2g" }}</b></td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+      {% if not transactions %}<div class="empty-state"><i class="fas fa-receipt"></i><b>No transactions yet</b></div>{% endif %}
+    </div>
+  </section>
+
+  <!-- ============ PLANS ============ -->
+  <section class="adm-view" id="v-plans" data-title="Plans &amp; ROI" data-search="Search plan or sector…">
+    <div class="view-head"><div><h2>Plans &amp; ROI</h2><p>Set each plan's duration cycle, ROI and allocation limits. Deactivate a plan to hide it from new investors.</p></div>
+      <button class="btn btn-gold btn-lg" data-plan-new><i class="fas fa-plus"></i> New plan</button></div>
+    <div class="card">
+      <div class="toolbar"><div class="chips" data-chips><button class="chip active" data-f="all">All <b>{{ plans|length }}</b></button><button class="chip" data-f="on">Active</button><button class="chip" data-f="off">Inactive</button></div></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Plan</th><th>Sector</th><th>Cycle</th><th>ROI</th><th>Min</th><th>Max</th><th>Status</th><th class="r">Manage</th></tr></thead><tbody>
+      {% for p in plans %}<tr data-status="{% if p.is_active %}on{% else %}off{% endif %}">
+        <td class="main who" data-label="Plan"><b>{{ p.title }}</b></td>
+        <td data-label="Sector" style="color:var(--gold-d);font-weight:700">{{ p.area.name }}</td>
+        <td data-label="Cycle"><span class="tag">{{ p.duration_count }} {{ p.get_duration_unit_display }}</span></td>
+        <td data-label="ROI" class="num"><b style="color:var(--ok)">{{ p.roi_percentage }}%</b></td>
+        <td data-label="Min" class="num">${{ p.min_deposit|floatformat:"0g" }}</td>
+        <td data-label="Max" class="num">${{ p.max_deposit|floatformat:"0g" }}</td>
+        <td data-label="Status">{% if p.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-mute">Inactive</span>{% endif %}</td>
+        <td class="act r"><div class="acts">
+          <button type="button" class="btn btn-line btn-sm" data-plan-edit data-id="{{ p.id }}" data-title="{{ p.title }}" data-area="{{ p.area_id }}" data-roi="{{ p.roi_percentage }}" data-unit="{{ p.duration_unit }}" data-count="{{ p.duration_count }}" data-min="{{ p.min_deposit|stringformat:'s' }}" data-max="{{ p.max_deposit|stringformat:'s' }}"><i class="fas fa-pen"></i> Edit</button>
+          <form method="POST" action="{% url 'admin_toggle_plan' p.id %}" {% if p.is_active %}data-confirm="Deactivate '{{ p.title }}'? New investors will no longer see it." data-ok="Deactivate" data-danger{% endif %}>{% csrf_token %}<button class="btn btn-line btn-sm">{% if p.is_active %}<i class="fas fa-eye-slash"></i> Hide{% else %}<i class="fas fa-eye"></i> Show{% endif %}</button></form></div></td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ TIERS ============ -->
+  <section class="adm-view" id="v-tiers" data-title="Loan criteria" data-search="Search tier…">
+    <div class="view-head"><div><h2>Loan criteria</h2><p>The cumulative deposit an investor needs before each private-credit bracket unlocks.</p></div>
+      <button class="btn btn-gold btn-lg" data-tier-new><i class="fas fa-plus"></i> New tier</button></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tier</th><th>Deposit needed</th><th>Loan range</th><th>Badge</th><th>Status</th><th class="r">Manage</th></tr></thead><tbody>
+      {% for t in loan_tiers %}<tr>
+        <td class="main who" data-label="Tier"><b>{{ t.tier_name }}</b></td>
+        <td data-label="Needs" class="num"><b style="color:var(--gold-d)">${{ t.min_deposit_required|floatformat:"0g" }}+</b></td>
+        <td data-label="Range" class="num" style="color:var(--ok);font-weight:700">${{ t.min_loan_amount|floatformat:"0g" }} &ndash; ${{ t.max_loan_amount|floatformat:"0g" }}</td>
+        <td data-label="Badge"><span class="pill pill-gold">{{ t.badge }}</span></td>
+        <td data-label="Status">{% if t.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-mute">Inactive</span>{% endif %}</td>
+        <td class="act r"><div class="acts"><button type="button" class="btn btn-line btn-sm" data-tier-edit data-id="{{ t.id }}" data-name="{{ t.tier_name }}" data-dep="{{ t.min_deposit_required|stringformat:'s' }}" data-lmin="{{ t.min_loan_amount|stringformat:'s' }}" data-lmax="{{ t.max_loan_amount|stringformat:'s' }}" data-badge="{{ t.badge }}"><i class="fas fa-pen"></i> Edit</button></div></td></tr>
+      {% endfor %}</tbody></table>
+      <div class="no-match">Nothing matches this filter.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Repayment terms</h3><small>Managed in Django admin</small></div>
+      <div class="card-pad"><div class="f-grid c3">
+        {% for term in loan_terms %}<div class="card card-pad" style="box-shadow:none"><span class="pill pill-ok">{{ term.term_months }} months</span><div class="num" style="font-family:var(--serif);font-size:1.7rem;font-weight:600;margin:10px 0 2px">{{ term.monthly_interest_rate }}% <small style="font-family:var(--sans);font-size:.74rem;color:var(--ink-3)">/ month</small></div><div style="color:var(--ink-3);font-size:.8rem">{{ term.total_interest_rate }}% total interest</div></div>{% endfor %}
+      </div></div>
+    </div>
+  </section>
+
+  </main>
+</div>
+</div>
+
+<!-- ================= MOBILE TAB BAR ================= -->
+<nav class="adm-tabbar" aria-label="Admin">
+  <button class="tab active" data-view="overview"><i class="fas fa-gauge-high"></i>Home</button>
+  <button class="tab" data-view="deposits"><i class="fas fa-arrow-down-to-bracket"></i>Deposits<span class="badge {% if not pending_deposits %}zero{% endif %}">{{ pending_deposits|length }}</span></button>
+  <button class="tab" data-view="withdrawals"><i class="fas fa-arrow-up-from-bracket"></i>Payouts<span class="badge {% if not pending_withdrawals %}zero{% endif %}">{{ pending_withdrawals|length }}</span></button>
+  <button class="tab" data-view="loans"><i class="fas fa-hand-holding-dollar"></i>Loans<span class="badge {% if not pending_loans %}zero{% endif %}">{{ pending_loans|length }}</span></button>
+  <button class="tab" data-open-side data-more><i class="fas fa-grip"></i>More</button>
+</nav>
+
+<!-- ================= MODALS ================= -->
+<div class="modal" id="m-confirm"><div class="sheet sm"><div class="grabber"></div>
+  <div class="sheet-head"><div><h3 id="cf-title">Confirm</h3><p id="cf-msg"></p></div><button class="x" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body" id="cf-note-wrap" style="display:none"><label class="field"><span>Note</span><textarea id="cf-note" rows="2"></textarea></label></div>
+  <div class="sheet-foot"><button class="btn btn-line btn-lg" data-close type="button">Cancel</button><button class="btn btn-ok btn-lg" id="cf-ok" type="button">Confirm</button></div></div></div>
+
+<div class="modal" id="m-plan"><div class="sheet"><div class="grabber"></div>
+  <form method="POST" action="{% url 'admin_save_plan' %}">{% csrf_token %}<input type="hidden" name="plan_id" id="pl-id">
+  <div class="sheet-head"><div><h3 id="pl-h">New plan</h3><p>Duration, ROI and allocation limits for one investment plan.</p></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body"><div class="f-grid">
+    <label class="field" style="grid-column:1/-1"><span>Plan title</span><input name="title" id="pl-title" required placeholder="e.g. Sovereign Vault Bullion"></label>
+    <label class="field"><span>Sector</span><select name="area_id" id="pl-area" required>{% for a in investment_areas %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}</select></label>
+    <label class="field"><span>ROI (%)</span><input type="number" name="roi_percentage" id="pl-roi" step="0.01" min="0" required inputmode="decimal" placeholder="12.5"></label>
+    <label class="field"><span>Cycle</span><select name="duration_unit" id="pl-unit"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option><option value="yearly">Yearly</option></select></label>
+    <label class="field"><span>Number of cycles</span><input type="number" name="duration_count" id="pl-count" value="6" min="1" required inputmode="numeric"></label>
+    <label class="field"><span>Minimum ($)</span><input type="number" name="min_deposit" id="pl-min" value="5000" step="any" min="0" required inputmode="decimal"></label>
+    <label class="field"><span>Maximum ($)</span><input type="number" name="max_deposit" id="pl-max" value="250000" step="any" min="0" required inputmode="decimal"></label></div></div>
+  <div class="sheet-foot"><button class="btn btn-line btn-lg" type="button" data-close>Cancel</button><button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-floppy-disk"></i> Save plan</button></div></form></div></div>
+
+<div class="modal" id="m-tier"><div class="sheet"><div class="grabber"></div>
+  <form method="POST" action="{% url 'admin_save_tier' %}">{% csrf_token %}<input type="hidden" name="tier_id" id="ti-id">
+  <div class="sheet-head"><div><h3 id="ti-h">New loan tier</h3><p>The deposit threshold that unlocks a loan bracket.</p></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body"><div class="f-grid">
+    <label class="field"><span>Tier name</span><input name="tier_name" id="ti-name" required placeholder="Silver Private Credit"></label>
+    <label class="field"><span>Badge label</span><input name="badge" id="ti-badge" value="TIER" maxlength="50" required></label>
+    <label class="field" style="grid-column:1/-1"><span>Deposit required ($)</span><input type="number" name="min_deposit_required" id="ti-dep" step="any" min="0" required inputmode="decimal" placeholder="25000"></label>
+    <label class="field"><span>Loan from ($)</span><input type="number" name="min_loan_amount" id="ti-lmin" step="any" min="0" required inputmode="decimal" placeholder="300000"></label>
+    <label class="field"><span>Loan up to ($)</span><input type="number" name="max_loan_amount" id="ti-lmax" step="any" min="0" required inputmode="decimal" placeholder="799000"></label></div></div>
+  <div class="sheet-foot"><button class="btn btn-line btn-lg" type="button" data-close>Cancel</button><button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-floppy-disk"></i> Save tier</button></div></form></div></div>
+
+<div class="modal" id="m-adjust"><div class="sheet sm"><div class="grabber"></div>
+  <form method="POST" id="adj-form" action="">{% csrf_token %}
+  <div class="sheet-head"><div><h3 id="adj-h">Adjust wallet</h3><p id="adj-p"></p></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body"><div class="f-grid">
+    <label class="field" style="grid-column:1/-1"><span>Amount ($)</span><input type="number" name="amount" id="adj-amt" step="0.01" min="0.01" required inputmode="decimal" placeholder="0.00"></label>
+    <label class="field" style="grid-column:1/-1"><span>Reason (shown in their ledger)</span><input name="note" maxlength="150" placeholder="e.g. Bonus credit"></label></div></div>
+  <div class="sheet-foot"><button class="btn btn-bad btn-lg" type="submit" id="adj-debit" data-act="debit"><i class="fas fa-minus"></i> Debit</button><button class="btn btn-ok btn-lg" type="submit" id="adj-credit" data-act="credit"><i class="fas fa-plus"></i> Credit</button></div></form></div></div>
+
+<script src="/static/js/admin.js"></script>
+</body>
+</html>
