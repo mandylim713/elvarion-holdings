@@ -20,15 +20,15 @@ urlpatterns = [
     path('api/realtime-roi/', views.api_realtime_roi, name='api_realtime_roi'),
     path('api/loan-calculator/', views.api_loan_calculator, name='api_loan_calculator'),
 
-    # Dedicated Executive Directorate Authentication
-    path('management/login/', views.admin_login_view, name='admin_login'),
-    path('management/logout/', views.admin_logout_view, name='admin_logout'),
-
     # Admin Management Portal
     path('management/', views.admin_management, name='admin_management'),
     path('management/loan/<int:loan_id>/<str:action>/', views.admin_loan_action, name='admin_loan_action'),
     path('management/deposit/<int:deposit_id>/<str:action>/', views.admin_deposit_action, name='admin_deposit_action'),
     path('management/kyc/<int:submission_id>/<str:action>/', views.admin_kyc_action, name='admin_kyc_action'),
+    path('management/withdrawal/<int:withdrawal_id>/<str:action>/', views.admin_withdrawal_action, name='admin_withdrawal_action'),
+    path('management/user/<int:user_id>/<str:action>/', views.admin_user_action, name='admin_user_action'),
+    path('management/plan/<int:plan_id>/toggle/', views.admin_toggle_plan, name='admin_toggle_plan'),
+    path('management/investment/<int:investment_id>/<str:action>/', views.admin_investment_action, name='admin_investment_action'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
 ]

@@ -549,40 +549,184 @@ def submit_kyc(request):
 
 # ---------------- ADMIN MANAGEMENT PORTAL ----------------
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_management(request):
-    """Executive Admin Management View for quick control over areas, plans, loans, KYC, and deposits"""
-    pending_loans = LoanApplication.objects.filter(status='pending')
-    all_loans = LoanApplication.objects.all()[:20]
-    pending_deposits = DepositRequest.objects.filter(status='pending')
-    pending_withdrawals = WithdrawalRequest.objects.filter(status='pending')
+    """Admin console: overview, queues (deposits, withdrawals, loans, KYC), investors, plans and config"""
+    from django.db.models import Sum
+
+    def total(qs, field):
+        return qs.aggregate(t=Sum(field))['t'] or Decimal('0.00')
+
+    pending_loans = LoanApplication.objects.filter(status='pending').select_related('user', 'user__profile')
+    all_loans = LoanApplication.objects.select_related('user').order_by('-applied_at')[:100]
+    pending_deposits = DepositRequest.objects.filter(status='pending').select_related('user')
+    all_deposits = DepositRequest.objects.select_related('user').order_by('-created_at')[:100]
+    pending_withdrawals = WithdrawalRequest.objects.filter(status='pending').select_related('user')
+    all_withdrawals = WithdrawalRequest.objects.select_related('user').order_by('-created_at')[:100]
     pending_kyc = KYCSubmission.objects.filter(status='pending')
-    all_kyc = KYCSubmission.objects.all().order_by('-submitted_at')[:25]
-    
+    all_kyc = KYCSubmission.objects.select_related('user').order_by('-submitted_at')[:100]
+    investments = UserInvestment.objects.select_related('user', 'plan', 'plan__area').order_by('-created_at')[:100]
+    transactions = Transaction.objects.select_related('user').order_by('-created_at')[:100]
+
     investment_areas = InvestmentArea.objects.all()
-    plans = InvestmentPlan.objects.all()
-    loan_tiers = LoanTierCriteria.objects.all()
-    loan_terms = LoanTermConfig.objects.all()
-    users = User.objects.all().select_related('profile')
+    plans = InvestmentPlan.objects.select_related('area').order_by('area__order', 'title')
+    loan_tiers = LoanTierCriteria.objects.order_by('min_deposit_required')
+    loan_terms = LoanTermConfig.objects.order_by('term_months')
+    users = User.objects.all().select_related('profile').order_by('-date_joined')
+
+    # 7-day approved-deposit bars
+    today = timezone.now().date()
+    days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    daily = []
+    for d in days:
+        amt = total(DepositRequest.objects.filter(status='approved', processed_at__date=d), 'amount')
+        daily.append({'label': d.strftime('%a'), 'value': amt})
+    peak = max([x['value'] for x in daily] + [Decimal('1')])
+    for x in daily:
+        x['pct'] = int((x['value'] / peak) * 100) if peak else 0
+
+    stats = {
+        'aum': total(UserInvestment.objects.filter(status='active'), 'amount'),
+        'active_investments': UserInvestment.objects.filter(status='active').count(),
+        'deposits_total': total(DepositRequest.objects.filter(status='approved'), 'amount'),
+        'wallets_total': total(UserProfile.objects.all(), 'wallet_balance'),
+        'loans_out': total(UserProfile.objects.all(), 'loan_balance'),
+        'withdrawn_total': total(WithdrawalRequest.objects.filter(status='approved'), 'amount'),
+        'pending_deposit_value': total(pending_deposits, 'amount'),
+        'pending_withdrawal_value': total(pending_withdrawals, 'amount'),
+        'pending_loan_value': total(pending_loans, 'amount_requested'),
+        'users': users.count(),
+        'new_users_7d': users.filter(date_joined__gte=timezone.now() - timedelta(days=7)).count(),
+    }
+    queue_total = (pending_loans.count() + pending_deposits.count()
+                   + pending_withdrawals.count() + pending_kyc.count())
 
     context = {
         'pending_loans': pending_loans,
         'all_loans': all_loans,
         'pending_deposits': pending_deposits,
+        'all_deposits': all_deposits,
         'pending_withdrawals': pending_withdrawals,
+        'all_withdrawals': all_withdrawals,
         'pending_kyc': pending_kyc,
         'all_kyc': all_kyc,
+        'investments': investments,
+        'transactions': transactions,
         'investment_areas': investment_areas,
         'plans': plans,
         'loan_tiers': loan_tiers,
         'loan_terms': loan_terms,
         'users': users,
+        'stats': stats,
+        'daily': daily,
+        'queue_total': queue_total,
         'settings': CompanySetting.get_settings(),
     }
     return render(request, 'management/index.html', context)
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
+def admin_withdrawal_action(request, withdrawal_id, action):
+    """Approve (mark dispatched) or decline (refund wallet) a withdrawal"""
+    if request.method != 'POST':
+        return redirect('admin_management')
+    w = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
+    if w.status != 'pending':
+        messages.warning(request, 'That withdrawal was already processed.')
+        return redirect('/management/#withdrawals')
+    note = request.POST.get('admin_notes', '').strip()
+    ref = str(w.reference_id)[:8]
+    with db_transaction.atomic():
+        if action == 'approve':
+            w.status = 'approved'
+            w.processed_at = timezone.now()
+            w.admin_notes = note or 'Dispatched by treasury'
+            w.save()
+            messages.success(request, f"Withdrawal #{ref} for ${w.amount:,.2f} marked as dispatched to {w.user.username}.")
+        elif action == 'reject':
+            w.status = 'rejected'
+            w.processed_at = timezone.now()
+            w.admin_notes = note or 'Declined by treasury'
+            w.save()
+            profile = w.user.profile
+            profile.wallet_balance += w.amount
+            profile.total_withdrawn = max(Decimal('0.00'), profile.total_withdrawn - w.amount)
+            profile.save()
+            Transaction.objects.create(
+                user=w.user, txn_type='withdrawal', amount=w.amount,
+                description=f"Withdrawal #{ref} declined - funds returned", is_credit=True)
+            messages.warning(request, f"Withdrawal #{ref} declined and ${w.amount:,.2f} returned to {w.user.username}'s wallet.")
+    return redirect('/management/#withdrawals')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_user_action(request, user_id, action):
+    """Suspend / reactivate an investor, or credit / debit their wallet"""
+    if request.method != 'POST':
+        return redirect('admin_management')
+    target = get_object_or_404(User, id=user_id)
+    if action == 'toggle_active':
+        if target.id == request.user.id:
+            messages.error(request, 'You cannot suspend your own account.')
+        else:
+            target.is_active = not target.is_active
+            target.save()
+            messages.success(request, f"{target.username} {'reactivated' if target.is_active else 'suspended'}.")
+    elif action in ('credit', 'debit'):
+        try:
+            amount = Decimal(request.POST.get('amount', '0'))
+            if amount <= 0:
+                raise ValueError()
+        except Exception:
+            messages.error(request, 'Enter a valid amount.')
+            return redirect('/management/#users')
+        note = (request.POST.get('note') or '').strip()[:150] or 'Manual adjustment'
+        profile = target.profile
+        with db_transaction.atomic():
+            if action == 'credit':
+                profile.wallet_balance += amount
+            else:
+                if profile.wallet_balance < amount:
+                    messages.error(request, f"{target.username} only has ${profile.wallet_balance:,.2f} available.")
+                    return redirect('/management/#users')
+                profile.wallet_balance -= amount
+            profile.save()
+            Transaction.objects.create(
+                user=target, txn_type='deposit', amount=amount,
+                description=f"Admin {action}: {note}", is_credit=(action == 'credit'))
+        messages.success(request, f"{'Credited' if action == 'credit' else 'Debited'} ${amount:,.2f} {'to' if action == 'credit' else 'from'} {target.username}'s wallet.")
+    return redirect('/management/#users')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_toggle_plan(request, plan_id):
+    """Activate / deactivate an investment plan"""
+    if request.method == 'POST':
+        plan = get_object_or_404(InvestmentPlan, id=plan_id)
+        plan.is_active = not plan.is_active
+        plan.save()
+        messages.success(request, f"Plan '{plan.title}' {'activated' if plan.is_active else 'deactivated'}.")
+    return redirect('/management/#plans')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_investment_action(request, investment_id, action):
+    """Pause or resume a client's investment"""
+    if request.method == 'POST':
+        inv = get_object_or_404(UserInvestment, id=investment_id)
+        if action == 'pause' and inv.status == 'active':
+            inv.status = 'paused'
+        elif action == 'resume' and inv.status == 'paused':
+            inv.status = 'active'
+            inv.last_roi_update = timezone.now()
+        else:
+            return redirect('/management/#investments')
+        inv.save()
+        messages.success(request, f"Investment for {inv.user.username} is now {inv.get_status_display().split(' (')[0].lower()}.")
+    return redirect('/management/#investments')
+
+
+@user_passes_test(lambda u: u.is_staff)
 def admin_kyc_action(request, submission_id, action):
     """Compliance Director approves or declines a KYC submission"""
     submission = get_object_or_404(KYCSubmission, id=submission_id)
@@ -611,10 +755,10 @@ def admin_kyc_action(request, submission_id, action):
 
         messages.warning(request, f"KYC for {submission.full_legal_name} was declined.")
 
-    return redirect('admin_management')
+    return redirect('/management/#kyc')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_loan_action(request, loan_id, action):
     """Admin approves or rejects a loan request"""
     loan = get_object_or_404(LoanApplication, id=loan_id)
@@ -649,10 +793,10 @@ def admin_loan_action(request, loan_id, action):
         loan.save()
         messages.warning(request, f"Loan #{str(loan.loan_reference)[:8]} declined.")
 
-    return redirect('admin_management')
+    return redirect('/management/#loans')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_deposit_action(request, deposit_id, action):
     """Admin approves or rejects a deposit"""
     deposit = get_object_or_404(DepositRequest, id=deposit_id)
@@ -682,10 +826,10 @@ def admin_deposit_action(request, deposit_id, action):
         deposit.save()
         messages.warning(request, f"Deposit #{str(deposit.reference_id)[:8]} rejected.")
 
-    return redirect('admin_management')
+    return redirect('/management/#deposits')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_save_plan(request):
     """Quick edit or create investment plan directly from admin dashboard"""
     if request.method == 'POST':
@@ -723,10 +867,10 @@ def admin_save_plan(request):
             )
             messages.success(request, f"New plan '{title}' created successfully.")
 
-    return redirect('admin_management')
+    return redirect('/management/#plans')
 
 
-@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@user_passes_test(lambda u: u.is_staff)
 def admin_save_tier(request):
     """Quick edit or add loan tier criteria"""
     if request.method == 'POST':
@@ -756,57 +900,4 @@ def admin_save_tier(request):
             )
             messages.success(request, f"New loan tier '{tier_name}' created.")
 
-    return redirect('admin_management')
-
-
-def admin_login_view(request):
-    """Dedicated Executive Directorate & Staff Login Portal"""
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            return redirect('admin_management')
-        else:
-            messages.warning(request, 'Your account does not possess Directorate administrative clearance.')
-            return redirect('dashboard')
-
-    if request.method == 'POST':
-        identifier = request.POST.get('identifier', '').strip()
-        password = request.POST.get('password', '')
-        remember_me = request.POST.get('remember_me') == '1'
-
-        user = authenticate(request, username=identifier, password=password)
-        if not user and '@' in identifier:
-            try:
-                user_obj = User.objects.get(email__iexact=identifier)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
-
-        if user is not None:
-            if not user.is_staff:
-                messages.error(request, 'Access Denied: Account lacks executive underwriting clearance.')
-                return render(request, 'management/login.html')
-
-            login(request, user)
-            if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
-            else:
-                request.session.set_expiry(0)
-
-            UserProfile.objects.get_or_create(user=user)
-            messages.success(request, f'Directorate terminal authorized. Welcome, {user.first_name or user.username}.')
-            next_url = request.GET.get('next')
-            if next_url and next_url.startswith('/management/'):
-                return redirect(next_url)
-            return redirect('admin_management')
-        else:
-            messages.error(request, 'Authentication Failed: Invalid Directorate credentials. This attempt has been logged.')
-
-    return render(request, 'management/login.html')
-
-
-def admin_logout_view(request):
-    """Sign out of executive directorate terminal"""
-    logout(request)
-    messages.info(request, 'Directorate session terminated securely.')
-    return redirect('admin_login')
-
+    return redirect('/management/#tiers')
