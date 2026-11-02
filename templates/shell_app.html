@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{% block title %}Elvarion Holdings{% endblock %}</title>
+<meta name="theme-color" content="#0a1424">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" type="image/png" href="/static/img/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/static/img/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Elvarion">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet" href="/static/css/shell.css">
+</head>
+<body class="theme-ink app">
+<div id="shLoad"></div>
+<div class="sh-boot" id="shBoot"><div><div class="sh-boot-wrap"><div class="ring"></div><div class="c">EH</div></div><small>Private Client Portal</small></div></div>
+
+{% if messages %}
+<div class="toast-container">
+{% for message in messages %}
+<div class="toast-msg toast-{{ message.tags }}">
+  {% if message.tags == 'success' %}<i class="fas fa-circle-check text-emerald"></i>{% elif message.tags == 'error' %}<i class="fas fa-circle-exclamation text-danger"></i>{% else %}<i class="fas fa-circle-info text-cyan"></i>{% endif %}
+  <span>{{ message }}</span>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="sh-wrap">
+<aside class="sh-side" id="shSide">
+  <div class="sh-brand">
+    <div class="sh-crest" data-open-side role="button" aria-label="Expand menu">EH</div>
+    <div class="sh-brand-text"><b>ELVARION</b><small>Client Portal</small></div>
+    <button class="sh-close" type="button" data-close-side aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+  </div>
+  <nav class="sh-nav">
+    {% block side_nav %}{% endblock %}
+  </nav>
+  <div class="sh-foot">
+    <div class="sh-user">
+      <div class="sh-avatar">{{ request.user.username|first|upper }}</div>
+      <div class="sh-user-text"><b>{{ request.user.first_name|default:request.user.username }}</b><small>{% block side_role %}Client{% endblock %}</small></div>
+    </div>
+    <div class="sh-links">
+      <a href="{% url 'home' %}"><i class="fas fa-globe"></i>Website</a>
+      {% if request.user.is_staff %}<a href="{% url 'admin_management' %}"><i class="fas fa-shield-halved"></i>Admin</a>{% endif %}
+      <a href="{% url 'logout' %}"><i class="fas fa-right-from-bracket"></i>Sign out</a>
+    </div>
+  </div>
+</aside>
+<div class="sh-scrim" data-close-side></div>
+
+<div class="sh-main">
+  <header class="sh-top">
+    <button class="sh-burger" type="button" data-open-side aria-label="Menu"><i class="fas fa-bars-staggered"></i></button>
+    <div class="sh-titlebox"><span class="sh-crumb">{% block crumb %}Client Portal{% endblock %}</span><div class="sh-title" id="shTitle">{% block page_title %}Portfolio{% endblock %}</div></div>
+    <div class="sh-spacer"></div>
+    {% block top_actions %}{% endblock %}
+  </header>
+  <main class="sh-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</div>
+
+<script src="/static/js/main.js"></script>
+<script src="/static/js/shell.js"></script>
+</body>
+</html>
