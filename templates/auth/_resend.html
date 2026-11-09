@@ -1,0 +1,19 @@
+<div class="otp-resend">
+  <button type="button" id="resendBtn" class="btn btn-sm btn-outline-gold" data-purpose="{{ purpose }}" data-wait="{{ wait|default:0 }}">Resend code</button>
+  <span id="resendNote" class="otp-note"></span>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('resendBtn'), note=document.getElementById('resendNote'), left=parseInt(btn.dataset.wait||'0',10), t;
+  var tok=document.querySelector('input[name=csrfmiddlewaretoken]').value;
+  function tick(){ if(left>0){ btn.disabled=true; btn.textContent='Resend in '+left+'s'; left--; t=setTimeout(tick,1000);} else { btn.disabled=false; btn.textContent='Resend code'; } }
+  tick();
+  btn.addEventListener('click',function(){
+    btn.disabled=true; note.textContent='Sending...';
+    var fd=new FormData(); fd.append('purpose',btn.dataset.purpose); fd.append('csrfmiddlewaretoken',tok);
+    fetch('{% url "resend_otp" %}',{method:'POST',body:fd,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){
+      note.textContent=d.message||''; left=d.wait||0; clearTimeout(t); tick();
+    }).catch(function(){ note.textContent='Network problem. Try again.'; btn.disabled=false; });
+  });
+})();
+</script>

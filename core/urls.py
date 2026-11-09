@@ -5,7 +5,18 @@ urlpatterns = [
     # Public views
     path('', views.home, name='home'),
     path('register/', views.register_view, name='register'),
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
+    path('robots.txt', views.robots_txt),
     path('login/', views.login_view, name='login'),
+    path('login/verify/', views.login_verify, name='login_verify'),
+    path('verify-email/', views.verify_email, name='verify_email'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/', views.reset_password, name='reset_password'),
+    path('auth/resend-otp/', views.resend_otp, name='resend_otp'),
+    path('settings/profile/', views.settings_profile, name='settings_profile'),
+    path('settings/password/', views.settings_password, name='settings_password'),
+    path('settings/security/', views.settings_security, name='settings_security'),
     path('logout/', views.logout_view, name='logout'),
 
     # Client Portal
@@ -15,6 +26,9 @@ urlpatterns = [
     path('deposit/', views.submit_deposit, name='submit_deposit'),
     path('withdraw/', views.submit_withdrawal, name='submit_withdrawal'),
     path('trade/', views.trade_order, name='trade_order'),
+    path('trade/quick/', views.option_place, name='option_place'),
+    path('api/options/', views.api_options, name='api_options'),
+    path('cron/tick/', views.cron_tick, name='cron_tick'),
     path('api/market/', views.api_market, name='api_market'),
     path('kyc/submit/', views.submit_kyc, name='submit_kyc'),
 

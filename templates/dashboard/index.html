@@ -24,10 +24,21 @@
 
     <div class="sh-label">Account</div>
     <button type="button" class="sh-item" data-tab="tab-kyc" data-title="Verify identity"><i class="fas fa-id-card"></i> Verify identity {% if profile.kyc_status == 'verified' %}<span class="sh-pill ok"><i class="fas fa-check" style="font-size:.6rem;width:auto;color:inherit"></i></span>{% else %}<span class="sh-pill">!</span>{% endif %}</button>
+    <button type="button" class="sh-item" data-tab="tab-settings" data-title="Settings"><i class="fas fa-gear"></i> Settings {% if not profile.email_verified %}<span class="sh-pill">!</span>{% endif %}</button>
+{% endblock %}
+
+{% block bottom_bar %}
+<nav class="sh-bottom" aria-label="Main">
+  <button type="button" class="sh-b active" data-tab="tab-investments" data-title="Portfolio"><i class="fas fa-house"></i>Home</button>
+  <button type="button" class="sh-b" data-tab="tab-trade" data-title="Trade"><i class="fas fa-chart-line"></i>Trade</button>
+  <button type="button" class="sh-b main" data-tab="tab-deposit" data-title="Add money"><i class="fas fa-plus"></i>Add money</button>
+  <button type="button" class="sh-b" data-tab="tab-invest-now" data-title="Investment Plans"><i class="fas fa-layer-group"></i>Invest</button>
+  <button type="button" class="sh-b" data-open-side><i class="fas fa-grid-2"></i>More{% if not profile.email_verified %}<span class="dot"></span>{% endif %}</button>
+</nav>
 {% endblock %}
 
 {% block top_actions %}
-    <span class="sh-chip hide-m"><i class="fas fa-wallet"></i> <b>${{ profile.wallet_balance|floatformat:"2g" }}</b></span>
+    <span class="sh-chip"><i class="fas fa-wallet"></i> <b>${{ profile.wallet_balance|floatformat:"2g" }}</b></span>
     <button type="button" class="sh-chip gold hide-m" onclick="switchDashboardTab('tab-deposit')"><i class="fas fa-plus"></i> Add money</button>
     <button type="button" class="sh-chip" style="width:40px;padding:0;justify-content:center" onclick="openModal('withdrawModal')" title="Withdraw" aria-label="Withdraw"><i class="fas fa-arrow-up-from-bracket"></i></button>
 {% endblock %}
@@ -119,8 +130,8 @@
     <!-- Live Accrued ROI Pulsing Hero Banner -->
     <div class="live-ticker-box portfolio-only" style="margin-bottom: 36px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div class="live-indicator">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div class="live-indicator" style="white-space: nowrap;">
                     <span class="pulse-dot"></span> UPDATED <span id="roi-updated">just now</span>
                 </div>
                 <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">
@@ -261,6 +272,9 @@
                     <span class="badge badge-purple" style="font-size: 0.65rem; margin-left: 6px;">REQUIRED</span>
                 {% endif %}
             </button>
+            <button class="tab-btn" data-tab-target="tab-settings">
+                <i class="fas fa-gear"></i> Settings
+            </button>
             <button class="tab-btn" data-tab-target="tab-transactions">
                 <i class="fas fa-receipt"></i> Transaction Ledger
             </button>
@@ -335,9 +349,14 @@
             <div class="tr-top">
                 <div>
                     <h2 style="font-size: 1.8rem;">Markets</h2>
-                    <p style="color: var(--text-muted); font-size: 0.92rem;">Buy and sell crypto, gold and stocks straight from your wallet. Prices update every few seconds.</p>
+                    <p style="color: var(--text-muted); font-size: 0.92rem;">Buy and sell crypto, gold and stocks, or call a quick up/down trade. <span class="feed-badge {{ feed }}" id="feed-badge"><i class="fas fa-circle"></i> <span>{% if feed == 'live' %}Live prices{% else %}Indicative prices{% endif %}</span></span></p>
                 </div>
             </div>
+            <div class="seg tr-mode" id="tr-mode">
+                <button type="button" class="seg-btn active" data-mode="spot"><i class="fas fa-coins"></i> Buy &amp; sell</button>
+                <button type="button" class="seg-btn" data-mode="quick"><i class="fas fa-bolt"></i> Quick trade{% if open_options %} <span class="sh-pill ok">{{ open_options|length }}</span>{% endif %}</button>
+            </div>
+            <div id="spot-pane">
 
             <div class="tr-sum">
                 <div><small>Wallet balance</small><b class="mono-num">${{ profile.wallet_balance|floatformat:"2g" }}</b><a href="javascript:void(0)" onclick="switchDashboardTab('tab-deposit')">+ Add money</a></div>
@@ -414,6 +433,66 @@
             {% else %}
             <div class="glass-card-luxury tr-empty"><i class="fas fa-clock-rotate-left"></i><b>No trades yet</b><span>Your buys and sells will show up here.</span></div>
             {% endif %}
+            </div><!-- /spot-pane -->
+
+            <!-- QUICK TRADE: call the next move up or down -->
+            <div id="qt-pane" style="display:none">
+                <div class="qt-grid">
+                    <div class="qt-main glass-card-luxury">
+                        <div class="qt-assets" id="qt-assets">
+                            {% for m in option_assets %}
+                            <button type="button" class="qt-asset{% if forloop.first %} active{% endif %}" data-id="{{ m.asset.id }}">
+                                <span class="tr-sym sm {{ m.asset.category }}"><img src="/static/img/logos/{{ m.asset.symbol|lower }}.svg" alt="" onerror="this.parentNode.classList.add('noimg');this.remove()"><span>{{ m.asset.symbol|slice:":4" }}</span></span>
+                                <b>{{ m.asset.symbol }}</b>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="qt-price"><span class="mono-num" id="qt-price">--</span><small class="mono-num" id="qt-ch"></small></div>
+                        <canvas id="qt-chart" height="170"></canvas>
+                        <div class="qt-chart-note" id="qt-chart-note">Chart builds as prices update</div>
+                    </div>
+                    <form class="qt-side glass-card-luxury" method="POST" action="{% url 'option_place' %}" id="qt-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="asset_id" id="qt-asset-id" value="">
+                        <input type="hidden" name="duration" id="qt-duration" value="60">
+                        <label class="qt-lbl">Timer</label>
+                        <div class="qt-times" id="qt-times">
+                            {% for d, lbl in option_durations %}<button type="button" data-d="{{ d }}"{% if d == 60 %} class="active"{% endif %}>{{ lbl }}</button>{% endfor %}
+                        </div>
+                        <label class="qt-lbl">Amount ($)</label>
+                        <div class="qt-stake">
+                            <button type="button" data-step="-10">&minus;</button>
+                            <input type="number" name="stake" id="qt-stake" min="{{ settings.option_min_stake|floatformat:0 }}" step="1" value="50" inputmode="decimal" required>
+                            <button type="button" data-step="10">+</button>
+                        </div>
+                        <div class="chip-row" id="qt-presets"><button type="button" data-v="25">$25</button><button type="button" data-v="100">$100</button><button type="button" data-v="500">$500</button><button type="button" data-v="max">Max</button></div>
+                        <div class="qt-pay"><span>Payout if you win</span><b class="mono-num up" id="qt-win">+$0.00</b></div>
+                        <small class="qt-meta">Win {{ settings.option_payout_pct }}% of your amount. If the price ends where it started you get your money back. Balance <b id="qt-bal">{{ profile.wallet_balance|floatformat:"2g" }}</b></small>
+                        <div class="qt-btns">
+                            <button type="submit" name="direction" value="up" class="qt-up"><i class="fas fa-arrow-trend-up"></i> Up</button>
+                            <button type="submit" name="direction" value="down" class="qt-down"><i class="fas fa-arrow-trend-down"></i> Down</button>
+                        </div>
+                    </form>
+                </div>
+
+                <h3 class="tr-h">Open trades</h3>
+                <div id="qt-open" class="qt-open">
+                    <div class="glass-card-luxury tr-empty"><i class="fas fa-bolt"></i><b>No open quick trades</b><span>Pick a coin, a timer, then tap Up or Down.</span></div>
+                </div>
+
+                <h3 class="tr-h">Results</h3>
+                <div id="qt-done">
+                {% if recent_options %}
+                <div class="glass-card-luxury" style="padding:0;overflow-x:auto"><table class="tr-table"><thead><tr><th>When</th><th>Trade</th><th>Amount</th><th>Result</th></tr></thead><tbody>
+                {% for o in recent_options %}<tr>
+                    <td data-label="When">{{ o.opened_at|date:"M d, H:i" }}</td>
+                    <td data-label="Trade"><span class="tr-tag {% if o.direction == 'up' %}buy{% else %}sell{% endif %}">{{ o.get_direction_display }}</span> <b>{{ o.asset.symbol }}</b></td>
+                    <td data-label="Amount" class="mono-num">${{ o.stake|floatformat:"2g" }}</td>
+                    <td data-label="Result" class="mono-num {% if o.status == 'won' %}up{% elif o.status == 'lost' %}down{% endif %}"><b>{% if o.status == 'won' %}+${{ o.result_amount|floatformat:"2g" }}{% elif o.status == 'lost' %}-${{ o.stake|floatformat:"2g" }}{% else %}Refunded{% endif %}</b></td>
+                </tr>{% endfor %}</tbody></table></div>
+                {% else %}<div class="glass-card-luxury tr-empty"><i class="fas fa-clock-rotate-left"></i><b>No quick trades yet</b><span>Finished trades show up here.</span></div>{% endif %}
+                </div>
+            </div>
         </div>
 
         <!-- TAB 2: Invest in New Sector -->
@@ -883,14 +962,6 @@
                             </div>
                         </div>
 
-                        <!-- Instant Evaluation Credit Demo Switch -->
-                        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 22px;">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.84rem; color: var(--gold-light);">
-                                <input type="checkbox" name="is_demo_instant" value="1" checked style="width: 17px; height: 17px; accent-color: var(--gold-primary);">
-                                <span><strong>Instant Demo Credit:</strong> Immediately reflect funds into wallet & advance private credit loan tiers.</span>
-                            </label>
-                        </div>
-
                         <button type="submit" class="btn btn-gold" style="width: 100%; padding: 13px;">
                             <i class="fas fa-check-circle"></i> Confirm & Dispatch Treasury Notice
                         </button>
@@ -1116,10 +1187,7 @@
                         </p>
                     </div>
 
-                    <!-- Fast Auto-Fill Test KYC Button -->
-                    <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemoKYC()">
-                        <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Test Dossier
-                    </button>
+
                 </div>
 
                 <form method="POST" action="{% url 'submit_kyc' %}" enctype="multipart/form-data">
@@ -1254,6 +1322,53 @@
         </div>
 
         <!-- TAB 6: Transaction Ledger -->
+        <!-- TAB: Settings -->
+        <div id="tab-settings" class="tab-pane" style="display: none;">
+            <div class="tr-top"><div><h2 style="font-size: 1.8rem;">Settings</h2>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">Your details, password and security.</p></div></div>
+            <div class="st-grid">
+                <form class="st-card glass-card-luxury" method="POST" action="{% url 'settings_profile' %}">
+                    {% csrf_token %}
+                    <h3><i class="fas fa-user"></i> Profile</h3>
+                    <div class="st-row">
+                        <label>First name<input class="form-control" name="first_name" value="{{ request.user.first_name }}" autocomplete="given-name"></label>
+                        <label>Last name<input class="form-control" name="last_name" value="{{ request.user.last_name }}" autocomplete="family-name"></label>
+                    </div>
+                    <label>Email<input class="form-control" value="{{ request.user.email }}" disabled></label>
+                    <div class="st-row">
+                        <label>Phone<input class="form-control" name="phone" value="{{ profile.phone }}" autocomplete="tel" inputmode="tel"></label>
+                        <label>Country<input class="form-control" name="country" value="{{ profile.country }}" autocomplete="country-name"></label>
+                    </div>
+                    <label class="st-check"><input type="checkbox" name="email_notifications" value="1" {% if profile.email_notifications %}checked{% endif %}> <span>Email me when deposits, withdrawals and verification are updated</span></label>
+                    <button type="submit" class="btn btn-gold">Save profile</button>
+                </form>
+
+                <div class="st-stack">
+                    <div class="st-card glass-card-luxury">
+                        <h3><i class="fas fa-shield-halved"></i> Security</h3>
+                        <div class="st-line"><div><b>Email address</b><small>{{ request.user.email|default:"No email on file" }}</small></div>
+                            {% if profile.email_verified %}<span class="sh-pill ok">Confirmed</span>{% else %}<a class="btn btn-sm btn-outline-gold" href="{% url 'verify_email' %}">Confirm</a>{% endif %}</div>
+                        <form method="POST" action="{% url 'settings_security' %}" class="st-line">
+                            {% csrf_token %}
+                            <div><b>Sign-in codes</b><small>Ask for an emailed code every time you sign in.{% if not codes_available %} (Email sending is not set up yet.){% endif %}</small></div>
+                            <input type="hidden" name="two_factor" value="{% if profile.two_factor %}0{% else %}1{% endif %}">
+                            <button type="submit" class="btn btn-sm {% if profile.two_factor %}btn-danger-soft{% else %}btn-gold{% endif %}">{% if profile.two_factor %}Turn off{% else %}Turn on{% endif %}</button>
+                        </form>
+                        <div class="st-line"><div><b>Identity check</b><small>{{ profile.get_kyc_status_display }}</small></div><a class="btn btn-sm btn-outline-gold" href="javascript:void(0)" onclick="switchDashboardTab('tab-kyc')">Open</a></div>
+                    </div>
+                    <form class="st-card glass-card-luxury" method="POST" action="{% url 'settings_password' %}">
+                        {% csrf_token %}
+                        <h3><i class="fas fa-key"></i> Change password</h3>
+                        <label>Current password<input class="form-control" type="password" name="current_password" autocomplete="current-password" required></label>
+                        <label>New password<input class="form-control" type="password" name="new_password" minlength="8" autocomplete="new-password" required></label>
+                        <label>Confirm new password<input class="form-control" type="password" name="confirm_password" minlength="8" autocomplete="new-password" required></label>
+                        <button type="submit" class="btn btn-gold">Update password</button>
+                        <a class="st-forgot" href="{% url 'forgot_password' %}" target="_blank">Forgot your current password?</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div id="tab-transactions" class="tab-pane" style="display: none;">
             <div class="glass-card-luxury" style="padding: 24px;">
                 <h3 style="font-size: 1.35rem; margin-bottom: 16px;">Client Account Ledger</h3>
@@ -1643,16 +1758,7 @@ function handleDocSelected(input, labelId) {
     }
 }
 
-function autofillDemoKYC() {
-    document.getElementById('kyc-fullname').value = 'Lord Alexander Sterling';
-    document.getElementById('kyc-dob').value = '1984-09-22';
-    document.getElementById('kyc-country').value = 'United Kingdom';
-    document.getElementById('kyc-address').value = '14 Grosvenor Square, Mayfair';
-    document.getElementById('kyc-city').value = 'London';
-    document.getElementById('kyc-postal').value = 'W1K 6HN';
-    document.getElementById('kyc-idtype').value = 'passport';
-    document.getElementById('kyc-idnumber').value = 'GB849028190';
-}
+
 
 function switchDashboardTab(tabId) {
     const btn = document.querySelector(`[data-tab-target="${tabId}"]`);
@@ -1693,7 +1799,8 @@ const MARKET = {
 const HOLD = {
 {% for h in holdings %}    {{ h.obj.asset_id }}: {{ h.obj.quantity.normalize|stringformat:"f" }},
 {% endfor %}};
-const WALLET = {{ profile.wallet_balance|stringformat:"f" }};
+let WALLET = {{ profile.wallet_balance|stringformat:"f" }};
+const QT_PAYOUT = {{ settings.option_payout_pct }};
 let tradeAsset = null, tradeSide = 'buy';
 
 function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -1773,8 +1880,12 @@ function initTradeUI() {
                 if (ce) { ce.innerText = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '%'; ce.className = 'mono-num ' + (ch >= 0 ? 'up' : 'down'); }
             });
             tradeRefresh();
+            const fb = document.getElementById('feed-badge');
+            if (fb && d.source) { fb.className = 'feed-badge ' + d.source; fb.querySelector('span').innerText = d.source === 'live' ? 'Live prices' : 'Indicative prices'; }
+            if (window.qtOnPrices) window.qtOnPrices();
         }).catch(() => {});
     }
+    window.pollMarket = poll;
     setInterval(poll, 5000);
 
     // withdrawal: bank vs crypto
@@ -1798,6 +1909,143 @@ function initTradeUI() {
     ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = true; });
 }
 
+
+// ---------------- Quick trade (up / down) ----------------
+function initQuickTrade() {
+    const $ = (s) => document.querySelector(s);
+    const pane = $('#qt-pane'), spot = $('#spot-pane');
+    if (!pane) return;
+    const hist = {};           // asset id -> [{t, p}]
+    let cur = null, openList = [], knownDone = null, raf = 0;
+
+    function setMode(m) {
+        document.querySelectorAll('#tr-mode .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+        spot.style.display = m === 'spot' ? '' : 'none';
+        pane.style.display = m === 'quick' ? '' : 'none';
+        try { sessionStorage.setItem('tr_mode', m); } catch (e) {}
+        if (m === 'quick') { if (window.pollMarket) window.pollMarket(); fetchOpen(); drawSoon(); }
+    }
+    document.querySelectorAll('#tr-mode .seg-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+    function pickAsset(id) {
+        cur = id;
+        $('#qt-asset-id').value = id;
+        document.querySelectorAll('#qt-assets .qt-asset').forEach(b => b.classList.toggle('active', b.dataset.id == id));
+        paintPrice(); drawSoon();
+    }
+    document.querySelectorAll('#qt-assets .qt-asset').forEach(b => b.addEventListener('click', () => pickAsset(b.dataset.id)));
+    const first = document.querySelector('#qt-assets .qt-asset'); if (first) pickAsset(first.dataset.id);
+
+    // timer + amount
+    document.querySelectorAll('#qt-times button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#qt-times button').forEach(x => x.classList.toggle('active', x === b));
+        $('#qt-duration').value = b.dataset.d;
+    }));
+    const stake = $('#qt-stake');
+    function paintWin() { const v = parseFloat(stake.value) || 0; $('#qt-win').innerText = '+' + money(v * QT_PAYOUT / 100); }
+    stake.addEventListener('input', paintWin); paintWin();
+    document.querySelectorAll('.qt-stake [data-step]').forEach(b => b.addEventListener('click', () => {
+        stake.value = Math.max(1, (parseFloat(stake.value) || 0) + parseFloat(b.dataset.step)); paintWin();
+    }));
+    document.querySelectorAll('#qt-presets [data-v]').forEach(b => b.addEventListener('click', () => {
+        stake.value = b.dataset.v === 'max' ? Math.floor(WALLET) : b.dataset.v; paintWin();
+    }));
+    $('#qt-form').addEventListener('submit', () => { try { sessionStorage.setItem('tr_mode', 'quick'); } catch (e) {} });
+
+    // price + chart
+    function paintPrice() {
+        const a = MARKET[cur]; if (!a) return;
+        $('#qt-price').innerText = money(a.price);
+        const card = document.getElementById('q-ch-' + cur);
+        if (card) { $('#qt-ch').innerText = card.innerText; $('#qt-ch').className = 'mono-num ' + (card.classList.contains('up') ? 'up' : 'down'); }
+    }
+    window.qtOnPrices = function () {
+        const t = Date.now();
+        Object.keys(MARKET).forEach(id => { (hist[id] = hist[id] || []).push({ t: t, p: MARKET[id].price }); if (hist[id].length > 120) hist[id].shift(); });
+        paintPrice(); drawSoon();
+    };
+    function drawSoon() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); }
+    function draw() {
+        const cv = $('#qt-chart'); if (!cv || pane.style.display === 'none') return;
+        const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = 170;
+        cv.width = w * dpr; cv.height = h * dpr;
+        const c = cv.getContext('2d'); c.scale(dpr, dpr); c.clearRect(0, 0, w, h);
+        const pts = hist[cur] || [];
+        $('#qt-chart-note').style.display = pts.length > 2 ? 'none' : '';
+        if (pts.length < 2) return;
+        const ps = pts.map(x => x.p); let lo = Math.min(...ps), hi = Math.max(...ps);
+        openList.filter(o => o.symbol === (MARKET[cur] || {}).symbol).forEach(o => { lo = Math.min(lo, +o.entry); hi = Math.max(hi, +o.entry); });
+        if (hi === lo) { hi += 1; lo -= 1; } const pad = (hi - lo) * 0.15; lo -= pad; hi += pad;
+        const X = i => 8 + i * (w - 70) / (pts.length - 1), Y = v => h - 12 - (v - lo) / (hi - lo) * (h - 24);
+        const up = ps[ps.length - 1] >= ps[0], col = up ? '#2fd29a' : '#ef6a5e';
+        const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, up ? 'rgba(47,210,154,.28)' : 'rgba(239,106,94,.28)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        c.beginPath(); pts.forEach((x, i) => i ? c.lineTo(X(i), Y(x.p)) : c.moveTo(X(i), Y(x.p)));
+        c.strokeStyle = col; c.lineWidth = 2; c.lineJoin = 'round'; c.stroke();
+        c.lineTo(X(pts.length - 1), h); c.lineTo(X(0), h); c.closePath(); c.fillStyle = g; c.fill();
+        openList.filter(o => o.symbol === (MARKET[cur] || {}).symbol).forEach(o => {
+            const y = Y(+o.entry); c.setLineDash([5, 4]); c.strokeStyle = o.direction === 'up' ? '#2fd29a' : '#ef6a5e'; c.lineWidth = 1;
+            c.beginPath(); c.moveTo(0, y); c.lineTo(w - 62, y); c.stroke(); c.setLineDash([]);
+        });
+        const lx = X(pts.length - 1), ly = Y(ps[ps.length - 1]);
+        c.beginPath(); c.arc(lx, ly, 4, 0, 7); c.fillStyle = col; c.fill();
+        c.fillStyle = '#9aa6bf'; c.font = '11px Manrope, sans-serif'; c.textAlign = 'left'; c.fillText(money(ps[ps.length - 1]).replace('$', ''), lx + 8, ly + 4);
+    }
+    window.addEventListener('resize', drawSoon);
+
+    // open trades + results
+    function toast(msg, ok) {
+        let box = document.querySelector('.toast-container');
+        if (!box) { box = document.createElement('div'); box.className = 'toast-container'; document.body.appendChild(box); }
+        const t = document.createElement('div'); t.className = 'toast-msg toast-' + (ok ? 'success' : 'info');
+        t.innerHTML = '<i class="fas ' + (ok ? 'fa-circle-check text-emerald' : 'fa-circle-info text-cyan') + '"></i><span></span>'; t.querySelector('span').textContent = msg;
+        box.appendChild(t); setTimeout(() => { t.style.opacity = 0; setTimeout(() => t.remove(), 500); }, 5000);
+    }
+    function setBalance(v) {
+        WALLET = parseFloat(v);
+        document.querySelectorAll('.sh-balance b, .sh-chip b').forEach(e => { if (/^\$/.test(e.innerText.trim())) e.innerText = money(WALLET); });
+        const qb = $('#qt-bal'); if (qb) qb.innerText = Number(WALLET).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function renderOpen() {
+        const box = $('#qt-open');
+        if (!openList.length) { box.innerHTML = '<div class="glass-card-luxury tr-empty"><i class="fas fa-bolt"></i><b>No open quick trades</b><span>Pick a coin, a timer, then tap Up or Down.</span></div>'; return; }
+        box.innerHTML = openList.map(o => {
+            const win = (+o.price > +o.entry) === (o.direction === 'up') && +o.price !== +o.entry, flat = +o.price === +o.entry;
+            const pct = Math.max(0, Math.min(100, (o.duration - o.left) / o.duration * 100));
+            return '<div class="qt-card ' + (flat ? '' : (win ? 'winning' : 'losing')) + '"><div class="qt-card-top"><span class="tr-tag ' + (o.direction === 'up' ? 'buy' : 'sell') + '">' + (o.direction === 'up' ? 'Up' : 'Down') + '</span><b>' + esc(o.symbol) + '</b><span class="qt-left mono-num">' + fmtLeft(o.left) + '</span></div>'
+                + '<div class="qt-card-mid"><div><small>Amount</small><b class="mono-num">' + money(o.stake) + '</b></div><div><small>Entry</small><b class="mono-num">' + money(o.entry) + '</b></div><div><small>Now</small><b class="mono-num">' + money(o.price) + '</b></div></div>'
+                + '<div class="qt-bar"><i style="width:' + pct + '%"></i></div></div>';
+        }).join('');
+    }
+    function fmtLeft(s) { return s >= 3600 ? Math.floor(s / 3600) + 'h ' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + 'm' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+    function renderDone(done) {
+        const box = $('#qt-done'); if (!done.length) return;
+        box.innerHTML = '<div class="glass-card-luxury" style="padding:0;overflow-x:auto"><table class="tr-table"><thead><tr><th>Trade</th><th>Amount</th><th>Entry &rarr; Exit</th><th>Result</th></tr></thead><tbody>' + done.map(o =>
+            '<tr><td data-label="Trade"><span class="tr-tag ' + (o.direction === 'up' ? 'buy' : 'sell') + '">' + (o.direction === 'up' ? 'Up' : 'Down') + '</span> <b>' + esc(o.symbol) + '</b></td><td data-label="Amount" class="mono-num">' + money(o.stake) + '</td><td data-label="Entry / Exit" class="mono-num">' + money(o.entry) + ' &rarr; ' + money(o.exit) + '</td><td data-label="Result" class="mono-num ' + (o.status === 'won' ? 'up' : o.status === 'lost' ? 'down' : '') + '"><b>' + (o.status === 'won' ? '+' + money(o.result) : o.status === 'lost' ? '-' + money(o.stake) : 'Refunded') + '</b></td></tr>').join('') + '</tbody></table></div>';
+    }
+    function fetchOpen() {
+        fetch('/api/options/', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (d.status !== 'success') return;
+            openList = d.open; setBalance(d.balance); renderOpen(); drawSoon();
+            const ids = d.done.map(x => x.id);
+            if (knownDone === null) knownDone = ids; else d.done.filter(x => knownDone.indexOf(x.id) < 0).forEach(x => {
+                toast(x.status === 'won' ? x.symbol + ' trade won +' + money(x.result) : x.status === 'lost' ? x.symbol + ' trade ended lower than you called: -' + money(x.stake) : x.symbol + ' ended flat - amount refunded', x.status === 'won');
+            });
+            knownDone = ids; renderDone(d.done);
+        }).catch(() => {});
+    }
+    // local 1s countdown; ask the server when a trade finishes
+    setInterval(() => {
+        let finished = false;
+        openList.forEach(o => { if (o.left > 0) { o.left--; if (o.left === 0) finished = true; } });
+        if (openList.length) renderOpen();
+        if (finished) setTimeout(fetchOpen, 600);
+    }, 1000);
+    setInterval(() => { if (pane.style.display !== 'none' || openList.length) fetchOpen(); }, 6000);
+    fetchOpen();
+    try { if (sessionStorage.getItem('tr_mode') === 'quick' && location.hash === '#tab-trade') window.addEventListener('load', () => setMode('quick')); } catch (e) {}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     recalcUserLoan();
     renderInlineQRCode('{{ settings.usdt_trc20_address }}');
@@ -1805,6 +2053,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (firstGw) selectDepositGateway('BANK_WIRE', firstGw);
     updateCryptoConversion();
     initTradeUI();
+    initQuickTrade();
 });
 </script>
 {% endblock %}

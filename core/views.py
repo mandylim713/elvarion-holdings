@@ -1,4 +1,5 @@
 import json
+import os
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -16,7 +17,12 @@ from .models import (
     DepositRequest, WithdrawalRequest, Transaction, CompanySetting,
     KYCSubmission, TradingAsset, Holding, Trade
 )
-from .market import quote
+from .market import quote, quote_full, feed_status
+from . import accrual, otp
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from .models import OptionTrade
 
 def home(request):
     """Public luxury landing page for elvarionholdings.com"""
@@ -61,8 +67,10 @@ def register_view(request):
             messages.error(request, 'Passwords do not match. Please re-enter.')
             return render(request, 'auth/register.html')
 
-        if len(password) < 6:
-            messages.error(request, 'Security requirement: Password must be at least 6 characters.')
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            messages.error(request, ' '.join(e.messages))
             return render(request, 'auth/register.html')
 
         if User.objects.filter(username=username).exists():
@@ -97,7 +105,11 @@ def register_view(request):
         )
 
         login(request, user)
-        messages.success(request, f'Welcome to Elvarion Holdings Private Wealth, {user.first_name or user.username}. Your secure vault has been provisioned.')
+        if otp.verification_enforced():
+            ok, _w, msg = otp.send_code(user, 'verify')
+            messages.success(request, 'Account created. ' + msg if ok else 'Account created. ' + msg)
+            return redirect('verify_email')
+        messages.success(request, f'Welcome to Elvarion Holdings, {user.first_name or user.username}. Your account is ready.')
         return redirect('dashboard')
 
     return render(request, 'auth/register.html')
@@ -123,25 +135,194 @@ def login_view(request):
                 user = None
 
         if user is not None:
-            login(request, user)
-            if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
-            else:
-                request.session.set_expiry(0)  # On browser close
-
-            # Ensure profile exists
-            UserProfile.objects.get_or_create(user=user)
-            messages.success(request, f'Vault unlocked. Welcome back, {user.first_name or user.username}.')
-            next_url = request.GET.get('next')
-            if next_url:
-                return redirect(next_url)
-            if user.is_staff:
-                return redirect('admin_management')
-            return redirect('dashboard')
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            nxt = request.GET.get('next') or request.POST.get('next') or ''
+            if profile.two_factor and otp.codes_available() and user.email:
+                request.session['pending_2fa'] = {'uid': user.id, 'remember': remember_me, 'next': nxt}
+                ok, _w, msg = otp.send_code(user, 'login')
+                messages.info(request, msg)
+                return redirect('login_verify')
+            return _finish_login(request, user, remember_me, nxt)
         else:
             messages.error(request, 'Authentication failed. Please verify your credentials or contact Treasury Concierge.')
 
     return render(request, 'auth/login.html')
+
+
+def _finish_login(request, user, remember_me, next_url=''):
+    login(request, user)
+    request.session.set_expiry(1209600 if remember_me else 0)
+    messages.success(request, f'Welcome back, {user.first_name or user.username}.')
+    from django.utils.http import url_has_allowed_host_and_scheme
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        return redirect(next_url)
+    return redirect('admin_management' if user.is_staff else 'dashboard')
+
+
+def login_verify(request):
+    """Second step of sign-in for accounts that turned on sign-in codes"""
+    pending = request.session.get('pending_2fa')
+    if not pending:
+        return redirect('login')
+    user = User.objects.filter(id=pending['uid'], is_active=True).first()
+    if not user:
+        request.session.pop('pending_2fa', None)
+        return redirect('login')
+    if request.method == 'POST':
+        if otp.check_code(user, 'login', request.POST.get('code')):
+            request.session.pop('pending_2fa', None)
+            return _finish_login(request, user, pending.get('remember'), pending.get('next', ''))
+        messages.error(request, 'That code is not right or has expired.')
+    return render(request, 'auth/otp.html', {
+        'mode': 'login', 'title': 'Enter your sign-in code', 'email': otp.mask_email(user.email),
+        'purpose': 'login', 'wait': otp.wait_seconds(user, 'login'), 'back_url': 'login'})
+
+
+@login_required
+def verify_email(request):
+    """Confirm the email address with a 6-digit code"""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if profile.email_verified:
+        return redirect('dashboard')
+    if request.method == 'POST':
+        if otp.check_code(request.user, 'verify', request.POST.get('code')):
+            profile.email_verified = True
+            profile.save(update_fields=['email_verified'])
+            messages.success(request, 'Email confirmed. Welcome aboard.')
+            return redirect('dashboard')
+        messages.error(request, 'That code is not right or has expired.')
+    elif not request.user.otp_codes.filter(purpose='verify', used=False, expires_at__gt=timezone.now()).exists():
+        ok, _w, msg = otp.send_code(request.user, 'verify')
+        (messages.info if ok else messages.error)(request, msg)
+    return render(request, 'auth/otp.html', {
+        'mode': 'verify', 'title': 'Confirm your email', 'email': otp.mask_email(request.user.email or ''),
+        'purpose': 'verify', 'wait': otp.wait_seconds(request.user, 'verify'), 'back_url': 'logout'})
+
+
+def forgot_password(request):
+    """Step 1 of password reset: ask for the account email or username"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    if request.method == 'POST':
+        ident = request.POST.get('identifier', '').strip()
+        user = (User.objects.filter(email__iexact=ident).first() if '@' in ident
+                else User.objects.filter(username__iexact=ident).first())
+        request.session['reset_ident'] = ident
+        if user and user.is_active and user.email:
+            if otp.codes_available():
+                otp.send_code(user, 'reset')
+            request.session['reset_uid'] = user.id
+        else:
+            request.session.pop('reset_uid', None)
+        messages.info(request, 'If that account exists, we have sent a 6-digit code to its email.')
+        return redirect('reset_password')
+    return render(request, 'auth/forgot.html', {'ready': otp.codes_available()})
+
+
+def reset_password(request):
+    """Step 2: enter the emailed code and choose a new password"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    if 'reset_ident' not in request.session:
+        return redirect('forgot_password')
+    uid = request.session.get('reset_uid')
+    user = User.objects.filter(id=uid).first() if uid else None
+    if request.method == 'POST':
+        pw, pw2 = request.POST.get('new_password', ''), request.POST.get('confirm_password', '')
+        if pw != pw2:
+            messages.error(request, 'The two passwords do not match.')
+        else:
+            try:
+                validate_password(pw, user)
+            except ValidationError as e:
+                messages.error(request, ' '.join(e.messages))
+            else:
+                if user and otp.check_code(user, 'reset', request.POST.get('code')):
+                    user.set_password(pw)
+                    user.save()
+                    for k in ('reset_uid', 'reset_ident'):
+                        request.session.pop(k, None)
+                    otp.notify(user, 'Your password was changed', 'Your password was just changed. If this was not you, contact support right away.')
+                    messages.success(request, 'Password updated. You can sign in now.')
+                    return redirect('login')
+                messages.error(request, 'That code is not right or has expired.')
+    return render(request, 'auth/reset.html', {
+        'ident': request.session.get('reset_ident', ''), 'wait': otp.wait_seconds(user, 'reset') if user else 0})
+
+
+def resend_otp(request):
+    """Resend a code. POST purpose=verify|login|reset. JSON reply so pages can use it without reloading."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'message': 'POST only'}, status=405)
+    purpose = request.POST.get('purpose')
+    user = None
+    if purpose == 'verify' and request.user.is_authenticated:
+        user = request.user
+    elif purpose == 'login' and request.session.get('pending_2fa'):
+        user = User.objects.filter(id=request.session['pending_2fa']['uid']).first()
+    elif purpose == 'reset' and request.session.get('reset_uid'):
+        user = User.objects.filter(id=request.session['reset_uid']).first()
+    elif purpose == 'reset':
+        return JsonResponse({'ok': True, 'wait': 60, 'message': 'If that account exists, a new code is on its way.'})
+    if not user:
+        return JsonResponse({'ok': False, 'message': 'Please start again.'}, status=400)
+    ok, wait, msg = otp.send_code(user, purpose)
+    return JsonResponse({'ok': ok, 'wait': wait, 'message': msg})
+
+
+# ---------------- ACCOUNT SETTINGS ----------------
+
+@login_required
+def settings_profile(request):
+    if request.method == 'POST':
+        u, p = request.user, request.user.profile
+        u.first_name = request.POST.get('first_name', '').strip()[:60]
+        u.last_name = request.POST.get('last_name', '').strip()[:60]
+        u.save()
+        p.phone = request.POST.get('phone', '').strip()[:30]
+        p.country = request.POST.get('country', '').strip()[:100]
+        p.email_notifications = request.POST.get('email_notifications') == '1'
+        p.save()
+        messages.success(request, 'Profile saved.')
+    return redirect('/dashboard/#tab-settings')
+
+
+@login_required
+def settings_password(request):
+    if request.method == 'POST':
+        cur, new, new2 = request.POST.get('current_password', ''), request.POST.get('new_password', ''), request.POST.get('confirm_password', '')
+        if not request.user.check_password(cur):
+            messages.error(request, 'Your current password is not right.')
+        elif new != new2:
+            messages.error(request, 'The new passwords do not match.')
+        else:
+            try:
+                validate_password(new, request.user)
+            except ValidationError as e:
+                messages.error(request, ' '.join(e.messages))
+            else:
+                request.user.set_password(new)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                otp.notify(request.user, 'Your password was changed', 'Your password was just changed. If this was not you, contact support right away.')
+                messages.success(request, 'Password changed.')
+    return redirect('/dashboard/#tab-settings')
+
+
+@login_required
+def settings_security(request):
+    if request.method == 'POST':
+        p = request.user.profile
+        want = request.POST.get('two_factor') == '1'
+        if want and not p.email_verified:
+            messages.error(request, 'Confirm your email first, then you can turn on sign-in codes.')
+        elif want and not otp.codes_available():
+            messages.error(request, 'Email sending is not set up yet, so sign-in codes are unavailable.')
+        else:
+            p.two_factor = want
+            p.save(update_fields=['two_factor'])
+            messages.success(request, 'Sign-in codes are now ' + ('on.' if want else 'off.'))
+    return redirect('/dashboard/#tab-settings')
 
 
 def logout_view(request):
@@ -154,6 +335,10 @@ def logout_view(request):
 def dashboard(request):
     """Client Portal Dashboard with Live ROI reader, portfolio, loan session, and wallet"""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    for _iid in list(UserInvestment.objects.filter(user=request.user, status='active').values_list('id', flat=True)):
+        accrual.accrue_investment(_iid)
+    accrual.settle_options(user=request.user)
+    profile.refresh_from_db()
     active_investments = UserInvestment.objects.filter(user=request.user, status='active')
     completed_investments = UserInvestment.objects.filter(user=request.user, status='completed')
     all_investments = UserInvestment.objects.filter(user=request.user)
@@ -214,6 +399,12 @@ def dashboard(request):
         'holdings_value': holdings_value,
         'holdings_pl': holdings_value - holdings_cost,
         'recent_trades': recent_trades,
+        'open_options': OptionTrade.objects.filter(user=request.user, status='open').select_related('asset'),
+        'recent_options': OptionTrade.objects.filter(user=request.user).exclude(status='open').select_related('asset')[:8],
+        'option_assets': [m for m in markets if m['asset'].category == 'crypto'] or markets[:5],
+        'option_durations': [(d, (f'{d}s' if d < 60 else f'{d // 60}m' if d < 3600 else f'{d // 3600}h')) for d in accrual.OPTION_DURATIONS],
+        'codes_available': otp.codes_available(),
+        'feed': feed_status(),
         'profile': profile,
         'active_investments': active_investments_data,
         'completed_investments': completed_investments,
@@ -359,7 +550,6 @@ def submit_deposit(request):
     method = request.POST.get('method', 'USDT_TRC20')
     proof_hash = request.POST.get('proof_hash', '').strip()
     receipt_file = request.FILES.get('receipt_image')
-    is_demo_instant = request.POST.get('is_demo_instant') == '1'
 
     try:
         amount = Decimal(amount_str)
@@ -378,27 +568,7 @@ def submit_deposit(request):
         status='pending'
     )
 
-    # If demo instant funding mode is toggled, credit immediately for testing/demo
-    if is_demo_instant:
-        deposit.status = 'approved'
-        deposit.processed_at = timezone.now()
-        deposit.admin_notes = 'Instant Demo Simulation Credit'
-        deposit.save()
-
-        profile.wallet_balance += amount
-        profile.total_deposited += amount
-        profile.save()
-
-        Transaction.objects.create(
-            user=request.user,
-            txn_type='deposit',
-            amount=amount,
-            description=f"Instant Test Deposit ({deposit.get_method_display()})",
-            is_credit=True
-        )
-        messages.success(request, f"Instant Demo: Credited ${amount:,.2f} to your account! Cumulative deposit is now ${profile.total_deposited:,.2f}.")
-    else:
-        messages.success(request, f"Deposit request for ${amount:,.2f} received. Our treasury desk will confirm receipt and credit your balance.")
+    messages.success(request, f"Deposit request for ${amount:,.2f} received. Our treasury desk will confirm receipt and credit your balance.")
 
     return redirect('dashboard')
 
@@ -486,7 +656,7 @@ def trade_order(request):
         messages.error(request, 'Enter an amount of at least $10.')
         return redirect(back)
 
-    price, _ = quote(asset)
+    price, _ = quote(asset, wait=True)
     q8 = Decimal('0.00000001')
     with db_transaction.atomic():
         profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -536,9 +706,83 @@ def api_market(request):
     """Live indicative quotes for the trading screen"""
     out = []
     for a in TradingAsset.objects.filter(is_active=True):
-        pr, ch = quote(a)
-        out.append({'id': a.id, 'symbol': a.symbol, 'price': str(pr), 'change': str(ch)})
-    return JsonResponse({'status': 'success', 'quotes': out})
+        pr, ch, live = quote_full(a)
+        out.append({'id': a.id, 'symbol': a.symbol, 'price': str(pr), 'change': str(ch), 'live': live})
+    return JsonResponse({'status': 'success', 'source': feed_status(), 'quotes': out})
+
+
+# ---------------- QUICK TRADE (up / down) ----------------
+
+@login_required
+def option_place(request):
+    """Open a Quick Trade: call whether the price will be higher or lower when the timer ends"""
+    back = '/dashboard/#tab-trade'
+    if request.method != 'POST':
+        return redirect(back)
+    cs = CompanySetting.get_settings()
+    asset = get_object_or_404(TradingAsset, id=request.POST.get('asset_id'), is_active=True)
+    direction = request.POST.get('direction')
+    try:
+        stake = Decimal(request.POST.get('stake', '0')).quantize(Decimal('0.01'))
+        duration = int(request.POST.get('duration', '60'))
+    except Exception:
+        stake, duration = Decimal('0'), 0
+    if direction not in ('up', 'down') or duration not in accrual.OPTION_DURATIONS:
+        messages.error(request, 'Choose Up or Down and a timer.')
+        return redirect(back)
+    if stake < cs.option_min_stake:
+        messages.error(request, f'The minimum Quick Trade is ${cs.option_min_stake:,.2f}.')
+        return redirect(back)
+    price, _ = quote(asset, wait=True)
+    with db_transaction.atomic():
+        profile = UserProfile.objects.select_for_update().get(user=request.user)
+        if OptionTrade.objects.filter(user=request.user, status='open').count() >= accrual.MAX_OPEN_OPTIONS:
+            messages.error(request, f'You can have up to {accrual.MAX_OPEN_OPTIONS} open Quick Trades at once.')
+            return redirect(back)
+        if profile.wallet_balance < stake:
+            messages.error(request, f'Not enough balance (${profile.wallet_balance:,.2f}). Add money first.')
+            return redirect(back)
+        profile.wallet_balance -= stake
+        profile.save()
+        now = timezone.now()
+        OptionTrade.objects.create(user=request.user, asset=asset, direction=direction, stake=stake,
+                                   payout_pct=cs.option_payout_pct, entry_price=price, duration=duration,
+                                   opened_at=now, expires_at=now + timedelta(seconds=duration))
+        Transaction.objects.create(user=request.user, txn_type='option', amount=stake, is_credit=False,
+                                   description=f"Quick Trade {asset.symbol} {direction} - ${stake:,.2f} for {duration}s")
+    messages.success(request, f"{asset.symbol} {direction.upper()} trade placed at ${price:,.2f}. Result in {duration} seconds.")
+    return redirect(back)
+
+
+@login_required
+def api_options(request):
+    """Open Quick Trades with time left; settles anything that has finished"""
+    accrual.settle_options(user=request.user)
+    now = timezone.now()
+    opens = []
+    for o in OptionTrade.objects.filter(user=request.user, status='open').select_related('asset'):
+        price = quote(o.asset)[0]
+        opens.append({'id': o.id, 'symbol': o.asset.symbol, 'direction': o.direction, 'stake': str(o.stake),
+                      'entry': str(o.entry_price), 'price': str(price), 'payout_pct': o.payout_pct,
+                      'left': max(0, int((o.expires_at - now).total_seconds())), 'duration': o.duration})
+    done = [{'id': o.id, 'symbol': o.asset.symbol, 'direction': o.direction, 'stake': str(o.stake),
+             'status': o.status, 'result': str(o.result_amount), 'entry': str(o.entry_price), 'exit': str(o.exit_price or '')}
+            for o in OptionTrade.objects.filter(user=request.user).exclude(status='open').select_related('asset')[:8]]
+    profile = UserProfile.objects.get(user=request.user)
+    return JsonResponse({'status': 'success', 'open': opens, 'done': done, 'balance': str(profile.wallet_balance)})
+
+
+def cron_tick(request):
+    """Ping URL for an external scheduler (cron-job.org, UptimeRobot...). Also keeps a sleeping free host awake."""
+    if request.GET.get('key') != accrual_token():
+        return JsonResponse({'status': 'forbidden'}, status=403)
+    return JsonResponse({'status': 'ok', **accrual.run_all_jobs()})
+
+
+def accrual_token():
+    import hashlib
+    from django.conf import settings as dj
+    return os.environ.get('CRON_SECRET') or hashlib.sha256(('cron:' + dj.SECRET_KEY).encode()).hexdigest()[:24]
 
 
 # ---------------- API ENDPOINTS ----------------
@@ -738,6 +982,9 @@ def admin_management(request):
         'users': users,
         'assets': TradingAsset.objects.all(),
         'recent_trades': Trade.objects.select_related('user', 'asset').order_by('-created_at')[:50],
+        'recent_options': OptionTrade.objects.select_related('user', 'asset').order_by('-opened_at')[:50],
+        'cron_url': request.build_absolute_uri('/cron/tick/') + '?key=' + accrual_token(),
+        'feed': feed_status(),
         'stats': stats,
         'daily': daily,
         'queue_total': queue_total,
@@ -763,6 +1010,7 @@ def admin_withdrawal_action(request, withdrawal_id, action):
             w.processed_at = timezone.now()
             w.admin_notes = note or 'Dispatched by treasury'
             w.save()
+            otp.notify(w.user, 'Withdrawal sent', f"Your withdrawal of ${w.amount:,.2f} has been sent.")
             messages.success(request, f"Withdrawal #{ref} for ${w.amount:,.2f} marked as dispatched to {w.user.username}.")
         elif action == 'reject':
             w.status = 'rejected'
@@ -776,6 +1024,7 @@ def admin_withdrawal_action(request, withdrawal_id, action):
             Transaction.objects.create(
                 user=w.user, txn_type='withdrawal', amount=w.amount,
                 description=f"Withdrawal #{ref} declined - funds returned", is_credit=True)
+            otp.notify(w.user, 'Withdrawal declined', f"Your withdrawal of ${w.amount:,.2f} was declined and the money is back in your wallet.")
             messages.warning(request, f"Withdrawal #{ref} declined and ${w.amount:,.2f} returned to {w.user.username}'s wallet.")
     return redirect('/management/#withdrawals')
 
@@ -793,6 +1042,12 @@ def admin_user_action(request, user_id, action):
             target.is_active = not target.is_active
             target.save()
             messages.success(request, f"{target.username} {'reactivated' if target.is_active else 'suspended'}.")
+    elif action == 'reset_password':
+        import secrets
+        temp = secrets.token_urlsafe(9)
+        target.set_password(temp)
+        target.save()
+        messages.success(request, f"New temporary password for {target.username}: {temp}  (share it privately - they should change it in Settings).")
     elif action in ('credit', 'debit'):
         try:
             amount = Decimal(request.POST.get('amount', '0'))
@@ -836,8 +1091,16 @@ def admin_investment_action(request, investment_id, action):
     if request.method == 'POST':
         inv = get_object_or_404(UserInvestment, id=investment_id)
         if action == 'pause' and inv.status == 'active':
+            accrual.accrue_investment(inv.id)
+            inv.refresh_from_db()
+            if inv.status != 'active':
+                return redirect('/management/#investments')
             inv.status = 'paused'
+            inv.last_roi_update = timezone.now()
         elif action == 'resume' and inv.status == 'paused':
+            gap = timezone.now() - inv.last_roi_update
+            inv.start_date += gap          # the paused time does not earn ROI
+            inv.end_date += gap
             inv.status = 'active'
             inv.last_roi_update = timezone.now()
         else:
@@ -863,6 +1126,7 @@ def admin_kyc_action(request, submission_id, action):
         profile.kyc_status = 'verified'
         profile.save()
 
+        otp.notify(submission.user, 'Identity verified', 'Your identity check was approved. Withdrawals and loans are now unlocked.')
         messages.success(request, f"KYC for {submission.full_legal_name} ({submission.user.username}) approved as Tier-1 Verified.")
     elif action == 'reject':
         submission.status = 'rejected'
@@ -920,7 +1184,12 @@ def admin_loan_action(request, loan_id, action):
 @user_passes_test(lambda u: u.is_staff)
 def admin_deposit_action(request, deposit_id, action):
     """Admin approves or rejects a deposit"""
+    if request.method != 'POST':
+        return redirect('/management/#deposits')
     deposit = get_object_or_404(DepositRequest, id=deposit_id)
+    if deposit.status != 'pending':
+        messages.warning(request, 'That deposit was already processed.')
+        return redirect('/management/#deposits')
 
     if action == 'approve':
         deposit.status = 'approved'
@@ -940,11 +1209,13 @@ def admin_deposit_action(request, deposit_id, action):
             is_credit=True
         )
         dep_ref = str(deposit.reference_id)[:8]
+        otp.notify(deposit.user, 'Deposit confirmed', f"Your deposit of ${deposit.amount:,.2f} has been confirmed and added to your wallet.")
         messages.success(request, f"Deposit #{dep_ref} for ${deposit.amount:,.2f} approved and credited to {deposit.user.username}.")
     elif action == 'reject':
         deposit.status = 'rejected'
         deposit.processed_at = timezone.now()
         deposit.save()
+        otp.notify(deposit.user, 'Deposit not confirmed', f"We could not confirm your deposit of ${deposit.amount:,.2f}. Please contact support or submit the payment proof again.")
         messages.warning(request, f"Deposit #{str(deposit.reference_id)[:8]} rejected.")
 
     return redirect('/management/#deposits')
@@ -1035,6 +1306,17 @@ def admin_save_settings(request):
         for k in fields:
             if k in request.POST:
                 setattr(cs, k, request.POST.get(k, '').strip()[:150])
+        if request.POST.get('form') == 'platform':
+            cs.use_live_prices = request.POST.get('use_live_prices') == '1'
+            cs.require_email_verification = request.POST.get('require_email_verification') == '1'
+            try:
+                cs.option_payout_pct = max(1, min(500, int(request.POST.get('option_payout_pct', cs.option_payout_pct))))
+                cs.option_min_stake = max(Decimal('1'), Decimal(request.POST.get('option_min_stake', cs.option_min_stake)))
+            except Exception:
+                pass
+            cs.save()
+            messages.success(request, 'Platform settings saved.')
+            return redirect('/management/#markets')
         cs.save()
         messages.success(request, 'Payment details saved.')
     return redirect('/management/#payments')
@@ -1073,3 +1355,26 @@ def admin_save_asset(request):
             TradingAsset.objects.create(symbol=sym, decimals=4 if price < 10 else 3, **data)
             messages.success(request, f"{sym} added to the markets.")
     return redirect('/management/#markets')
+
+
+# ---------------- STATIC PAGES ----------------
+
+def privacy(request):
+    return render(request, 'legal.html', {'page': 'privacy', 'settings': CompanySetting.get_settings()})
+
+
+def terms(request):
+    return render(request, 'legal.html', {'page': 'terms', 'settings': CompanySetting.get_settings()})
+
+
+def robots_txt(request):
+    from django.http import HttpResponse
+    return HttpResponse("User-agent: *\nAllow: /\nDisallow: /dashboard/\nDisallow: /management/\nDisallow: /admin/\nDisallow: /api/\n", content_type='text/plain')
+
+
+def error_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+
+def error_500(request):
+    return render(request, '500.html', status=500)

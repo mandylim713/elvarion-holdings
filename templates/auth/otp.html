@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | Elvarion Holdings{% endblock %}
+{% block utility_bar %}{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card-standard">
+    <div class="auth-heading">
+      <div class="brand-crest">EH</div>
+      <span class="eyebrow center">{% if mode == 'login' %}Secure sign-in{% else %}Almost there{% endif %}</span>
+      <h2 style="margin-top:14px">{{ title }}</h2>
+      <p>We emailed a 6-digit code to <b>{{ email }}</b>. It is valid for 10 minutes.</p>
+    </div>
+    <form method="POST" autocomplete="off">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="otp-code">6-digit code</label>
+        <input type="text" id="otp-code" name="code" class="form-control otp-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;padding:16px">{% if mode == 'login' %}Sign in{% else %}Confirm email{% endif %} <i class="fas fa-arrow-right"></i></button>
+    </form>
+    {% include 'auth/_resend.html' %}
+    <p class="otp-foot"><a href="{% url back_url %}">{% if mode == 'login' %}Back to sign in{% else %}Sign out{% endif %}</a></p>
+  </div>
+</div>
+{% endblock %}

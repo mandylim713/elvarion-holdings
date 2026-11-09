@@ -14,13 +14,6 @@
             <p>Real Estate, Physical Gold, Trusts, Money Markets &amp; Private Credit &mdash; in three short steps</p>
         </div>
 
-        <div class="demo-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div class="head" style="margin: 0;"><span><i class="fas fa-bolt"></i> Demo Preset &mdash; fill test investor details</span></div>
-            <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillRegisterPreset()">
-                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill
-            </button>
-        </div>
-
         <!-- Onboarding Progress Indicator -->
         <div class="onboarding-steps">
             <div class="step-indicator active" id="step-tab-1" onclick="switchStep(1)">
@@ -343,16 +336,6 @@ function checkPasswordMatch() {
     }
 }
 
-function autofillRegisterPreset() {
-    const randNum = Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('reg-fullname').value = 'Lord Alexander Sterling';
-    document.getElementById('reg-email').value = `sterling.${randNum}@elvarion-wealth.com`;
-    document.getElementById('reg-username').value = `sterling_${randNum}`;
-    document.getElementById('reg-password').value = 'Sterling@Vault2026';
-    document.getElementById('reg-confirm').value = 'Sterling@Vault2026';
-    document.getElementById('reg-phone').value = '202 555 0194';
-    checkPasswordStrength();
-    checkPasswordMatch();
-}
+
 </script>
 {% endblock %}
