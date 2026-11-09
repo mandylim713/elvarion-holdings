@@ -295,14 +295,14 @@
 
                     <h3 style="font-size: 1.3rem; margin-bottom: 4px;">{{ item.obj.plan.title }}</h3>
                     <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
-                        Allocated: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.amount|floatformat:"2g" }}</strong> &bull; Term: <strong>{{ item.obj.plan.duration_count }} {{ item.obj.plan.get_duration_unit_display }}</strong>
+                        Allocated: <strong class="mono-num" style="color: #ffffff;">${{ item.obj.amount|floatformat:"2g" }}</strong> &bull; Term: <strong>{{ item.obj.term_label }}</strong>
                     </div>
 
                     <!-- Live Reading Ticker Card -->
                     <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">
                             <span>Profit earned so far</span>
-                            <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ item.obj.plan.roi_percentage }}% {{ item.obj.plan.duration_unit|upper }}</span>
+                            <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ item.obj.plan.roi_percentage }}% MONTHLY</span>
                         </div>
                         <div id="inv-roi-{{ item.obj.id }}" class="mono-num" data-target-value="{{ item.accrued_roi|floatformat:2 }}" style="font-size: 1.75rem; font-weight: 800; color: #34d399;">
                             ${{ item.accrued_roi|floatformat:"2g" }}
@@ -500,7 +500,7 @@
             <div style="margin-bottom: 24px;">
                 <h2 style="font-size: 1.6rem; margin-bottom: 4px;">Select an Investment Sector & Plan</h2>
                 <p style="color: var(--text-muted); font-size: 0.92rem;">
-                    Allocate capital directly from your wallet balance. Each plan features unique payout frequencies and durations.
+                    Allocate capital directly from your wallet balance. Every plan pays a monthly rate — choose 1 month, 3 months, 6 months or 1 year.
                 </p>
             </div>
 
@@ -526,7 +526,6 @@
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span class="badge badge-gold">{{ plan.badge }}</span>
-                                <span class="badge badge-cyan">{{ plan.duration_count }} {{ plan.get_duration_unit_display|upper }}</span>
                             </div>
 
                             <h4 style="font-size: 1.25rem; margin-top: 14px;">{{ plan.title }}</h4>
@@ -534,19 +533,20 @@
 
                             <div class="plan-roi-header">
                                 <div class="plan-roi-val">{{ plan.roi_percentage }}%</div>
-                                <div class="plan-duration-badge">{{ plan.get_duration_unit_display }} Payout Frequency</div>
+                                <div class="plan-duration-badge">per month</div>
                             </div>
 
                             <ul class="features-list" style="margin-bottom: 16px;">
                                 <li><i class="fas fa-check"></i> Min: <strong class="mono-num" style="color: #ffffff;">${{ plan.min_deposit|floatformat:"0g" }}</strong> &bull; Max: <strong class="mono-num" style="color: #ffffff;">${{ plan.max_deposit|floatformat:"0g" }}</strong></li>
-                                <li><i class="fas fa-check"></i> Cumulative Expected ROI: <strong class="mono-num text-emerald">{{ plan.total_expected_roi }}%</strong></li>
+                                <li style="display:block"><div style="margin-bottom:8px"><i class="fas fa-check"></i> Total return by period</div>
+                                    <div class="term-grid">{% for t in plan.terms %}<div><span>{% if t.months == 12 %}1 year{% elif t.months == 1 %}1 month{% else %}{{ t.months }} months{% endif %}</span><strong class="mono-num text-emerald">{{ t.total_pct|floatformat:"-2" }}%</strong></div>{% endfor %}</div></li>
                                 <li><i class="fas fa-check"></i> Capital Returned at Term Completion</li>
                             </ul>
                         </div>
 
                         <div>
                             <button class="btn btn-gold" style="width: 100%;" 
-                                onclick="selectPlanForInvest('{{ plan.id }}', '{{ plan.title }}', '{{ area.name }}', '{{ plan.min_deposit }}', '{{ plan.max_deposit }}', '{{ plan.roi_percentage }}% {{ plan.get_duration_unit_display }}')">
+                                onclick="selectPlanForInvest('{{ plan.id }}', '{{ plan.title }}', '{{ area.name }}', '{{ plan.min_deposit }}', '{{ plan.max_deposit }}', '{{ plan.roi_percentage }}')">
                                 <i class="fas fa-plus"></i> Allocate Capital (${{ plan.min_deposit|floatformat:"0g" }}+)
                             </button>
                         </div>
@@ -1429,6 +1429,21 @@
                     <span id="invest-min-max-label" class="mono-num" style="font-size: 0.78rem; color: var(--text-dim);"></span>
                 </div>
                 <input type="number" id="invest-amount-input" name="amount" class="form-control mono-num" min="1000" step="500" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Investment period</label>
+                <div class="term-pills" id="invest-terms">
+                    <label><input type="radio" name="term" value="1" required><span>1 month</span></label>
+                    <label><input type="radio" name="term" value="3"><span>3 months</span></label>
+                    <label><input type="radio" name="term" value="6" checked><span>6 months</span></label>
+                    <label><input type="radio" name="term" value="12"><span>1 year</span></label>
+                </div>
+            </div>
+
+            <div class="term-quote">
+                <div><span>Total return</span><strong id="invest-quote-pct" class="mono-num text-emerald">&mdash;</strong></div>
+                <div><span>You receive at maturity</span><strong id="invest-quote-total" class="mono-num">&mdash;</strong></div>
             </div>
 
             <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; font-size: 0.85rem; display: flex; justify-content: space-between;">

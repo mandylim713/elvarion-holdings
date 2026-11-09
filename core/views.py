@@ -449,6 +449,14 @@ def create_investment(request):
     plan = get_object_or_404(InvestmentPlan, id=plan_id, is_active=True)
     profile = request.user.profile
 
+    try:
+        term = int(request.POST.get('term', '0'))
+    except ValueError:
+        term = 0
+    if term not in InvestmentPlan.TERM_MONTHS:
+        messages.error(request, 'Please choose a term: 1 month, 3 months, 6 months or 1 year.')
+        return redirect('dashboard')
+
     if amount < plan.min_deposit:
         messages.error(request, f'Minimum deposit for {plan.title} is ${plan.min_deposit:,.2f}.')
         return redirect('dashboard')
@@ -467,8 +475,8 @@ def create_investment(request):
         profile.save()
 
         now = timezone.now()
-        end_date = now + timedelta(seconds=plan.total_duration_seconds)
-        total_roi_pct = (plan.roi_percentage * plan.duration_count) / Decimal('100.0')
+        end_date = now + timedelta(days=30 * term)
+        total_roi_pct = (plan.roi_percentage * term) / Decimal('100.0')
         projected_roi = amount * total_roi_pct
 
         investment = UserInvestment.objects.create(
@@ -478,6 +486,7 @@ def create_investment(request):
             start_date=now,
             end_date=end_date,
             total_projected_roi=projected_roi,
+            term_months=term,
             status='active'
         )
 
@@ -485,7 +494,7 @@ def create_investment(request):
             user=request.user,
             txn_type='investment',
             amount=amount,
-            description=f"Investment in {plan.title} ({plan.area.name} - {plan.roi_percentage}% {plan.duration_unit})",
+            description=f"Investment in {plan.title} ({plan.area.name} - {plan.roi_percentage}% monthly, {investment.term_label})",
             is_credit=False
         )
 
@@ -810,8 +819,9 @@ def api_realtime_roi(request):
             'area': inv.plan.area.name,
             'amount': float(inv.amount),
             'roi_percentage': float(inv.plan.roi_percentage),
-            'duration_unit': inv.plan.duration_unit,
-            'duration_count': inv.plan.duration_count,
+            'duration_unit': 'monthly',
+            'duration_count': inv.term_months or inv.plan.duration_count,
+            'term_label': inv.term_label,
             'projected_roi': float(inv.total_projected_roi),
             'accrued_roi': round(accrued, 2),
             'progress_percentage': round(inv.get_progress_percentage(), 2),
@@ -1235,8 +1245,7 @@ def admin_save_plan(request):
         title = request.POST.get('title')
         area_id = request.POST.get('area_id')
         roi_percentage = Decimal(request.POST.get('roi_percentage', '5.0'))
-        duration_unit = request.POST.get('duration_unit', 'monthly')
-        duration_count = int(request.POST.get('duration_count', '1'))
+        duration_unit, duration_count = 'monthly', 12   # every plan: monthly rate, 1/3/6/12-month terms
         min_deposit = Decimal(request.POST.get('min_deposit', '1000'))
         max_deposit = Decimal(request.POST.get('max_deposit', '50000'))
 

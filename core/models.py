@@ -123,8 +123,20 @@ class InvestmentPlan(models.Model):
 
     @property
     def total_expected_roi(self):
-        """Total ROI percentage over the complete term"""
-        return self.roi_percentage * self.duration_count
+        """Total ROI percentage over the longest term (12 months)"""
+        return self.roi_percentage * 12
+
+    # Every plan is priced as a monthly rate and offered in these terms (months).
+    TERM_MONTHS = (1, 3, 6, 12)
+
+    @property
+    def terms(self):
+        out = []
+        for m in self.TERM_MONTHS:
+            out.append({'months': m,
+                        'label': '1 month' if m == 1 else ('1 year' if m == 12 else f'{m} months'),
+                        'total_pct': self.roi_percentage * m})
+        return out
 
 
 class UserInvestment(models.Model):
@@ -143,6 +155,7 @@ class UserInvestment(models.Model):
     last_roi_update = models.DateTimeField(default=timezone.now)
     accumulated_roi = models.DecimalField(max_digits=16, decimal_places=4, default=Decimal('0.0000'))
     total_projected_roi = models.DecimalField(max_digits=16, decimal_places=2, default=Decimal('0.00'))
+    term_months = models.PositiveSmallIntegerField(default=0, help_text='Chosen term: 1, 3, 6 or 12 months')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -154,12 +167,22 @@ class UserInvestment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.end_date:
-            duration_secs = self.plan.total_duration_seconds
+            duration_secs = self.term_months * 30 * 86400 if self.term_months else self.plan.total_duration_seconds
             self.end_date = self.start_date + timedelta(seconds=duration_secs)
         if not self.total_projected_roi:
-            total_pct = (self.plan.roi_percentage * self.plan.duration_count) / Decimal('100.0')
+            if self.term_months:
+                total_pct = (self.plan.roi_percentage * self.term_months) / Decimal('100.0')
+            else:
+                total_pct = (self.plan.roi_percentage * self.plan.duration_count) / Decimal('100.0')
             self.total_projected_roi = self.amount * total_pct
         super().save(*args, **kwargs)
+
+    @property
+    def term_label(self):
+        m = self.term_months
+        if not m:
+            return f"{self.plan.duration_count} {self.plan.get_duration_unit_display()}"
+        return '1 month' if m == 1 else ('1 year' if m == 12 else f'{m} months')
 
     def get_realtime_accrued_roi(self):
         """Calculates exact accrued ROI up to the current second"""

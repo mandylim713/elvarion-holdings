@@ -51,7 +51,7 @@
                 <div>
                     <span class="eyebrow">Yield Estimator</span>
                     <h3 style="margin-top: 10px;">Project your returns</h3>
-                    <p>Across daily, weekly, monthly and yearly cycles</p>
+                    <p>Every plan: choose 1 month, 3 months, 6 months or 1 year</p>
                 </div>
                 <div class="live-indicator"><span class="pulse-dot"></span> Live</div>
             </div>
@@ -69,12 +69,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="hero-calc-duration">Duration Cycle</label>
+                    <label class="form-label" for="hero-calc-duration">Investment Period</label>
                     <select id="hero-calc-duration" class="form-control">
-                        <option value="daily">Daily Accrual</option>
-                        <option value="weekly">Weekly Accrual</option>
-                        <option value="monthly" selected>Monthly Distribution</option>
-                        <option value="yearly">Yearly Compounding</option>
+                        <option value="1">1 month</option>
+                        <option value="3">3 months</option>
+                        <option value="6" selected>6 months</option>
+                        <option value="12">1 year</option>
                     </select>
                 </div>
 
@@ -135,7 +135,7 @@
                 For more than a decade, Elvarion Holdings has managed wealth the way it ought to be managed — patiently, transparently and with an unwavering sense of fiduciary duty. Every portfolio is built around tangible assets with real-world value.
             </p>
             <p>
-                Clients choose independent plans within each asset class, set their own payout rhythm — daily, weekly, monthly or yearly — and follow every accrual through a private live portal. Qualifying deposits also open access to our private credit desk.
+                Clients choose independent plans within each asset class, choose a 1-month, 3-month, 6-month or 1-year period, and follow every accrual through a private live portal. Qualifying deposits also open access to our private credit desk.
             </p>
             <div class="intro-signature">
                 <div><div class="k">4</div><div class="v">Asset Pillars</div></div>
@@ -224,8 +224,8 @@
                 Direct ownership of serial-numbered bars held in bonded Zurich and Geneva vaults, fully insured, with the option of physical delivery upon maturity.
             </p>
             <div class="feature-figures">
-                <div><div class="k">1.10%</div><div class="v">Daily Yield</div></div>
-                <div><div class="k pos">24.0%</div><div class="v">Annual Return</div></div>
+                <div><div class="k">4.8%</div><div class="v">Monthly Yield</div></div>
+                <div><div class="k pos">1 - 12</div><div class="v">Month Terms</div></div>
             </div>
         </div>
     </div>
@@ -293,13 +293,14 @@
 
                     <div class="plan-roi-header">
                         <div class="plan-roi-val">{{ plan.roi_percentage }}<span style="font-size: .5em; color: var(--gold-primary);">%</span></div>
-                        <div class="plan-duration-badge">{{ plan.duration_count }} {{ plan.get_duration_unit_display }} cycle</div>
+                        <div class="plan-duration-badge">per month</div>
                     </div>
 
                     <ul class="features-list">
                         <li><i class="fas fa-diamond"></i> Minimum <strong class="mono-num">${{ plan.min_deposit|floatformat:"0g" }}</strong></li>
                         <li><i class="fas fa-diamond"></i> Maximum <strong class="mono-num">${{ plan.max_deposit|floatformat:"0g" }}</strong></li>
-                        <li><i class="fas fa-diamond"></i> Term return <strong class="mono-num" style="color: var(--emerald-accent) !important;">{{ plan.total_expected_roi }}%</strong></li>
+                        <li><i class="fas fa-diamond"></i> Periods <strong>1 &middot; 3 &middot; 6 months &middot; 1 year</strong></li>
+                        <li><i class="fas fa-diamond"></i> 1-year return <strong class="mono-num" style="color: var(--emerald-accent) !important;">{{ plan.total_expected_roi|floatformat:"-2" }}%</strong></li>
                         <li><i class="fas fa-diamond"></i> Capital returned at maturity</li>
                     </ul>
                 </div>

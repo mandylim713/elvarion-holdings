@@ -103,42 +103,14 @@ function initPublicRoiEstimator() {
 
     if (!depositInput || !areaSelect || !durationSelect) return;
 
+    // Every plan pays a monthly rate; terms are 1, 3, 6 or 12 months. Rate shown is the sector's top monthly plan.
+    const MONTHLY = { 'real-estate': 12.5, 'gold': 4.8, 'trust-fund': 8.5, 'money-market': 6.2, 'crypto': 8.0 };
+
     function calculateEstimatedYield() {
         const deposit = parseFloat(depositInput.value) || 25000;
-        const selectedArea = areaSelect.value;
-        const durationType = durationSelect.value;
-
-        // Estimated returns based on areas
-        let rate = 12.5; // default monthly %
-        let termUnits = 6;
-        let unitName = 'Months';
-
-        if (selectedArea === 'real-estate') {
-            if (durationType === 'daily') { rate = 0.8; termUnits = 30; unitName = 'Days'; }
-            else if (durationType === 'weekly') { rate = 3.2; termUnits = 12; unitName = 'Weeks'; }
-            else if (durationType === 'monthly') { rate = 12.5; termUnits = 6; unitName = 'Months'; }
-            else { rate = 32.0; termUnits = 1; unitName = 'Year'; }
-        } else if (selectedArea === 'gold') {
-            if (durationType === 'daily') { rate = 1.1; termUnits = 30; unitName = 'Days'; }
-            else if (durationType === 'weekly') { rate = 2.4; termUnits = 10; unitName = 'Weeks'; }
-            else if (durationType === 'monthly') { rate = 4.8; termUnits = 3; unitName = 'Months'; }
-            else { rate = 24.0; termUnits = 1; unitName = 'Year'; }
-        } else if (selectedArea === 'trust-fund') {
-            if (durationType === 'weekly') { rate = 2.1; termUnits = 16; unitName = 'Weeks'; }
-            else if (durationType === 'monthly') { rate = 8.5; termUnits = 12; unitName = 'Months'; }
-            else { rate = 45.0; termUnits = 2; unitName = 'Years'; }
-        } else if (selectedArea === 'crypto') {
-            if (durationType === 'daily') { rate = 0.5; termUnits = 30; unitName = 'Days'; }
-            else if (durationType === 'weekly') { rate = 1.8; termUnits = 12; unitName = 'Weeks'; }
-            else if (durationType === 'monthly') { rate = 8.0; termUnits = 6; unitName = 'Months'; }
-            else { rate = 60.0; termUnits = 1; unitName = 'Year'; }
-        } else { // money market
-            if (durationType === 'daily') { rate = 0.65; termUnits = 14; unitName = 'Days'; }
-            else if (durationType === 'monthly') { rate = 6.2; termUnits = 6; unitName = 'Months'; }
-            else { rate = 18.5; termUnits = 1; unitName = 'Year'; }
-        }
-
-        const totalRoiPct = (rate * termUnits);
+        const rate = MONTHLY[areaSelect.value] || 6;
+        const months = parseInt(durationSelect.value, 10) || 6;
+        const totalRoiPct = rate * months;
         const totalProfit = deposit * (totalRoiPct / 100);
         const totalPayout = deposit + totalProfit;
 
@@ -148,7 +120,7 @@ function initPublicRoiEstimator() {
 
         if (profitEl) profitEl.innerText = `+$${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         if (payoutEl) payoutEl.innerText = `$${totalPayout.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        if (rateLabelEl) rateLabelEl.innerText = `${rate}% ${durationType.toUpperCase()} (${totalRoiPct.toFixed(1)}% TOTAL)`;
+        if (rateLabelEl) rateLabelEl.innerText = `${rate}% MONTHLY (${totalRoiPct.toFixed(1)}% TOTAL)`;
     }
 
     depositInput.addEventListener('input', calculateEstimatedYield);
@@ -218,7 +190,22 @@ function closeModal(modalId) {
 }
 
 // Quick fill for Investment modal
-function selectPlanForInvest(planId, planTitle, areaName, minDeposit, maxDeposit, roiDisplay) {
+let _planMonthlyRate = 0;
+function updateInvestQuote() {
+    const amt = parseFloat((document.getElementById('invest-amount-input') || {}).value) || 0;
+    const t = document.querySelector('#invest-terms input[name=term]:checked');
+    const pctEl = document.getElementById('invest-quote-pct');
+    const totEl = document.getElementById('invest-quote-total');
+    if (!t || !pctEl || !totEl) return;
+    const months = parseInt(t.value, 10);
+    const pct = _planMonthlyRate * months;
+    pctEl.innerText = `${pct.toFixed(2).replace(/\.?0+$/, '')}%  (+$${(amt * pct / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    totEl.innerText = `$${(amt * (1 + pct / 100)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+document.addEventListener('change', (e) => { if (e.target.closest && e.target.closest('#invest-terms')) updateInvestQuote(); });
+document.addEventListener('input', (e) => { if (e.target.id === 'invest-amount-input') updateInvestQuote(); });
+
+function selectPlanForInvest(planId, planTitle, areaName, minDeposit, maxDeposit, monthlyRate) {
     const modal = document.getElementById('investModal');
     if (!modal) return;
 
@@ -232,7 +219,8 @@ function selectPlanForInvest(planId, planTitle, areaName, minDeposit, maxDeposit
     if (inputPlanId) inputPlanId.value = planId;
     if (labelPlan) labelPlan.innerText = planTitle;
     if (labelArea) labelArea.innerText = areaName;
-    if (labelRoi) labelRoi.innerText = roiDisplay;
+    _planMonthlyRate = parseFloat(monthlyRate) || 0;
+    if (labelRoi) labelRoi.innerText = `${_planMonthlyRate}% per month`;
     if (inputAmount) {
         inputAmount.value = minDeposit;
         inputAmount.min = minDeposit;
@@ -240,5 +228,6 @@ function selectPlanForInvest(planId, planTitle, areaName, minDeposit, maxDeposit
     }
     if (minMaxLabel) minMaxLabel.innerText = `Range: $${parseFloat(minDeposit).toLocaleString()} - $${parseFloat(maxDeposit).toLocaleString()}`;
 
+    updateInvestQuote();
     openModal('investModal');
 }

@@ -44,7 +44,7 @@ def run():
             'description': 'Direct equity and structured debt participations in prime international real estate assets generating stable quarterly appreciation and premier leasehold yields.',
             'icon': 'building',
             'risk_level': 'Low - Moderate',
-            'expected_roi_range': '12.5% - 32.0%',
+            'expected_roi_range': '2.67% - 12.5% monthly',
             'order': 1,
         },
         {
@@ -54,7 +54,7 @@ def run():
             'description': 'Physical allocated bullion ownership combined with institutional precious metals arbitrage to hedge against fiat debasement and capture steady commodity yield.',
             'icon': 'coins',
             'risk_level': 'Conservative',
-            'expected_roi_range': '4.8% - 24.0%',
+            'expected_roi_range': '2.0% - 5.0% monthly',
             'order': 2,
         },
         {
@@ -64,7 +64,7 @@ def run():
             'description': 'Tax-optimized diversified fiduciary trusts managed under strict statutory governance, delivering predictable high-yield compounding across sovereign debt and blue-chip equities.',
             'icon': 'shield-alt',
             'risk_level': 'Balanced Growth',
-            'expected_roi_range': '8.5% - 45.0%',
+            'expected_roi_range': '3.75% - 8.5% monthly',
             'order': 3,
         },
         {
@@ -74,7 +74,7 @@ def run():
             'description': 'Maximum capital liquidity with daily dividend accruals backed by top-tier government securities, central bank deposits, and investment-grade corporate instruments.',
             'icon': 'chart-pie',
             'risk_level': 'Ultra Low',
-            'expected_roi_range': '0.65% Daily - 18.5% Yearly',
+            'expected_roi_range': '4.0% - 6.2% monthly',
             'order': 4,
         },
         {
@@ -84,7 +84,7 @@ def run():
             'description': 'Managed exposure to the largest digital assets: custody-secured Bitcoin reserves, Ethereum staking and stablecoin lending, with ROI paid into your wallet automatically.',
             'icon': 'bitcoin-sign',
             'risk_level': 'Moderate - High',
-            'expected_roi_range': '6.0% - 9.5% Monthly',
+            'expected_roi_range': '6.0% - 8.0% monthly',
             'order': 5,
         },
     ]
@@ -135,7 +135,7 @@ def run():
             'duration_unit': 'weekly',
             'duration_count': 12,
             'capital_returned': True,
-            'badge': 'WEEKLY YIELD',
+            'badge': 'HIGH YIELD',
             'is_featured': False,
             'description': 'Distribution centers leased to multinational ecommerce conglomerates.',
             'features_list': '3.2% Weekly Payout\n12 Weeks Fixed Term\nLiquid weekly withdrawals\nZero Maintenance Fee',
@@ -179,7 +179,7 @@ def run():
             'duration_unit': 'daily',
             'duration_count': 30,
             'capital_returned': True,
-            'badge': 'DAILY PAYOUT',
+            'badge': 'FLEXIBLE',
             'is_featured': False,
             'description': 'Short-cycle physical settlement liquidity pool with daily returns.',
             'features_list': '1.1% Daily Payout\n30 Days Cycle\nReal-time Accrual Ticker\nPrincipal returned on day 30',
@@ -275,6 +275,20 @@ def run():
             'features_list': '1.8% Weekly Return\n12 Week Term\nDollar-Pegged Principal\nLow Volatility',
         },
     ]
+
+    # Every plan is a MONTHLY rate; investors choose 1, 3, 6 or 12 months.
+    MONTHLY_RATES = {
+        'Luxury Residential Developments': '2.67', 'Logistics Infrastructure Syndicate': '7.00',
+        'Precious Metals Arbitrage': '2.00', 'Fast-Track Bullion Liquidity': '5.00',
+        'Sovereign Endowment Trust': '3.75', 'Institutional Daily Liquidity Fund': '4.00',
+        'Stablecoin Yield Account': '7.00',
+    }
+    for p in plans_data:
+        if p['title'] in MONTHLY_RATES:
+            p['roi_percentage'] = Decimal(MONTHLY_RATES[p['title']])
+        p['duration_unit'], p['duration_count'] = 'monthly', 12
+        p['features_list'] = (f"{p['roi_percentage']}% Monthly Return\nChoose 1, 3, 6 or 12 months\n"
+                              "Capital Returned at Maturity\nLive ROI in Your Dashboard")
 
     for p in plans_data:
         InvestmentPlan.objects.get_or_create(
@@ -394,7 +408,7 @@ def run():
 
     # Create active investments across multiple areas to demonstrate real-time reading ROI
     reit_plan = InvestmentPlan.objects.filter(area__slug='real-estate-investment').first()
-    gold_plan = InvestmentPlan.objects.filter(area__slug='gold-investment', duration_unit='daily').first()
+    gold_plan = InvestmentPlan.objects.filter(area__slug='gold-investment', title='Fast-Track Bullion Liquidity').first()
     trust_plan = InvestmentPlan.objects.filter(area__slug='trust-fund-investment').first()
 
     now = timezone.now()
@@ -402,37 +416,40 @@ def run():
         if reit_plan:
             # Started 14 days ago
             start_1 = now - timedelta(days=14)
-            end_1 = start_1 + timedelta(seconds=reit_plan.total_duration_seconds)
+            end_1 = start_1 + timedelta(days=30 * 6)
             inv1 = UserInvestment.objects.create(
                 user=vip_user,
                 plan=reit_plan,
                 amount=Decimal('25000.00'),
                 start_date=start_1,
                 end_date=end_1,
+                term_months=6,
                 status='active'
             )
         if gold_plan:
             # Started 5 days ago
             start_2 = now - timedelta(days=5)
-            end_2 = start_2 + timedelta(seconds=gold_plan.total_duration_seconds)
+            end_2 = start_2 + timedelta(days=30 * 3)
             inv2 = UserInvestment.objects.create(
                 user=vip_user,
                 plan=gold_plan,
                 amount=Decimal('10000.00'),
                 start_date=start_2,
                 end_date=end_2,
+                term_months=3,
                 status='active'
             )
         if trust_plan:
             # Started 3 days ago
             start_3 = now - timedelta(days=3)
-            end_3 = start_3 + timedelta(seconds=trust_plan.total_duration_seconds)
+            end_3 = start_3 + timedelta(days=30 * 12)
             inv3 = UserInvestment.objects.create(
                 user=vip_user,
                 plan=trust_plan,
                 amount=Decimal('20000.00'),
                 start_date=start_3,
                 end_date=end_3,
+                term_months=12,
                 status='active'
             )
         print("[*] Created 3 live active investments across Real-Estate, Gold, and Trust Fund")

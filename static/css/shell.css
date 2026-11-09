@@ -256,3 +256,21 @@ body.app main.sh-content { animation: none !important; }
   body.app .btn { min-height: 46px; }
   body.app .modal-content { max-height: 92vh; overflow-y: auto; padding-bottom: calc(24px + var(--sh-safe)); }
 }
+
+/* Investment period picker */
+.term-pills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.term-pills label{cursor:pointer;margin:0}
+.term-pills input{position:absolute;opacity:0;pointer-events:none}
+.term-pills span{display:block;text-align:center;padding:12px 4px;border-radius:12px;border:1px solid rgba(255,255,255,.14);font-size:.82rem;font-weight:600;color:var(--text-muted);transition:.15s}
+.term-pills input:checked+span{border-color:#c9a45c;color:#c9a45c;background:rgba(201,164,92,.12)}
+.term-pills input:focus-visible+span{outline:2px solid #c9a45c}
+.term-quote{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.term-quote div{background:rgba(255,255,255,.04);border-radius:12px;padding:12px}
+.term-quote span{display:block;font-size:.7rem;color:var(--text-dim);margin-bottom:4px}
+.term-quote strong{font-size:.92rem;overflow-wrap:anywhere}
+@media(max-width:420px){.term-quote{grid-template-columns:1fr}.term-pills span{font-size:.74rem}}
+.term-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.term-grid div{background:rgba(255,255,255,.04);border-radius:10px;padding:8px 4px;text-align:center}
+.term-grid span{display:block;font-size:.64rem;color:var(--text-dim);margin-bottom:2px}
+.term-grid strong{font-size:.78rem}
+#tab-invest-now .plan-roi-val{font-size:clamp(2rem,3.2vw,3rem);white-space:nowrap}

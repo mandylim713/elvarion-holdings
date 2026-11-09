@@ -451,3 +451,34 @@ class TestSeparateAdminLogin(TestCase):
     def test_crypto_sector_listed_on_home(self):
         InvestmentArea.objects.create(name='Digital Assets & Crypto', slug='digital-assets-crypto', tagline='x', description='x', icon='bitcoin-sign')
         self.assertContains(self.client.get('/'), 'Digital Assets &amp; Crypto')
+
+
+class TestInvestmentTerms(TestCase):
+    """Plans pay a monthly rate; the investor picks 1, 3, 6 or 12 months."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('term_user', 't@example.com', 'Passw0rd!x')
+        self.profile = UserProfile.objects.create(user=self.user, wallet_balance=Decimal('10000.00'), email_verified=True)
+        area = InvestmentArea.objects.create(name='T', slug='t')
+        self.plan = InvestmentPlan.objects.create(area=area, title='Monthly 5%', roi_percentage=Decimal('5.00'),
+                                                  min_deposit=Decimal('100'), max_deposit=Decimal('9000'))
+        self.client.force_login(self.user)
+
+    def test_each_term_prices_correctly(self):
+        for term, total_pct in ((1, 5), (3, 15), (6, 30), (12, 60)):
+            self.client.post('/invest/', {'plan_id': self.plan.id, 'amount': '1000', 'term': str(term)})
+            inv = UserInvestment.objects.filter(user=self.user).order_by('-id').first()
+            self.assertEqual(inv.term_months, term)
+            self.assertEqual(inv.total_projected_roi, Decimal(1000 * total_pct) / 100)
+            self.assertEqual((inv.end_date - inv.start_date).days, 30 * term)
+
+    def test_invalid_term_rejected(self):
+        for bad in ('', '2', '30', 'abc'):
+            self.client.post('/invest/', {'plan_id': self.plan.id, 'amount': '1000', 'term': bad})
+        self.assertEqual(UserInvestment.objects.filter(user=self.user).count(), 0)
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.wallet_balance, Decimal('10000.00'))
+
+    def test_plan_terms_property(self):
+        self.assertEqual([t['months'] for t in self.plan.terms], [1, 3, 6, 12])
+        self.assertEqual(self.plan.terms[3]['total_pct'], Decimal('60.00'))
