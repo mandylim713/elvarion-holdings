@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from . import otp
 
 OPEN_PREFIXES = ('/verify-email', '/auth/', '/logout', '/static/', '/media/', '/login', '/register',
-                 '/forgot-password', '/reset-password', '/cron/', '/admin/', '/robots.txt', '/privacy', '/terms')
+                 '/forgot-password', '/reset-password', '/cron/', '/management', '/robots.txt', '/privacy', '/terms')
 
 
 class EmailVerificationMiddleware:

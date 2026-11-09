@@ -52,7 +52,6 @@
     </div>
     <div class="sh-links">
       <a href="{% url 'home' %}"><i class="fas fa-globe"></i>Website</a>
-      {% if request.user.is_staff %}<a href="{% url 'admin_management' %}"><i class="fas fa-shield-halved"></i>Admin</a>{% endif %}
       <a href="{% url 'logout' %}"><i class="fas fa-right-from-bracket"></i>Sign out</a>
     </div>
   </div>

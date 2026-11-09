@@ -1,106 +1,44 @@
-{% extends 'base.html' %}
-
-{% block title %}Executive Directorate Portal | Elvarion Holdings{% endblock %}
-{% block utility_bar %}{% endblock %}
-{% block bottom_nav %}{% endblock %}
-
-{% block content %}
-<div class="auth-split">
-    <aside class="auth-aside">
-        <div class="bg" style="background-image: url('/static/img/login_bg.jpg');"></div>
-        <div class="frame"></div>
-        <div class="content">
-            <span class="eyebrow">Executive Desk</span>
-            <blockquote>&ldquo;Institutional governance, underwriting discipline &amp; statutory oversight.&rdquo;</blockquote>
-            <ul class="points">
-                <li><i class="fas fa-shield-halved"></i> Multi-asset private credit &amp; underwriting queue</li>
-                <li><i class="fas fa-shield-halved"></i> Real-time Treasury deposits &amp; liquidity authorization</li>
-                <li><i class="fas fa-shield-halved"></i> Tiered KYC verification &amp; regulatory audit trail</li>
-            </ul>
-        </div>
-    </aside>
-
-    <div class="auth-main">
-        <div class="auth-card-standard">
-            <div class="auth-heading">
-                <div class="brand-crest">EH</div>
-                <div style="display: flex; justify-content: center; gap: 8px; margin: 10px 0 6px;">
-                    <span class="badge badge-gold"><i class="fas fa-shield-halved"></i> RESTRICTED TERMINAL</span>
-                    <span class="badge badge-cyan"><i class="fas fa-sliders"></i> EXECUTIVE DESK</span>
-                </div>
-                <h2 style="margin-top: 10px;">Directorate Access</h2>
-                <p>Authorized Personnel Underwriting &amp; Fiduciary Governance</p>
-            </div>
-
-            <!-- Statutory Restriction Notice -->
-            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-sm, 6px); padding: 12px 14px; margin-bottom: 22px; font-size: 0.8rem; color: #fca5a5; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;">
-                <i class="fas fa-triangle-exclamation" style="font-size: 0.95rem; color: #f87171; margin-top: 2px;"></i>
-                <span><strong>Restricted Access:</strong> Access is audited and restricted to Elvarion directors, underwriters, and compliance officers.</span>
-            </div>
-
-            <form method="POST" action="{% url 'admin_login' %}">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label class="form-label" for="admin-identifier" style="display: flex; justify-content: space-between;">
-                        <span>Directorate ID or Corporate Email <span class="text-danger">*</span></span>
-                        <i class="fas fa-id-badge" style="color: var(--gold-primary); font-size: 0.8rem;"></i>
-                    </label>
-                    <input type="text" id="admin-identifier" name="identifier" class="form-control" placeholder="directorate username or email" required autofocus>
-                </div>
-
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                        <label class="form-label" for="admin-password" style="margin-bottom: 0;">Security Clearance Key <span class="text-danger">*</span></label>
-                        <span style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Hardware Key / Passkey</span>
-                    </div>
-                    <div class="password-input-group">
-                        <input type="password" id="admin-password" name="password" class="form-control" placeholder="••••••••••••" required>
-                        <button type="button" class="password-toggle-btn" onclick="toggleAdminPassword(this)" aria-label="Toggle password visibility">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; font-size: 0.82rem;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-muted);">
-                        <input type="checkbox" name="remember_me" value="1" checked style="width: 15px; height: 15px; accent-color: var(--gold-primary);">
-                        <span>Maintain authorized workstation session</span>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-gold" style="width: 100%; padding: 15px; font-size: 0.95rem; font-weight: 700;">
-                    <i class="fas fa-fingerprint"></i> Authenticate Directorate Session
-                </button>
-            </form>
-
-            <div class="trust-badges-bar" style="margin-top: 24px;">
-                <div class="trust-badge-item"><i class="fas fa-shield text-emerald"></i><span>Audit Log Active</span></div>
-                <div class="trust-badge-item"><i class="fas fa-lock text-gold"></i><span>HSM Protected</span></div>
-                <div class="trust-badge-item"><i class="fas fa-network-wired text-cyan"></i><span>SOC 2 Type II</span></div>
-            </div>
-
-            <div style="text-align: center; margin-top: 22px; font-size: 0.82rem; color: var(--text-dim);">
-                Private client or investor?
-                <a href="{% url 'login' %}" style="color: var(--gold-light); text-decoration: none; font-weight: 600; margin-left: 4px;">Client Sign-In</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-function toggleAdminPassword(btn) {
-    const input = document.getElementById('admin-password');
-    const icon = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-</script>
-{% endblock %}
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin Sign In | Elvarion Holdings</title>
+<meta name="theme-color" content="#0a1424">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="icon" type="image/png" href="/static/img/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:20px;background:#0a1424;background-image:radial-gradient(900px 500px at 15% -10%,#13243f,transparent),radial-gradient(700px 500px at 100% 110%,#1b2c4a,transparent);font-family:Manrope,sans-serif;color:#1b2434}
+.card{width:100%;max-width:420px;background:#f6f2ea;border:1px solid #d9c9a6;border-radius:16px;padding:34px 30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.crest{width:56px;height:56px;margin:0 auto 14px;border:1px solid #b8955a;display:grid;place-items:center;font:italic 600 1.5rem 'Cormorant Garamond',serif;color:#8a6a35;position:relative}.crest::after{content:'';position:absolute;inset:4px;border:1px solid rgba(184,149,90,.4)}
+.tag{display:block;text-align:center;font-size:.64rem;letter-spacing:.24em;text-transform:uppercase;color:#8a6a35;font-weight:800}
+h1{margin:6px 0 4px;text-align:center;font:600 1.9rem 'Cormorant Garamond',serif;color:#0a1424}p.sub{text-align:center;margin:0 0 22px;color:#6b7385;font-size:.88rem}
+label{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#4a5568;margin:0 0 7px}
+.f{margin-bottom:16px}.in{width:100%;height:48px;border:1px solid #d5cdbb;background:#fff;border-radius:10px;padding:0 14px;font:inherit;font-size:16px;color:#1b2434;outline:0}.in:focus{border-color:#b8955a;box-shadow:0 0 0 3px rgba(184,149,90,.2)}
+.pw{position:relative}.pw button{position:absolute;right:4px;top:4px;width:40px;height:40px;border:0;background:none;color:#7a8296;cursor:pointer}
+.btn{width:100%;height:50px;border:0;border-radius:10px;background:#0a1424;color:#d9c08a;font:800 .8rem Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:6px}.btn:hover{background:#13243f}
+.err{background:#f9e4e0;color:#b4483a;border:1px solid #f0c4bc;border-radius:10px;padding:11px 14px;font-size:.86rem;margin-bottom:16px;line-height:1.5}.ok{background:#e4f4ec;color:#1f8a5b;border-color:#bfe2cf}
+.foot{text-align:center;margin-top:20px;font-size:.78rem;color:#7a8296;line-height:1.6}.foot a{color:#8a6a35;text-decoration:none;border-bottom:1px solid #d9c9a6}
+.lock{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:18px;color:#7a8296;font-size:.74rem}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="crest">EH</div>
+  <span class="tag">Admin Portal</span>
+  <h1>Staff sign in</h1>
+  <p class="sub">Authorised administrators only.</p>
+  {% for m in messages %}<div class="err {% if m.tags == 'info' or m.tags == 'success' %}ok{% endif %}" role="alert">{{ m }}</div>{% endfor %}
+  <form method="POST" autocomplete="off">
+    {% csrf_token %}
+    <div class="f"><label for="a-id">Username or email</label><input class="in" id="a-id" name="identifier" value="{{ ident|default:'' }}" autocomplete="username" required autofocus></div>
+    <div class="f"><label for="a-pw">Password</label><div class="pw"><input class="in" id="a-pw" type="password" name="password" autocomplete="current-password" required><button type="button" aria-label="Show password" onclick="var i=document.getElementById('a-pw');i.type=i.type==='password'?'text':'password'"><i class="fas fa-eye"></i></button></div></div>
+    <button class="btn" type="submit">Sign in <i class="fas fa-arrow-right"></i></button>
+  </form>
+  <div class="lock"><i class="fas fa-lock"></i> Sessions are logged and expire after 8 hours</div>
+  <div class="foot">Looking for your investment account? <a href="{% url 'login' %}">Investor sign in</a></div>
+</main>
+</body>
+</html>
