@@ -25,3 +25,10 @@ Codes: 6 digits, valid 10 minutes, 5 tries, one new code per 60 seconds (resend 
 Crypto: CryptoCompare (fallback CoinGecko). Stocks, gold, silver: Yahoo Finance. No API keys needed.
 Admin > Markets & trading shows whether prices are "live" or "indicative" (fallback to the reference prices).
 Switch live prices off there if you prefer fixed reference prices.
+
+## Custom domain: elvarionholdings.com
+1. Render dashboard > your web service > Settings > Custom Domains > add `elvarionholdings.com` and `www.elvarionholdings.com`.
+2. At your domain registrar's DNS page add exactly the records Render shows (usually an A record or ALIAS for the bare domain and a CNAME for `www` pointing to your `.onrender.com` address). Wait for Render to show "Verified" - it issues the HTTPS certificate by itself.
+3. `www.` automatically redirects to `elvarionholdings.com`.
+4. Email from your own domain (Resend): Resend > Domains > add `elvarionholdings.com`, add the DNS records it lists (SPF + DKIM), wait for "Verified", then set `DEFAULT_FROM_EMAIL` to `Elvarion Holdings <no-reply@elvarionholdings.com>` in Render.
+5. Use the new address in the cron ping (Admin > Markets & trading shows it automatically once you open the admin on the new domain).

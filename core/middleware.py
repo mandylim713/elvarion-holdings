@@ -22,3 +22,17 @@ class EmailVerificationMiddleware:
             if not verified and otp.verification_enforced():
                 return redirect('verify_email')
         return self.get_response(request)
+
+
+class WwwRedirectMiddleware:
+    """www.elvarionholdings.com -> elvarionholdings.com (one canonical address)"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        host = request.get_host().split(':')[0].lower()
+        if host == 'www.elvarionholdings.com':
+            from django.http import HttpResponsePermanentRedirect
+            return HttpResponsePermanentRedirect('https://elvarionholdings.com' + request.get_full_path())
+        return self.get_response(request)

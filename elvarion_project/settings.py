@@ -16,7 +16,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-1hyj&o2lqqac=vg^!$z#!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # Render only routes your own domains here; add 'elvarionholdings.com' if you ever restrict this
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.middleware.WwwRedirectMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
