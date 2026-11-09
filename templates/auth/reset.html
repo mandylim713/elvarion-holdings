@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Choose a new password | Elvarion Holdings{% endblock %}
+{% block utility_bar %}{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card-standard">
+    <div class="auth-heading">
+      <div class="brand-crest">EH</div>
+      <span class="eyebrow center">Account recovery</span>
+      <h2 style="margin-top:14px">Choose a new password</h2>
+      <p>Enter the 6-digit code we emailed to you, then your new password.</p>
+    </div>
+    <form method="POST" autocomplete="off">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="r-code">6-digit code</label>
+        <input type="text" id="r-code" name="code" class="form-control otp-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="r-pw">New password</label>
+        <input type="password" id="r-pw" name="new_password" class="form-control" minlength="8" autocomplete="new-password" required>
+        <small class="otp-note">At least 8 characters, not too common.</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="r-pw2">Confirm new password</label>
+        <input type="password" id="r-pw2" name="confirm_password" class="form-control" minlength="8" autocomplete="new-password" required>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;padding:16px">Update password <i class="fas fa-check"></i></button>
+    </form>
+    {% with purpose='reset' %}{% include 'auth/_resend.html' %}{% endwith %}
+    <p class="otp-foot"><a href="{% url 'login' %}">&larr; Back to sign in</a></p>
+  </div>
+</div>
+{% endblock %}

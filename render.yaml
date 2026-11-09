@@ -29,3 +29,16 @@ services:
         value: "False"
       - key: WEB_CONCURRENCY
         value: "4"
+      # ---- Email codes (sign-up, sign-in, password reset). Fill ONE of the two options in the Render dashboard.
+      - key: RESEND_API_KEY        # option 1: Resend (resend.com) API key
+        sync: false
+      - key: DEFAULT_FROM_EMAIL    # e.g. Elvarion Holdings <no-reply@yourdomain.com> (a domain verified in Resend)
+        sync: false
+      - key: EMAIL_HOST            # option 2: any SMTP server (also set EMAIL_HOST_USER / EMAIL_HOST_PASSWORD)
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: CRON_SECRET           # optional: fixed key for the /cron/tick/ ping URL (otherwise one is derived)
+        generateValue: true

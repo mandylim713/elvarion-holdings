@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{% if page == 'privacy' %}Privacy Notice{% else %}Terms of Use{% endif %} | {{ settings.site_name }}{% endblock %}
+{% block content %}
+<section class="legal-page">
+  <div class="legal-inner">
+    <span class="eyebrow">{% if page == 'privacy' %}Privacy{% else %}Legal{% endif %}</span>
+    {% if page == 'privacy' %}
+    <h1>Privacy Notice</h1>
+    <p class="lead">How {{ settings.site_name }} handles your information. Last updated November 2026.</p>
+    <h2>What we collect</h2>
+    <p>Your name, email, phone number and country when you open an account; identity documents when you complete verification; and a record of your deposits, withdrawals, investments and trades so we can run your account.</p>
+    <h2>How we use it</h2>
+    <p>To operate your account, confirm your identity, process payments, send security codes and account notices, prevent fraud and meet legal obligations. We do not sell your personal information.</p>
+    <h2>Email and security codes</h2>
+    <p>We email one-time codes to confirm your address, finish sign-in when you turn on sign-in codes, and reset a forgotten password. Codes expire after 10 minutes. You can switch notification emails off in Settings.</p>
+    <h2>Keeping it safe</h2>
+    <p>Passwords are stored hashed, sessions are encrypted in transit, and staff access is logged. Please keep your password private and sign out on shared devices.</p>
+    <h2>Your choices</h2>
+    <p>You can update your details in Settings or ask us to correct or delete your information by writing to <a href="mailto:{{ settings.support_email }}">{{ settings.support_email }}</a>.</p>
+    {% else %}
+    <h1>Terms of Use</h1>
+    <p class="lead">The rules for using {{ settings.site_name }}. Last updated November 2026.</p>
+    <h2>Your account</h2>
+    <p>You must give accurate information, keep your login details private and tell us promptly if you think someone else has used your account. We may ask you to verify your identity before withdrawals or loans.</p>
+    <h2>Deposits and withdrawals</h2>
+    <p>Deposits are credited after our team confirms receipt. Withdrawals are reviewed and sent to the payout details you provide; check them carefully, as payments sent to the wrong details may not be recoverable.</p>
+    <h2>Investment plans</h2>
+    <p>Each plan states its return, term and minimum. Returns are paid into your wallet as they are earned and your capital is returned at the end of the term where the plan says so.</p>
+    <h2 id="risk">Risk disclosure</h2>
+    <p>Trading crypto, metals and shares, and Quick Trades in particular, carries a high risk of loss. Prices can move fast and you can lose the whole amount you commit to a trade. Only trade with money you can afford to lose. Past results do not guarantee future results.</p>
+    <h2>Contact</h2>
+    <p>{{ settings.site_name }} &middot; {{ settings.corporate_address }} &middot; <a href="mailto:{{ settings.support_email }}">{{ settings.support_email }}</a></p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -22,66 +22,32 @@ function initToastAutoDismiss() {
     });
 }
 
-// Live High-Frequency ROI Pulsing Ticker
-let liveRoiInterval = null;
+// Accurate ROI display: real server values, 2 decimals, refreshed every 30s (no ticking)
 function initRoiTickers() {
-    const totalTickerEl = document.getElementById('live-total-roi');
-    const investmentCards = document.querySelectorAll('[data-investment-id]');
+    const totalEl = document.getElementById('live-total-roi');
+    const cards = document.querySelectorAll('[data-investment-id]');
+    if (!totalEl && cards.length === 0) return;
+    const fmt = v => '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    if (!totalTickerEl && investmentCards.length === 0) return;
-
-    // Periodically sync with backend every 8 seconds
-    function syncLiveRoi() {
-        fetch('/api/realtime-roi/')
-            .then(res => res.json())
+    function syncRoi() {
+        fetch('/api/realtime-roi/', { credentials: 'same-origin' })
+            .then(r => r.json())
             .then(data => {
-                if (data.status === 'success') {
-                    if (totalTickerEl) {
-                        totalTickerEl.setAttribute('data-target-value', data.total_accrued_roi);
-                    }
-                    data.investments.forEach(inv => {
-                        const el = document.getElementById(`inv-roi-${inv.id}`);
-                        const prog = document.getElementById(`inv-prog-${inv.id}`);
-                        if (el) el.setAttribute('data-target-value', inv.accrued_roi);
-                        if (prog) prog.style.width = `${inv.progress_percentage}%`;
-                    });
-                }
+                if (data.status !== 'success') return;
+                if (totalEl) totalEl.innerText = fmt(data.total_accrued_roi);
+                data.investments.forEach(inv => {
+                    const el = document.getElementById('inv-roi-' + inv.id);
+                    const prog = document.getElementById('inv-prog-' + inv.id);
+                    if (el) el.innerText = fmt(inv.accrued_roi);
+                    if (prog) prog.style.width = inv.progress_percentage + '%';
+                });
+                const u = document.getElementById('roi-updated');
+                if (u) u.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             })
-            .catch(err => console.debug('Sync interval note:', err));
+            .catch(() => {});
     }
-
-    // Micro-ticker for high precision visual reading (ticks up fractions every 120ms)
-    liveRoiInterval = setInterval(() => {
-        if (totalTickerEl) {
-            let current = parseFloat(totalTickerEl.innerText.replace(/[^0-9.-]+/g, "")) || 0;
-            let target = parseFloat(totalTickerEl.getAttribute('data-target-value')) || current;
-            if (target > current) {
-                current += Math.max(0.0001, (target - current) * 0.1);
-            } else {
-                current += 0.0001; // subtle live drift
-            }
-            totalTickerEl.innerText = `$${current.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
-        }
-
-        investmentCards.forEach(card => {
-            const id = card.getAttribute('data-investment-id');
-            const roiEl = document.getElementById(`inv-roi-${id}`);
-            if (roiEl) {
-                let current = parseFloat(roiEl.innerText.replace(/[^0-9.-]+/g, "")) || 0;
-                let target = parseFloat(roiEl.getAttribute('data-target-value')) || current;
-                if (target > current) {
-                    current += Math.max(0.0001, (target - current) * 0.1);
-                } else {
-                    current += 0.0001;
-                }
-                roiEl.innerText = `$${current.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
-            }
-        });
-    }, 120);
-
-    // Initial sync
-    syncLiveRoi();
-    setInterval(syncLiveRoi, 8000);
+    setInterval(syncRoi, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncRoi(); });
 }
 
 // Interactive Loan Calculator

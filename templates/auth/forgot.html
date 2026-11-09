@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Forgot password | Elvarion Holdings{% endblock %}
+{% block utility_bar %}{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card-standard">
+    <div class="auth-heading">
+      <div class="brand-crest">EH</div>
+      <span class="eyebrow center">Account recovery</span>
+      <h2 style="margin-top:14px">Forgot your password?</h2>
+      <p>Enter your username or email and we will send you a code to choose a new one.</p>
+    </div>
+    {% if not ready %}<div class="otp-warn"><i class="fas fa-circle-info"></i> Email sending is not switched on for this site yet. Please contact support to reset your password.</div>{% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="f-ident">Username or email</label>
+        <input type="text" id="f-ident" name="identifier" class="form-control" placeholder="you@example.com" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;padding:16px">Send me a code <i class="fas fa-paper-plane"></i></button>
+    </form>
+    <p class="otp-foot"><a href="{% url 'login' %}">&larr; Back to sign in</a></p>
+  </div>
+</div>
+{% endblock %}

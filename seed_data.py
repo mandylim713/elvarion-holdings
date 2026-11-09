@@ -18,20 +18,21 @@ def run():
     print("[+] Seeding Elvarion Holdings database...")
 
     # 1. Company Settings
-    company, _ = CompanySetting.objects.get_or_create(id=1)
-    company.site_name = "Elvarion Holdings"
-    company.domain = "elvarionholdings.com"
-    company.support_email = "concierge@elvarionholdings.com"
-    company.corporate_address = "Tower 49, 12 East 49th Street, New York, NY 10017"
-    company.btc_wallet_address = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-    company.usdt_trc20_address = "TYDzsYUEpvnYmQk4zGP9sWWcTEd3GLGVbC"
-    company.usdt_erc20_address = "0x71C8360f3E242cfE31FaD5598585483f982D19a5"
-    company.eth_wallet_address = "0x71C8360f3E242cfE31FaD5598585483f982D19a5"
-    company.bank_name = "JPMorgan Chase & Co. Private Wealth"
-    company.bank_account_name = "Elvarion Holdings Institutional Reserve LLC"
-    company.bank_account_number = "982038472910"
-    company.bank_routing_swift = "CHASUS33 / Routing: 021000021"
-    company.save()
+    company, company_new = CompanySetting.objects.get_or_create(id=1)
+    if company_new:
+      company.site_name = "Elvarion Holdings"
+      company.domain = "elvarionholdings.com"
+      company.support_email = "concierge@elvarionholdings.com"
+      company.corporate_address = "Tower 49, 12 East 49th Street, New York, NY 10017"
+      company.btc_wallet_address = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+      company.usdt_trc20_address = "TYDzsYUEpvnYmQk4zGP9sWWcTEd3GLGVbC"
+      company.usdt_erc20_address = "0x71C8360f3E242cfE31FaD5598585483f982D19a5"
+      company.eth_wallet_address = "0x71C8360f3E242cfE31FaD5598585483f982D19a5"
+      company.bank_name = "JPMorgan Chase & Co. Private Wealth"
+      company.bank_account_name = "Elvarion Holdings Institutional Reserve LLC"
+      company.bank_account_number = "982038472910"
+      company.bank_routing_swift = "CHASUS33 / Routing: 021000021"
+      company.save()
     print("[*] Company settings configured")
 
     # 2. Investment Areas
@@ -76,11 +77,21 @@ def run():
             'expected_roi_range': '0.65% Daily - 18.5% Yearly',
             'order': 4,
         },
+        {
+            'name': 'Digital Assets & Crypto',
+            'slug': 'digital-assets-crypto',
+            'tagline': 'Bitcoin, Ethereum and stablecoin yield strategies run by our digital-asset desk',
+            'description': 'Managed exposure to the largest digital assets: custody-secured Bitcoin reserves, Ethereum staking and stablecoin lending, with ROI paid into your wallet automatically.',
+            'icon': 'bitcoin-sign',
+            'risk_level': 'Moderate - High',
+            'expected_roi_range': '6.0% - 9.5% Monthly',
+            'order': 5,
+        },
     ]
 
     areas = {}
     for a in areas_data:
-        obj, _ = InvestmentArea.objects.update_or_create(slug=a['slug'], defaults=a)
+        obj, _ = InvestmentArea.objects.get_or_create(slug=a['slug'], defaults=a)
         areas[a['slug']] = obj
     print("[*] 4 Investment Areas created")
 
@@ -235,8 +246,38 @@ def run():
         },
     ]
 
+    plans_data += [
+        {
+            'area': areas['digital-assets-crypto'],
+            'title': 'Bitcoin Reserve Vault',
+            'min_deposit': Decimal('1000.00'), 'max_deposit': Decimal('250000.00'),
+            'roi_percentage': Decimal('8.00'), 'duration_unit': 'monthly', 'duration_count': 6,
+            'capital_returned': True, 'badge': 'BTC STRATEGY', 'is_featured': True,
+            'description': 'Cold-storage Bitcoin reserve with a covered-call overlay that earns a fixed monthly return.',
+            'features_list': '8% Monthly Return\n6 Month Term\nPrincipal Returned at Maturity\nInsured Cold Storage',
+        },
+        {
+            'area': areas['digital-assets-crypto'],
+            'title': 'Ethereum Staking Pool',
+            'min_deposit': Decimal('500.00'), 'max_deposit': Decimal('150000.00'),
+            'roi_percentage': Decimal('6.00'), 'duration_unit': 'monthly', 'duration_count': 3,
+            'capital_returned': True, 'badge': 'STAKING', 'is_featured': False,
+            'description': 'Pooled ETH validator staking with institutional operators and automatic reward payouts.',
+            'features_list': '6% Monthly Return\n3 Month Term\nValidator Reward Sharing\nPrincipal Returned',
+        },
+        {
+            'area': areas['digital-assets-crypto'],
+            'title': 'Stablecoin Yield Account',
+            'min_deposit': Decimal('250.00'), 'max_deposit': Decimal('100000.00'),
+            'roi_percentage': Decimal('1.80'), 'duration_unit': 'weekly', 'duration_count': 12,
+            'capital_returned': True, 'badge': 'USDT / USDC', 'is_featured': False,
+            'description': 'Dollar-pegged stablecoins lent to vetted market makers for a steady weekly yield.',
+            'features_list': '1.8% Weekly Return\n12 Week Term\nDollar-Pegged Principal\nLow Volatility',
+        },
+    ]
+
     for p in plans_data:
-        InvestmentPlan.objects.update_or_create(
+        InvestmentPlan.objects.get_or_create(
             area=p['area'],
             title=p['title'],
             defaults=p
@@ -288,7 +329,7 @@ def run():
     ]
 
     for t in tier_criteria:
-        LoanTierCriteria.objects.update_or_create(
+        LoanTierCriteria.objects.get_or_create(
             tier_name=t['tier_name'],
             defaults=t
         )
@@ -311,7 +352,7 @@ def run():
         },
     ]
     for term in terms_data:
-        LoanTermConfig.objects.update_or_create(
+        LoanTermConfig.objects.get_or_create(
             term_months=term['term_months'],
             defaults=term
         )
@@ -330,24 +371,26 @@ def run():
         UserProfile.objects.get_or_create(user=admin_user, defaults={'wallet_balance': Decimal('1000000.00')})
         print("[*] Created Superuser Admin: admin / Admin@12345")
     else:
-        admin_user.set_password('Admin@12345')
         admin_user.is_staff = True
         admin_user.is_superuser = True
         admin_user.save()
 
     # 7. Demo VIP Investor with $75,000 deposits (qualifying for Gold Tier $800k - $1M loan!)
     vip_user, created = User.objects.get_or_create(username='vip_investor')
-    vip_user.set_password('Investor@12345')
-    vip_user.first_name = 'Alexander'
-    vip_user.last_name = 'Vanderbilt'
-    vip_user.email = 'alexander.v@elvarionholdings.com'
-    vip_user.save()
+    if created:
+        vip_user.set_password('Investor@12345')
+        vip_user.first_name = 'Alexander'
+        vip_user.last_name = 'Vanderbilt'
+        vip_user.email = 'alexander.v@elvarionholdings.com'
+        vip_user.save()
 
-    profile, _ = UserProfile.objects.get_or_create(user=vip_user)
-    profile.wallet_balance = Decimal('38500.00')
-    profile.total_deposited = Decimal('75000.00') # Meets Tier 2 (50k -> 800k - 1M)
-    profile.kyc_status = 'verified'
-    profile.save()
+    profile, p_new = UserProfile.objects.get_or_create(user=vip_user)
+    if created or p_new:
+        profile.wallet_balance = Decimal('38500.00')
+        profile.total_deposited = Decimal('75000.00') # Meets Tier 2 (50k -> 800k - 1M)
+        profile.kyc_status = 'verified'
+        profile.email_verified = True
+        profile.save()
 
     # Create active investments across multiple areas to demonstrate real-time reading ROI
     reit_plan = InvestmentPlan.objects.filter(area__slug='real-estate-investment').first()

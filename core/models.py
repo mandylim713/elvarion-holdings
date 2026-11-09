@@ -30,6 +30,9 @@ class UserProfile(models.Model):
     total_roi_earned = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
     
     kyc_status = models.CharField(max_length=20, choices=KYC_CHOICES, default='unverified')
+    email_verified = models.BooleanField(default=False)
+    two_factor = models.BooleanField(default=False, help_text='Ask for an emailed code at every sign-in')
+    email_notifications = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -345,6 +348,8 @@ class Transaction(models.Model):
         ('loan_repayment', 'Loan Repayment'),
         ('withdrawal', 'Withdrawal Request'),
         ('trade', 'Market Trade'),
+        ('option', 'Quick Trade'),
+        ('capital_return', 'Capital Returned'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     txn_type = models.CharField(max_length=30, choices=TYPE_CHOICES)
@@ -387,6 +392,13 @@ class CompanySetting(models.Model):
     venmo_handle = models.CharField(max_length=80, default='@ElvarionHoldings')
     cashapp_tag = models.CharField(max_length=80, default='$ElvarionHoldings')
     wise_email = models.CharField(max_length=120, default='payments@elvarionholdings.com')
+
+    # Platform behaviour
+    use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
+    require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')
+    option_payout_pct = models.PositiveSmallIntegerField(default=80, help_text='Quick Trade payout on a winning trade, in percent')
+    option_min_stake = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('10.00'))
+    last_cron_run = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.site_name} Settings"
@@ -505,3 +517,44 @@ class Trade(models.Model):
 
     def __str__(self):
         return f"{self.user.username} {self.side} {self.quantity} {self.asset.symbol} @ {self.price}"
+
+
+class EmailOTP(models.Model):
+    PURPOSES = (('verify', 'Email verification'), ('reset', 'Password reset'), ('login', 'Sign-in'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otp_codes')
+    purpose = models.CharField(max_length=10, choices=PURPOSES)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} {self.purpose} {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class OptionTrade(models.Model):
+    """Quick Trade: call the next price move (up / down) over a short timer."""
+    DIRECTION_CHOICES = (('up', 'Up'), ('down', 'Down'))
+    STATUS_CHOICES = (('open', 'Open'), ('won', 'Won'), ('lost', 'Lost'), ('draw', 'Refunded'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='option_trades')
+    asset = models.ForeignKey(TradingAsset, on_delete=models.PROTECT, related_name='option_trades')
+    direction = models.CharField(max_length=4, choices=DIRECTION_CHOICES)
+    stake = models.DecimalField(max_digits=14, decimal_places=2)
+    payout_pct = models.PositiveSmallIntegerField(default=80)
+    entry_price = models.DecimalField(max_digits=18, decimal_places=6)
+    exit_price = models.DecimalField(max_digits=18, decimal_places=6, null=True, blank=True)
+    duration = models.PositiveIntegerField(help_text='seconds')
+    opened_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    status = models.CharField(max_length=6, choices=STATUS_CHOICES, default='open')
+    result_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal('0.00'), help_text='Profit (+) or loss (-)')
+
+    class Meta:
+        ordering = ['-opened_at']
+
+    def __str__(self):
+        return f"{self.user.username} {self.direction} {self.asset.symbol} ${self.stake} ({self.status})"

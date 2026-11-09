@@ -29,20 +29,9 @@
                 <p>Sign in to your private wealth portfolio</p>
             </div>
 
-            <div class="demo-box">
-                <div class="head"><span><i class="fas fa-bolt"></i> Demo Access</span><span>One click</span></div>
-                <div class="grid">
-                    <button type="button" class="btn btn-sm btn-outline-gold" onclick="autofillDemo('vip_investor', 'Investor@12345')">
-                        <i class="fas fa-crown"></i> Investor
-                    </button>
-                    <button type="button" class="btn btn-sm btn-gold" onclick="autofillDemo('admin', 'Admin@12345')">
-                        <i class="fas fa-shield-halved"></i> Admin
-                    </button>
-                </div>
-            </div>
-
             <form method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
+                {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
 
                 <div class="form-group">
                     <label class="form-label" for="login-identifier">Username or Email</label>
@@ -52,7 +41,7 @@
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px;">
                         <label class="form-label" for="login-password" style="margin-bottom: 0;">Password</label>
-                        <a href="javascript:void(0)" onclick="openConciergeModal()" style="color: var(--gold-light); font-size: .76rem; text-decoration: none; border-bottom: 1px solid var(--border-gold);">Forgot password?</a>
+                        <a href="{% url 'forgot_password' %}" style="color: var(--gold-light); font-size: .76rem; text-decoration: none; border-bottom: 1px solid var(--border-gold);">Forgot password?</a>
                     </div>
                     <div class="password-input-group">
                         <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••••" required>
@@ -84,33 +73,7 @@
     </div>
 </div>
 
-<!-- Modal: Password Recovery -->
-<div id="conciergeModal" class="modal-backdrop" onclick="if(event.target===this) closeConciergeModal()">
-    <div class="modal-content" style="max-width: 480px;">
-        <button class="modal-close" onclick="closeConciergeModal()" aria-label="Close">&times;</button>
-        <div style="text-align: center; margin-bottom: 24px;">
-            <div class="brand-crest" style="margin: 0 auto 18px;">EH</div>
-            <h3 style="font-size: 1.8rem; font-weight: 500;">Password Recovery</h3>
-            <p style="color: var(--text-muted); font-size: .88rem; margin-top: 8px; line-height: 1.7;">
-                For your security, credentials are reset directly by our private client concierge.
-            </p>
-        </div>
-
-        <div style="border-top: 1px solid var(--border-gold); border-bottom: 1px solid var(--border-gold); padding: 6px 0; margin-bottom: 26px;">
-            <div class="ledger-row"><span>Email</span><span class="lv">concierge@elvarionholdings.com</span></div>
-            <div class="ledger-row"><span>Telephone</span><span class="lv">+1 (212) 555-0188</span></div>
-            <div class="ledger-row" style="border-bottom: 0;"><span>Response</span><span class="lv">Within 15 minutes, 24/7</span></div>
-        </div>
-
-        <button type="button" class="btn btn-outline-gold" style="width: 100%;" onclick="closeConciergeModal()">Return to Sign In</button>
-    </div>
-</div>
-
 <script>
-function autofillDemo(username, password) {
-    document.getElementById('login-identifier').value = username;
-    document.getElementById('login-password').value = password;
-}
 function toggleLoginPassword(btn) {
     const input = document.getElementById('login-password');
     const icon = btn.querySelector('i');
@@ -119,7 +82,5 @@ function toggleLoginPassword(btn) {
     icon.classList.toggle('fa-eye', !show);
     icon.classList.toggle('fa-eye-slash', show);
 }
-function openConciergeModal() { const m = document.getElementById('conciergeModal'); if (m) m.classList.add('open'); }
-function closeConciergeModal() { const m = document.getElementById('conciergeModal'); if (m) m.classList.remove('open'); }
 </script>
 {% endblock %}

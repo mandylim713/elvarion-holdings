@@ -45,11 +45,11 @@
   function sync(tabId) {
     body.setAttribute('data-tab', tabId);
     var item = null;
-    $$('.sh-item[data-tab]').forEach(function (b) { var on = b.getAttribute('data-tab') === tabId; b.classList.toggle('active', on); if (on) item = b; });
+    $$('.sh-item[data-tab], .sh-b[data-tab]').forEach(function (b) { var on = b.getAttribute('data-tab') === tabId; b.classList.toggle('active', on); if (on && b.classList.contains('sh-item')) item = b; });
     if (item && titleEl) { titleEl.textContent = item.getAttribute('data-title') || item.textContent.trim(); d.title = titleEl.textContent + ' | Elvarion'; }
   }
   d.addEventListener('click', function (e) {
-    var s = e.target.closest && e.target.closest('.sh-item[data-tab]');
+    var s = e.target.closest && e.target.closest('.sh-item[data-tab], .sh-b[data-tab]');
     if (s) { if (typeof window.switchDashboardTab === 'function') window.switchDashboardTab(s.getAttribute('data-tab')); closeSide(); window.scrollTo(0, 0); return; }
     var t = e.target.closest && e.target.closest('[data-tab-target]');
     if (t) sync(t.getAttribute('data-tab-target'));

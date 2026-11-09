@@ -54,6 +54,7 @@
     <button class="nav-item" data-view="markets"><i class="fas fa-chart-candlestick"></i> Markets &amp; trading</button>
     <button class="nav-item" data-view="plans"><i class="fas fa-layer-group"></i> Plans &amp; ROI</button>
     <button class="nav-item" data-view="tiers"><i class="fas fa-sliders"></i> Loan criteria</button>
+    <button class="nav-item" data-view="payments"><i class="fas fa-wallet"></i> Payment details</button>
   </nav>
   <div class="side-foot">
     <div class="side-user">
@@ -248,6 +249,7 @@
         <td data-label="Status">{% if u.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-bad">Suspended</span>{% endif %}{% if u.is_staff %} <span class="pill pill-info">Staff</span>{% endif %}</td>
         <td class="act r"><div class="acts">
           <button type="button" class="btn btn-line btn-sm" data-adjust data-uid="{{ u.id }}" data-name="{{ u.username }}" data-bal="{{ u.profile.wallet_balance|floatformat:'2g' }}"><i class="fas fa-wallet"></i> Wallet</button>
+          {% if u.id != request.user.id %}<form method="POST" action="{% url 'admin_user_action' u.id 'reset_password' %}" data-confirm="Create a new temporary password for {{ u.username }}? Their old password stops working." data-ok="Reset">{% csrf_token %}<button class="btn btn-line btn-sm"><i class="fas fa-key"></i> Password</button></form>{% endif %}
           {% if u.id != request.user.id %}<form method="POST" action="{% url 'admin_user_action' u.id 'toggle_active' %}" data-confirm="{% if u.is_active %}Suspend {{ u.username }}? They will not be able to sign in.{% else %}Reactivate {{ u.username }}?{% endif %}" data-ok="{% if u.is_active %}Suspend{% else %}Reactivate{% endif %}" {% if u.is_active %}data-danger{% endif %}>{% csrf_token %}<button class="btn {% if u.is_active %}btn-bad{% else %}btn-ok{% endif %} btn-sm">{% if u.is_active %}<i class="fas fa-ban"></i> Suspend{% else %}<i class="fas fa-rotate-left"></i> Restore{% endif %}</button></form>{% endif %}</div></td></tr>
       {% endfor %}</tbody></table>
       <div class="no-match">Nothing matches this filter.</div></div>
@@ -319,7 +321,7 @@
 
   <!-- ============ MARKETS ============ -->
   <section class="adm-view" id="v-markets" data-title="Markets &amp; trading" data-search="Search asset or trader…">
-    <div class="view-head"><div><h2>Markets &amp; trading</h2><p>The assets investors can trade. The live feed moves around each asset's reference price, so keep these close to the real market, or switch an asset off.</p></div>
+    <div class="view-head"><div><h2>Markets &amp; trading</h2><p>The assets investors can trade. With live prices on, the real market price is used; the reference price is only the fallback if a feed is unreachable.</p></div>
       <button class="btn btn-gold btn-lg" data-asset-new><i class="fas fa-plus"></i> Add asset</button></div>
     <div class="card" style="margin-bottom:16px">
       <div class="toolbar"><div class="chips" data-chips><button class="chip active" data-f="all">All <b>{{ assets|length }}</b></button><button class="chip" data-f="crypto">Crypto</button><button class="chip" data-f="metal">Gold &amp; metals</button><button class="chip" data-f="stock">Stocks</button><button class="chip" data-f="off">Switched off</button></div></div>
@@ -332,6 +334,38 @@
         <td data-label="Status">{% if a.is_active %}<span class="pill pill-ok">Open</span>{% else %}<span class="pill pill-mute">Off</span>{% endif %}</td>
         <td class="act r"><div class="acts"><button type="button" class="btn btn-line btn-sm" data-asset-edit data-id="{{ a.id }}" data-symbol="{{ a.symbol }}" data-name="{{ a.name }}" data-cat="{{ a.category }}" data-price="{{ a.base_price|stringformat:'s' }}" data-vol="{{ a.volatility|stringformat:'s' }}" data-on="{% if a.is_active %}1{% else %}0{% endif %}"><i class="fas fa-pen"></i> Edit</button></div></td></tr>
       {% endfor %}</tbody></table><div class="no-match">Nothing matches this filter.</div></div>
+    </div>
+    <div class="f-grid" style="margin-bottom:16px;align-items:start">
+      <form class="card card-pad" method="post" action="{% url 'admin_save_settings' %}">{% csrf_token %}<input type="hidden" name="form" value="platform">
+        <div class="card-head" style="padding:0 0 12px"><h3>Platform settings</h3><small>Prices are <b>{{ feed }}</b> right now</small></div>
+        <div class="f-grid" style="margin-bottom:14px">
+          <label class="field"><span>Quick trade payout (%)</span><input type="number" name="option_payout_pct" value="{{ settings.option_payout_pct }}" min="1" max="500"></label>
+          <label class="field"><span>Quick trade minimum ($)</span><input type="number" name="option_min_stake" value="{{ settings.option_min_stake|floatformat:0 }}" min="1" step="1"></label>
+        </div>
+        <label class="field" style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><input type="checkbox" name="use_live_prices" value="1" {% if settings.use_live_prices %}checked{% endif %} style="width:18px;height:18px"><span style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem">Use real market prices when the feed is reachable</span></label>
+        <label class="field" style="display:flex;gap:10px;align-items:center;margin-bottom:16px"><input type="checkbox" name="require_email_verification" value="1" {% if settings.require_email_verification %}checked{% endif %} style="width:18px;height:18px"><span style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem">New investors must confirm their email with a code</span></label>
+        <button class="btn btn-gold" type="submit"><i class="fas fa-check"></i> Save settings</button>
+      </form>
+      <div class="card card-pad">
+        <div class="card-head" style="padding:0 0 12px"><h3>Automatic jobs</h3><small>ROI payouts &amp; quick-trade results</small></div>
+        <p style="margin:0 0 10px;color:var(--ink-2);font-size:.88rem;line-height:1.6">These run on their own every minute while the site is awake: ROI is paid into wallets, finished plans return capital, and quick trades settle.</p>
+        <p style="margin:0 0 12px;font-size:.88rem"><b>Last run:</b> {% if settings.last_cron_run %}{{ settings.last_cron_run|date:"M d, H:i:s" }} UTC{% else %}not yet{% endif %}</p>
+        <p style="margin:0 0 6px;color:var(--ink-3);font-size:.78rem">On a free host that sleeps, add this address to a free pinger (cron-job.org or UptimeRobot, every 5 minutes) so jobs keep running:</p>
+        <input readonly value="{{ cron_url }}" onclick="this.select()" style="width:100%;height:42px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:.78rem;background:#fff">
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h3>Latest quick trades</h3><small>Last 50 across all investors</small></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Investor</th><th>Trade</th><th>Amount</th><th>Entry &rarr; Exit</th><th>Result</th><th>Date</th></tr></thead><tbody>
+      {% for o in recent_options %}<tr>
+        <td class="main who" data-label="Investor"><b>{{ o.user.username }}</b></td>
+        <td data-label="Trade"><span class="pill {% if o.direction == 'up' %}pill-ok{% else %}pill-bad{% endif %}">{{ o.get_direction_display }}</span> <b>{{ o.asset.symbol }}</b> <small style="color:var(--ink-3)">{{ o.duration }}s</small></td>
+        <td data-label="Amount" class="num">${{ o.stake|floatformat:"2g" }}</td>
+        <td data-label="Entry / Exit" class="num">${{ o.entry_price|floatformat:"2g" }} &rarr; {% if o.exit_price %}${{ o.exit_price|floatformat:"2g" }}{% else %}&hellip;{% endif %}</td>
+        <td data-label="Result" class="num">{% if o.status == 'open' %}<span class="pill pill-warn">Open</span>{% elif o.status == 'won' %}<b style="color:var(--ok)">+${{ o.result_amount|floatformat:"2g" }}</b>{% elif o.status == 'lost' %}<b style="color:var(--bad)">-${{ o.stake|floatformat:"2g" }}</b>{% else %}Refunded{% endif %}</td>
+        <td data-label="Date" style="color:var(--ink-3)">{{ o.opened_at|date:"M d, H:i" }}</td></tr>
+      {% endfor %}</tbody></table></div>
+      {% if not recent_options %}<div class="empty-state"><i class="fas fa-bolt"></i><b>No quick trades yet</b>They will appear here.</div>{% endif %}
     </div>
     <div class="card">
       <div class="card-head"><h3>Latest trades</h3><small>Last 50 across all investors</small></div>
@@ -370,6 +404,23 @@
         {% for term in loan_terms %}<div class="card card-pad" style="box-shadow:none"><span class="pill pill-ok">{{ term.term_months }} months</span><div class="num" style="font-family:var(--serif);font-size:1.7rem;font-weight:600;margin:10px 0 2px">{{ term.monthly_interest_rate }}% <small style="font-family:var(--sans);font-size:.74rem;color:var(--ink-3)">/ month</small></div><div style="color:var(--ink-3);font-size:.8rem">{{ term.total_interest_rate }}% total interest</div></div>{% endfor %}
       </div></div>
     </div>
+  </section>
+
+  <section class="adm-view" id="v-payments" data-title="Payment details">
+    <div class="view-head"><div><h2>Payment details</h2><p>Where investors send money. These show on the Add money page straight away.</p></div></div>
+    <form method="post" action="{% url 'admin_save_settings' %}" data-confirm="Save payment details?" data-note="Investors will see these details immediately." data-ok="Save">
+      {% csrf_token %}
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Payment apps</h3><div class="f-grid">
+        <label class="field"><span>Zelle email / phone</span><input name="zelle_email" value="{{ settings.zelle_email }}" placeholder=""></label><label class="field"><span>Zelle account name</span><input name="zelle_name" value="{{ settings.zelle_name }}" placeholder=""></label><label class="field"><span>PayPal email</span><input name="paypal_email" value="{{ settings.paypal_email }}" placeholder=""></label><label class="field"><span>Venmo username</span><input name="venmo_handle" value="{{ settings.venmo_handle }}" placeholder=""></label><label class="field"><span>Cash App $cashtag</span><input name="cashapp_tag" value="{{ settings.cashapp_tag }}" placeholder=""></label><label class="field"><span>Wise email</span><input name="wise_email" value="{{ settings.wise_email }}" placeholder=""></label>
+      </div></div>
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Bank transfer</h3><div class="f-grid">
+        <label class="field"><span>Bank name</span><input name="bank_name" value="{{ settings.bank_name }}" placeholder=""></label><label class="field"><span>Account name</span><input name="bank_account_name" value="{{ settings.bank_account_name }}" placeholder=""></label><label class="field"><span>Account number / IBAN</span><input name="bank_account_number" value="{{ settings.bank_account_number }}" placeholder=""></label><label class="field"><span>Routing / SWIFT</span><input name="bank_routing_swift" value="{{ settings.bank_routing_swift }}" placeholder=""></label>
+      </div></div>
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Crypto wallets</h3><div class="f-grid">
+        <label class="field"><span>Bitcoin (BTC)</span><input name="btc_wallet_address" value="{{ settings.btc_wallet_address }}" placeholder=""></label><label class="field"><span>Ethereum (ETH)</span><input name="eth_wallet_address" value="{{ settings.eth_wallet_address }}" placeholder=""></label><label class="field"><span>USDT (TRC-20)</span><input name="usdt_trc20_address" value="{{ settings.usdt_trc20_address }}" placeholder=""></label><label class="field"><span>USDT (ERC-20)</span><input name="usdt_erc20_address" value="{{ settings.usdt_erc20_address }}" placeholder=""></label>
+      </div></div>
+      <button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-check"></i> Save payment details</button>
+    </form>
   </section>
 
   </main>
