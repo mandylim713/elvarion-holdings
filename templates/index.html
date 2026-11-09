@@ -21,7 +21,7 @@
             </h1>
 
             <p class="hero-desc">
-                Elvarion Holdings connects accredited investors with prime international <strong>Real Estate</strong>, allocated <strong>Physical Gold</strong>, generational <strong>Trust Funds</strong> and sovereign <strong>Money Markets</strong> — supported by private credit facilities of up to $5,000,000.
+                Elvarion Holdings connects accredited investors with prime international <strong>Real Estate</strong>, allocated <strong>Physical Gold</strong>, generational <strong>Trust Funds</strong>, sovereign <strong>Money Markets</strong> and managed <strong>Digital Assets &amp; Crypto</strong> — supported by private credit facilities of up to $5,000,000.
             </p>
 
             <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 64px;">
@@ -64,6 +64,7 @@
                         <option value="gold" selected>Gold — Vaulted Physical Bullion</option>
                         <option value="trust-fund">Trust Fund — Fiduciary Estate</option>
                         <option value="money-market">Money Market — Sovereign Liquidity</option>
+                        <option value="crypto">Crypto — Bitcoin, Ethereum &amp; Stablecoin Strategies</option>
                     </select>
                 </div>
 
@@ -111,6 +112,7 @@
         <span class="item">Physical Gold</span>
         <span class="item">Heritage Trusts</span>
         <span class="item">Money Markets</span>
+        <span class="item">Digital Assets &amp; Crypto</span>
         <span class="item">Private Credit</span>
     </div>
 </div>
@@ -149,13 +151,13 @@
     <div class="section-wrapper">
         <div class="section-header reveal">
             <span class="section-tag">The Portfolio</span>
-            <h2 class="section-title">The Four Pillars of <em class="gold-gradient-text">Elvarion</em></h2>
+            <h2 class="section-title">The Pillars of <em class="gold-gradient-text">Elvarion</em></h2>
             <p class="section-subtitle">
                 Each pillar offers independent plans, tailored risk parameters and flexible durations, managed under institutional fiduciary standards.
             </p>
         </div>
 
-        <div class="grid-4 carousel-m">
+        <div class="grid-4 grid-pillars carousel-m">
             {% for area in areas %}
             <article class="glass-card-luxury area-card pillar-card reveal">
                 <div class="pillar-media">
@@ -229,6 +231,26 @@
     </div>
 
     <div class="feature-row reveal">
+        <div class="feature-media coin-panel">
+            <div class="coin-grid">
+                <img src="/static/img/logos/btc.svg" alt="Bitcoin"><img src="/static/img/logos/eth.svg" alt="Ethereum"><img src="/static/img/logos/usdt.svg" alt="Tether USDT">
+                <img src="/static/img/logos/sol.svg" alt="Solana"><img src="/static/img/logos/bnb.svg" alt="BNB"><img src="/static/img/logos/xrp.svg" alt="XRP">
+            </div>
+        </div>
+        <div class="feature-copy">
+            <span class="eyebrow">Digital Assets &amp; Crypto</span>
+            <h3>Bitcoin, Ethereum and stablecoin strategies, run by our digital-asset desk.</h3>
+            <p>
+                Custody-secured Bitcoin reserves, Ethereum staking and dollar-pegged stablecoin lending, with returns paid into your wallet automatically. Prefer to trade yourself? Buy and sell the major coins at live prices, or call a quick up/down trade, straight from your portfolio.
+            </p>
+            <div class="feature-figures">
+                <div><div class="k">8.0%</div><div class="v">Monthly &mdash; Bitcoin Vault</div></div>
+                <div><div class="k pos">1.8%</div><div class="v">Weekly &mdash; Stablecoin Yield</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-row reverse reveal">
         <div class="feature-media">
             <img src="/static/img/digital.jpg" alt="Digital asset deposits" loading="lazy">
         </div>

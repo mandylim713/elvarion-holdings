@@ -32,3 +32,10 @@ Switch live prices off there if you prefer fixed reference prices.
 3. `www.` automatically redirects to `elvarionholdings.com`.
 4. Email from your own domain (Resend): Resend > Domains > add `elvarionholdings.com`, add the DNS records it lists (SPF + DKIM), wait for "Verified", then set `DEFAULT_FROM_EMAIL` to `Elvarion Holdings <no-reply@elvarionholdings.com>` in Render.
 5. Use the new address in the cron ping (Admin > Markets & trading shows it automatically once you open the admin on the new domain).
+
+## Separate logins
+
+- Investors: `/login/` (staff accounts are rejected here)
+- Admins: `/management/login/` (staff only, rate-limited, 8-hour session)
+- Admin console: `/management/`
+- Django admin: `/management/django-admin/`

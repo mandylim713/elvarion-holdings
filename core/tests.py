@@ -410,3 +410,44 @@ class TestSettings(TestCase):
         url = reverse('admin_deposit_action', kwargs={'deposit_id': dep.id, 'action': 'approve'})
         self.client.post(url); self.client.post(url)
         self.assertEqual(UserProfile.objects.get(user=self.user).wallet_balance, Decimal('100.00'))
+
+
+class TestSeparateAdminLogin(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user('boss', 'boss@example.com', 'Boss!Passw0rd', is_staff=True)
+        UserProfile.objects.create(user=self.staff, email_verified=True)
+        self.inv = User.objects.create_user('client', 'client@example.com', 'Client!Passw0rd')
+        UserProfile.objects.create(user=self.inv, email_verified=True)
+
+    def test_console_needs_admin_login(self):
+        r = self.client.get('/management/')
+        self.assertEqual(r.status_code, 302); self.assertTrue(r['Location'].startswith('/management/login/'))
+
+    def test_investor_cannot_use_admin_login_or_console(self):
+        r = self.client.post(reverse('admin_login'), {'identifier': 'client', 'password': 'Client!Passw0rd'})
+        self.assertEqual(r.status_code, 200); self.assertNotIn('_auth_user_id', self.client.session)
+        self.client.login(username='client', password='Client!Passw0rd')
+        self.assertEqual(self.client.get('/management/').status_code, 302)
+
+    def test_staff_cannot_use_investor_login(self):
+        r = self.client.post(reverse('login'), {'identifier': 'boss', 'password': 'Boss!Passw0rd'})
+        self.assertEqual(r.status_code, 200); self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_staff_admin_login_works_and_logout_returns_to_admin_login(self):
+        r = self.client.post(reverse('admin_login'), {'identifier': 'boss', 'password': 'Boss!Passw0rd'})
+        self.assertRedirects(r, reverse('admin_management'))
+        self.assertEqual(self.client.get('/management/').status_code, 200)
+        self.assertRedirects(self.client.get(reverse('admin_logout')), reverse('admin_login'))
+
+    def test_admin_login_locks_after_five_bad_tries(self):
+        from django.core.cache import cache
+        cache.clear()
+        for _ in range(5):
+            self.client.post(reverse('admin_login'), {'identifier': 'boss', 'password': 'nope'})
+        r = self.client.post(reverse('admin_login'), {'identifier': 'boss', 'password': 'Boss!Passw0rd'})
+        self.assertEqual(r.status_code, 429)
+        cache.clear()
+
+    def test_crypto_sector_listed_on_home(self):
+        InvestmentArea.objects.create(name='Digital Assets & Crypto', slug='digital-assets-crypto', tagline='x', description='x', icon='bitcoin-sign')
+        self.assertContains(self.client.get('/'), 'Digital Assets &amp; Crypto')

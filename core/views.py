@@ -24,6 +24,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import OptionTrade
 
+staff_required = user_passes_test(lambda u: u.is_active and u.is_staff, login_url='/management/login/')
+
+
 def home(request):
     """Public luxury landing page for elvarionholdings.com"""
     areas = InvestmentArea.objects.filter(is_active=True).prefetch_related('plans')
@@ -116,9 +119,9 @@ def register_view(request):
 
 
 def login_view(request):
-    """User and admin sign-in with session remember option"""
+    """Investor sign-in (administrators use /management/login/)"""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('admin_management' if request.user.is_staff else 'dashboard')
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
@@ -134,6 +137,9 @@ def login_view(request):
             except User.DoesNotExist:
                 user = None
 
+        if user is not None and user.is_staff:
+            messages.error(request, 'Administrators sign in through the admin portal, not here.')
+            return render(request, 'auth/login.html')
         if user is not None:
             profile, _ = UserProfile.objects.get_or_create(user=user)
             nxt = request.GET.get('next') or request.POST.get('next') or ''
@@ -156,7 +162,7 @@ def _finish_login(request, user, remember_me, next_url=''):
     from django.utils.http import url_has_allowed_host_and_scheme
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         return redirect(next_url)
-    return redirect('admin_management' if user.is_staff else 'dashboard')
+    return redirect('dashboard')
 
 
 def login_verify(request):
@@ -912,7 +918,7 @@ def submit_kyc(request):
 
 # ---------------- ADMIN MANAGEMENT PORTAL ----------------
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_management(request):
     """Admin console: overview, queues (deposits, withdrawals, loans, KYC), investors, plans and config"""
     from django.db.models import Sum
@@ -993,7 +999,7 @@ def admin_management(request):
     return render(request, 'management/index.html', context)
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_withdrawal_action(request, withdrawal_id, action):
     """Approve (mark dispatched) or decline (refund wallet) a withdrawal"""
     if request.method != 'POST':
@@ -1029,7 +1035,7 @@ def admin_withdrawal_action(request, withdrawal_id, action):
     return redirect('/management/#withdrawals')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_user_action(request, user_id, action):
     """Suspend / reactivate an investor, or credit / debit their wallet"""
     if request.method != 'POST':
@@ -1074,7 +1080,7 @@ def admin_user_action(request, user_id, action):
     return redirect('/management/#users')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_toggle_plan(request, plan_id):
     """Activate / deactivate an investment plan"""
     if request.method == 'POST':
@@ -1085,7 +1091,7 @@ def admin_toggle_plan(request, plan_id):
     return redirect('/management/#plans')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_investment_action(request, investment_id, action):
     """Pause or resume a client's investment"""
     if request.method == 'POST':
@@ -1110,7 +1116,7 @@ def admin_investment_action(request, investment_id, action):
     return redirect('/management/#investments')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_kyc_action(request, submission_id, action):
     """Compliance Director approves or declines a KYC submission"""
     submission = get_object_or_404(KYCSubmission, id=submission_id)
@@ -1143,7 +1149,7 @@ def admin_kyc_action(request, submission_id, action):
     return redirect('/management/#kyc')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_loan_action(request, loan_id, action):
     """Admin approves or rejects a loan request"""
     loan = get_object_or_404(LoanApplication, id=loan_id)
@@ -1181,7 +1187,7 @@ def admin_loan_action(request, loan_id, action):
     return redirect('/management/#loans')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_deposit_action(request, deposit_id, action):
     """Admin approves or rejects a deposit"""
     if request.method != 'POST':
@@ -1221,7 +1227,7 @@ def admin_deposit_action(request, deposit_id, action):
     return redirect('/management/#deposits')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_save_plan(request):
     """Quick edit or create investment plan directly from admin dashboard"""
     if request.method == 'POST':
@@ -1262,7 +1268,7 @@ def admin_save_plan(request):
     return redirect('/management/#plans')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_save_tier(request):
     """Quick edit or add loan tier criteria"""
     if request.method == 'POST':
@@ -1295,7 +1301,7 @@ def admin_save_tier(request):
     return redirect('/management/#tiers')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_save_settings(request):
     """Edit bank, wallet and payment-app details shown on the Add money page"""
     if request.method == 'POST':
@@ -1322,7 +1328,7 @@ def admin_save_settings(request):
     return redirect('/management/#payments')
 
 
-@user_passes_test(lambda u: u.is_staff)
+@staff_required
 def admin_save_asset(request):
     """Create / edit a tradable asset, or switch it on / off"""
     if request.method == 'POST':
@@ -1378,3 +1384,47 @@ def error_404(request, exception=None):
 
 def error_500(request):
     return render(request, '500.html', status=500)
+
+
+# ---------------- ADMIN PORTAL SIGN-IN (separate from investors) ----------------
+
+def _admin_throttle_key(request, ident):
+    ip = (request.META.get('HTTP_X_FORWARDED_FOR', '') or request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+    return f"adminlogin:{ip}:{ident.lower()[:60]}"
+
+
+def admin_login(request):
+    """Admin / staff sign-in at /management/login/. Investors cannot use it."""
+    from django.core.cache import cache
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('admin_management')
+    if request.method == 'POST':
+        ident = request.POST.get('identifier', '').strip()
+        password = request.POST.get('password', '')
+        key = _admin_throttle_key(request, ident)
+        if cache.get(key, 0) >= 5:
+            messages.error(request, 'Too many attempts. Please wait 15 minutes and try again.')
+            return render(request, 'management/login.html', {'ident': ident}, status=429)
+        user = authenticate(request, username=ident, password=password)
+        if not user and '@' in ident:
+            u = User.objects.filter(email__iexact=ident).first()
+            user = authenticate(request, username=u.username, password=password) if u else None
+        if user is not None and user.is_staff and user.is_active:
+            cache.delete(key)
+            login(request, user)
+            request.session.set_expiry(60 * 60 * 8)   # admin sessions last one working day
+            nxt = request.GET.get('next', '')
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if nxt.startswith('/management') and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+                return redirect(nxt)
+            return redirect('admin_management')
+        cache.set(key, cache.get(key, 0) + 1, 15 * 60)
+        messages.error(request, 'Those details are not right, or this account is not an administrator.')
+        return render(request, 'management/login.html', {'ident': ident}, status=200)
+    return render(request, 'management/login.html')
+
+
+def admin_logout(request):
+    logout(request)
+    messages.info(request, 'You have signed out of the admin portal.')
+    return redirect('admin_login')

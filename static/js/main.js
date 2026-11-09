@@ -127,6 +127,11 @@ function initPublicRoiEstimator() {
             if (durationType === 'weekly') { rate = 2.1; termUnits = 16; unitName = 'Weeks'; }
             else if (durationType === 'monthly') { rate = 8.5; termUnits = 12; unitName = 'Months'; }
             else { rate = 45.0; termUnits = 2; unitName = 'Years'; }
+        } else if (selectedArea === 'crypto') {
+            if (durationType === 'daily') { rate = 0.5; termUnits = 30; unitName = 'Days'; }
+            else if (durationType === 'weekly') { rate = 1.8; termUnits = 12; unitName = 'Weeks'; }
+            else if (durationType === 'monthly') { rate = 8.0; termUnits = 6; unitName = 'Months'; }
+            else { rate = 60.0; termUnits = 1; unitName = 'Year'; }
         } else { // money market
             if (durationType === 'daily') { rate = 0.65; termUnits = 14; unitName = 'Days'; }
             else if (durationType === 'monthly') { rate = 6.2; termUnits = 6; unitName = 'Months'; }
