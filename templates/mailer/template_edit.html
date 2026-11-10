@@ -1,0 +1,97 @@
+{% extends 'mailer/base.html' %}
+{% block title %}{% if obj %}Edit{% else %}New{% endif %} Template — Elvarion Mailer{% endblock %}
+{% block topbar_title %}{% if obj %}Edit Template{% else %}New Template{% endif %}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{% if obj %}✏️ Edit: {{ obj.name }}{% else %}+ New Template{% endif %}</h1>
+  <a href="{% url 'mailer:templates' %}" class="btn btn-ghost">← Back</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px">
+    <div>
+      <div class="card">
+        <div class="card-title">Template Content</div>
+
+        <div class="form-group">
+          <label>Template Name *</label>
+          <input type="text" name="name" value="{{ obj.name|default:'' }}" class="form-control" placeholder="e.g. Welcome Email" required>
+          <p class="form-hint">Internal name used to identify this template.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Subject Line *</label>
+          <input type="text" name="subject" value="{{ obj.subject|default:'' }}" class="form-control" placeholder="Email subject…" required>
+          <p class="form-hint">Supports placeholders: <code>{{first_name}}</code>, <code>{{last_name}}</code>, <code>{{email}}</code></p>
+        </div>
+
+        <div class="form-group">
+          <label>Body HTML *</label>
+          <div class="editor-toolbar">
+            <button type="button" onclick="wrap('<b>','</b>')"><b>B</b></button>
+            <button type="button" onclick="wrap('<i>','</i>')"><i>I</i></button>
+            <button type="button" onclick="wrap('<h2>','</h2>')">H2</button>
+            <button type="button" onclick="wrap('<p>','</p>')">¶</button>
+            <button type="button" onclick="wrap('<ul><li>','</li></ul>')">List</button>
+            <button type="button" onclick="insertBranded()">🎨 Branded Wrapper</button>
+          </div>
+          <textarea name="body_html" id="body_html" class="form-control">{{ obj.body_html|default:'' }}</textarea>
+          <p class="form-hint">Use <code>{{first_name}}</code> <code>{{last_name}}</code> <code>{{email}}</code> <code>{{username}}</code> for personalization.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Plain Text Fallback (optional)</label>
+          <textarea name="body_text" class="form-control" style="min-height:80px">{{ obj.body_text|default:'' }}</textarea>
+          <p class="form-hint">Auto-generated from HTML if left blank.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">Live Preview</div>
+        <div id="preview" style="background:#fff;border-radius:8px;padding:16px;min-height:200px;color:#111;font-size:13px;line-height:1.6"></div>
+      </div>
+      <div class="card">
+        <button type="submit" class="btn btn-primary" style="width:100%">💾 Save Template</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+const bodyTA = document.getElementById('body_html');
+const preview = document.getElementById('preview');
+function updatePreview(){preview.innerHTML = bodyTA.value;}
+bodyTA.addEventListener('input', updatePreview);
+updatePreview();
+
+function wrap(open,close){
+  const s=bodyTA.selectionStart,e=bodyTA.selectionEnd;
+  const sel=bodyTA.value.substring(s,e);
+  bodyTA.value=bodyTA.value.substring(0,s)+open+sel+close+bodyTA.value.substring(e);
+  updatePreview();
+}
+
+function insertBranded(){
+  bodyTA.value = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e8e8e8;border-radius:8px">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 style="color:#1a1a2e;font-size:22px">Elvarion Holdings</h1>
+    <p style="color:#888;font-size:13px">Institutional Investment Platform</p>
+  </div>
+  <p>Dear {{first_name}},</p>
+  <p>Your message here.</p>
+  <div style="margin:24px 0;text-align:center">
+    <a href="https://elvarionholdings.com" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">
+      Visit Dashboard
+    </a>
+  </div>
+  <hr style="border:1px solid #eee;margin:24px 0">
+  <p style="font-size:12px;color:#aaa;text-align:center">Elvarion Holdings &bull; Tower 49, New York, NY 10017</p>
+</div>`;
+  updatePreview();
+}
+</script>
+{% endblock %}

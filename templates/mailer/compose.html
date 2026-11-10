@@ -1,0 +1,174 @@
+{% extends 'mailer/base.html' %}
+{% block title %}Compose Email — Elvarion Mailer{% endblock %}
+{% block topbar_title %}Compose Email{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>✏️ Compose &amp; Send</h1>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px">
+
+    <!-- Left: message body -->
+    <div>
+      <div class="card">
+        <div class="card-title">Message</div>
+
+        <div class="form-group">
+          <label>Load Template (optional)</label>
+          <select id="tpl-select" class="form-control">
+            <option value="">— choose template —</option>
+            {% for tpl in templates %}
+              <option value="{{ tpl.pk }}">{{ tpl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Subject *</label>
+          <input type="text" name="subject" id="subject" class="form-control" placeholder="Email subject…" required>
+        </div>
+
+        <div class="form-group">
+          <label>Body HTML *</label>
+          <div class="editor-toolbar">
+            <button type="button" onclick="wrap('<b>','</b>')"><b>B</b></button>
+            <button type="button" onclick="wrap('<i>','</i>')"><i>I</i></button>
+            <button type="button" onclick="wrap('<u>','</u>')"><u>U</u></button>
+            <button type="button" onclick="wrap('<h2>','</h2>')">H2</button>
+            <button type="button" onclick="wrap('<h3>','</h3>')">H3</button>
+            <button type="button" onclick="wrap('<p>','</p>')">¶</button>
+            <button type="button" onclick="wrap('<ul><li>','</li></ul>')">List</button>
+            <button type="button" onclick="insertLink()">Link</button>
+            <button type="button" onclick="insertBranded()">🎨 Branded</button>
+          </div>
+          <textarea name="body_html" id="body_html" class="form-control">{{ request.POST.body_html }}</textarea>
+          <p class="form-hint">Supports full HTML. Use <code>{{first_name}}</code>, <code>{{last_name}}</code>, <code>{{email}}</code> placeholders.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Live Preview</label>
+          <div id="preview" style="background:#fff;border-radius:8px;padding:16px;min-height:120px;color:#111;font-size:14px;line-height:1.6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: recipients & options -->
+    <div>
+      <div class="card">
+        <div class="card-title">Recipient</div>
+
+        <div class="form-group">
+          <label>Select Investor (optional)</label>
+          <select id="investor-select" class="form-control">
+            <option value="">— or type manually below —</option>
+            {% for inv in investors %}
+              <option value="{{ inv.email }}" data-name="{{ inv.first_name }} {{ inv.last_name }}">
+                {{ inv.email }} — {{ inv.first_name }} {{ inv.last_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>To (email) *</label>
+          <input type="email" name="to_address" id="to_address" class="form-control" placeholder="recipient@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>To (display name)</label>
+          <input type="text" name="to_name" id="to_name" class="form-control" placeholder="John Smith">
+        </div>
+
+        <div class="form-group">
+          <label>Reply-To</label>
+          <input type="email" name="reply_to" class="form-control" placeholder="reply@elvarionholdings.com">
+        </div>
+
+        <div class="form-group">
+          <label>CC (comma-separated)</label>
+          <input type="text" name="cc" class="form-control" placeholder="cc1@example.com, cc2@example.com">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Send</div>
+        <button type="submit" class="btn btn-primary" style="width:100%">🚀 Send Email Now</button>
+        <div style="margin-top:12px;text-align:center">
+          <a href="{% url 'mailer:dashboard' %}" style="color:#6b7280;font-size:13px">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+// Live preview
+const bodyTA = document.getElementById('body_html');
+const preview = document.getElementById('preview');
+function updatePreview(){preview.innerHTML = bodyTA.value;}
+bodyTA.addEventListener('input', updatePreview);
+updatePreview();
+
+// Wrap selection
+function wrap(open, close){
+  const s=bodyTA.selectionStart, e=bodyTA.selectionEnd;
+  const sel=bodyTA.value.substring(s,e);
+  bodyTA.value=bodyTA.value.substring(0,s)+open+sel+close+bodyTA.value.substring(e);
+  updatePreview();
+}
+
+function insertLink(){
+  const url=prompt('URL?','https://');
+  const txt=prompt('Link text?','Click here');
+  if(url && txt) wrap('<a href="'+url+'">',txt+'</a>'.replace('</a>'+txt+'</a>','</a>'));
+  else {
+    const s=bodyTA.selectionStart;
+    bodyTA.value=bodyTA.value.substring(0,s)+'<a href="'+url+'">'+txt+'</a>'+bodyTA.value.substring(s);
+    updatePreview();
+  }
+}
+
+function insertBranded(){
+  bodyTA.value = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e8e8e8;border-radius:8px">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 style="color:#1a1a2e;font-size:22px">Elvarion Holdings</h1>
+    <p style="color:#888;font-size:13px">Institutional Investment Platform</p>
+  </div>
+  <p>Dear {{first_name}},</p>
+  <p>Your message here.</p>
+  <div style="margin:24px 0;text-align:center">
+    <a href="https://elvarionholdings.com" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">
+      Visit Dashboard
+    </a>
+  </div>
+  <hr style="border:1px solid #eee;margin:24px 0">
+  <p style="font-size:12px;color:#aaa;text-align:center">Elvarion Holdings &bull; Tower 49, New York, NY 10017</p>
+</div>`;
+  updatePreview();
+}
+
+// Template loader
+document.getElementById('tpl-select').addEventListener('change', function(){
+  if(!this.value) return;
+  fetch('/mail/api/template/'+this.value+'/')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('subject').value = d.subject;
+      bodyTA.value = d.body_html;
+      updatePreview();
+    });
+});
+
+// Investor picker
+document.getElementById('investor-select').addEventListener('change', function(){
+  const opt = this.options[this.selectedIndex];
+  if(this.value){
+    document.getElementById('to_address').value = this.value;
+    document.getElementById('to_name').value    = opt.dataset.name || '';
+  }
+});
+</script>
+{% endblock %}

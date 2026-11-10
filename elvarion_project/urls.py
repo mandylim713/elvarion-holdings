@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('management/django-admin/', admin.site.urls),
+    path('mail/', include('mailer.urls', namespace='mailer')),
     path('', include('core.urls')),
 ]
 

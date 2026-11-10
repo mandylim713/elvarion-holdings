@@ -1,0 +1,64 @@
+{% extends 'mailer/base.html' %}
+{% block title %}Broadcasts — Elvarion Mailer{% endblock %}
+{% block topbar_title %}Broadcasts{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>📡 Broadcast Campaigns</h1>
+  <a href="{% url 'mailer:broadcast_new' %}" class="btn btn-primary">+ New Broadcast</a>
+</div>
+
+{% if broadcasts %}
+<div class="card" style="padding:0">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Audience</th>
+          <th>Status</th>
+          <th>Sent</th>
+          <th>Failed</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for bc in broadcasts %}
+        <tr>
+          <td><a href="{% url 'mailer:broadcast_detail' bc.pk %}" style="color:#818cf8;text-decoration:none">{{ bc.subject|truncatechars:45 }}</a></td>
+          <td style="font-size:12px;color:#9ca3af">{{ bc.get_audience_display }}</td>
+          <td><span class="badge badge-{{ bc.status }}">{{ bc.status }}</span></td>
+          <td style="color:#34d399;font-weight:600">{{ bc.total_sent }}</td>
+          <td style="color:#f87171">{{ bc.total_failed }}</td>
+          <td style="font-size:12px;color:#6b7280">{{ bc.created_at|date:"M d, Y" }}</td>
+          <td style="display:flex;gap:6px">
+            <a href="{% url 'mailer:broadcast_detail' bc.pk %}" class="btn btn-ghost btn-sm">View</a>
+            {% if bc.status == 'draft' %}
+            <form method="post" action="{% url 'mailer:broadcast_send' bc.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success btn-sm">Send</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'mailer:broadcast_delete' bc.pk %}" onsubmit="return confirm('Delete this broadcast and all its logs?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Del</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty">
+    <div style="font-size:40px">📡</div>
+    <p>No broadcasts yet. Send your first campaign to all investors.</p>
+    <a href="{% url 'mailer:broadcast_new' %}" class="btn btn-primary" style="margin-top:16px">+ Create Broadcast</a>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

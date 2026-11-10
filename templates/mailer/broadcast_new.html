@@ -1,0 +1,148 @@
+{% extends 'mailer/base.html' %}
+{% block title %}New Broadcast — Elvarion Mailer{% endblock %}
+{% block topbar_title %}New Broadcast{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>📡 New Broadcast</h1>
+  <a href="{% url 'mailer:broadcast_list' %}" class="btn btn-ghost">← Back</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px">
+
+    <!-- Left: message -->
+    <div>
+      <div class="card">
+        <div class="card-title">Message</div>
+
+        <div class="form-group">
+          <label>Load Template (optional)</label>
+          <select id="tpl-select" class="form-control">
+            <option value="">— choose template —</option>
+            {% for tpl in templates %}
+              <option value="{{ tpl.pk }}">{{ tpl.name }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="template_id" id="template_id">
+        </div>
+
+        <div class="form-group">
+          <label>Subject *</label>
+          <input type="text" name="subject" id="subject" class="form-control" placeholder="Broadcast subject…" required>
+          <p class="form-hint">Supports placeholders: <code>{{first_name}}</code>, <code>{{last_name}}</code>, <code>{{email}}</code></p>
+        </div>
+
+        <div class="form-group">
+          <label>Body HTML *</label>
+          <div class="editor-toolbar">
+            <button type="button" onclick="wrap('<b>','</b>')"><b>B</b></button>
+            <button type="button" onclick="wrap('<i>','</i>')"><i>I</i></button>
+            <button type="button" onclick="wrap('<h2>','</h2>')">H2</button>
+            <button type="button" onclick="wrap('<p>','</p>')">¶</button>
+            <button type="button" onclick="wrap('<ul><li>','</li></ul>')">List</button>
+            <button type="button" onclick="insertBranded()">🎨 Branded</button>
+          </div>
+          <textarea name="body_html" id="body_html" class="form-control">{{ request.POST.body_html }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Live Preview</label>
+          <div id="preview" style="background:#fff;border-radius:8px;padding:16px;min-height:120px;color:#111;font-size:13px;line-height:1.6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: audience & send -->
+    <div>
+      <div class="card">
+        <div class="card-title">Audience</div>
+
+        <div class="form-group">
+          <label>Send To *</label>
+          <select name="audience" id="audience" class="form-control">
+            <option value="all">All Investors</option>
+            <option value="verified">Email-Verified Investors Only</option>
+            <option value="active">Active Investors (with portfolio)</option>
+            <option value="custom">Custom List</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="custom-emails-group" style="display:none">
+          <label>Custom Emails</label>
+          <textarea name="custom_emails" class="form-control" style="min-height:80px" placeholder="email1@example.com, email2@example.com"></textarea>
+          <p class="form-hint">Comma-separated email addresses.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Actions</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button type="submit" name="action" value="send" class="btn btn-primary" onclick="return confirm('Send this broadcast now to all selected recipients?')">
+            🚀 Send Now
+          </button>
+          <button type="submit" name="action" value="save" class="btn btn-ghost">
+            💾 Save as Draft
+          </button>
+        </div>
+        <p style="font-size:11px;color:#6b7280;margin-top:12px">
+          Placeholders like <code>{{first_name}}</code> will be replaced per-recipient before sending.
+        </p>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+const bodyTA  = document.getElementById('body_html');
+const preview = document.getElementById('preview');
+function updatePreview(){preview.innerHTML = bodyTA.value;}
+bodyTA.addEventListener('input', updatePreview);
+updatePreview();
+
+function wrap(open,close){
+  const s=bodyTA.selectionStart,e=bodyTA.selectionEnd;
+  const sel=bodyTA.value.substring(s,e);
+  bodyTA.value=bodyTA.value.substring(0,s)+open+sel+close+bodyTA.value.substring(e);
+  updatePreview();
+}
+
+function insertBranded(){
+  bodyTA.value = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e8e8e8;border-radius:8px">
+  <div style="text-align:center;margin-bottom:24px">
+    <h1 style="color:#1a1a2e;font-size:22px">Elvarion Holdings</h1>
+    <p style="color:#888;font-size:13px">Institutional Investment Platform</p>
+  </div>
+  <p>Dear {{first_name}},</p>
+  <p>Your message here.</p>
+  <div style="margin:24px 0;text-align:center">
+    <a href="https://elvarionholdings.com" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">
+      Visit Dashboard
+    </a>
+  </div>
+  <hr style="border:1px solid #eee;margin:24px 0">
+  <p style="font-size:12px;color:#aaa;text-align:center">Elvarion Holdings &bull; Tower 49, New York, NY 10017</p>
+</div>`;
+  updatePreview();
+}
+
+// Template loader
+document.getElementById('tpl-select').addEventListener('change', function(){
+  if(!this.value) return;
+  document.getElementById('template_id').value = this.value;
+  fetch('/mail/api/template/'+this.value+'/')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('subject').value = d.subject;
+      bodyTA.value = d.body_html;
+      updatePreview();
+    });
+});
+
+// Custom email toggle
+document.getElementById('audience').addEventListener('change', function(){
+  document.getElementById('custom-emails-group').style.display = this.value==='custom' ? 'block' : 'none';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'mailer/base.html' %}
+{% block title %}Email Detail — Elvarion Mailer{% endblock %}
+{% block topbar_title %}Email Detail{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>Email #{{ log.pk }}</h1>
+  <a href="{% url 'mailer:logs' %}" class="btn btn-ghost">← Back to Logs</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px">
+  <div>
+    <div class="card">
+      <div class="card-title">Email Preview</div>
+      {% if log.body_html %}
+        <div style="background:#fff;border-radius:8px;padding:20px;color:#111;font-size:14px;line-height:1.6">
+          {{ log.body_html|safe }}
+        </div>
+      {% else %}
+        <pre style="color:#9ca3af;font-size:13px">{{ log.body_text }}</pre>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">Details</div>
+      <table style="font-size:13px">
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Status</td><td><span class="badge badge-{{ log.status }}">{{ log.status }}</span></td></tr>
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">To</td><td>{{ log.to_address }}</td></tr>
+        {% if log.to_name %}<tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Name</td><td>{{ log.to_name }}</td></tr>{% endif %}
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Subject</td><td>{{ log.subject }}</td></tr>
+        {% if log.reply_to %}<tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Reply-To</td><td>{{ log.reply_to }}</td></tr>{% endif %}
+        {% if log.cc %}<tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">CC</td><td>{{ log.cc }}</td></tr>{% endif %}
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Resend ID</td><td style="font-family:monospace;font-size:11px">{{ log.resend_id|default:"—" }}</td></tr>
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Sent By</td><td>{{ log.sent_by|default:"system" }}</td></tr>
+        <tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Time</td><td>{{ log.sent_at|date:"N j, Y H:i" }}</td></tr>
+        {% if log.template %}<tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Template</td><td>{{ log.template.name }}</td></tr>{% endif %}
+        {% if log.broadcast %}<tr><td style="color:#6b7280;padding:6px 0;padding-right:12px">Broadcast</td><td><a href="{% url 'mailer:broadcast_detail' log.broadcast.pk %}" style="color:#818cf8">#{{ log.broadcast.pk }}</a></td></tr>{% endif %}
+      </table>
+    </div>
+
+    {% if log.error_msg %}
+    <div class="card" style="border-color:rgba(239,68,68,.3)">
+      <div class="card-title" style="color:#fca5a5">Error</div>
+      <pre style="font-size:12px;color:#fca5a5;white-space:pre-wrap">{{ log.error_msg }}</pre>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

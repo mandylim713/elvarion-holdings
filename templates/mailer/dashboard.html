@@ -1,0 +1,95 @@
+{% extends 'mailer/base.html' %}
+{% block title %}Mailer Dashboard — Elvarion{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">{{ total_sent }}</div>
+    <div class="stat-label">Emails Sent</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:#f87171">{{ total_failed }}</div>
+    <div class="stat-label">Failed</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:#34d399">{{ template_count }}</div>
+    <div class="stat-label">Templates</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:#fbbf24">{{ broadcasts|length }}</div>
+    <div class="stat-label">Recent Campaigns</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+  <!-- Recent emails -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span class="card-title" style="margin-bottom:0">Recent Emails</span>
+      <a href="{% url 'mailer:logs' %}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% if recent_logs %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>To</th><th>Subject</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody>
+        {% for log in recent_logs %}
+          <tr>
+            <td>{{ log.to_address|truncatechars:28 }}</td>
+            <td><a href="{% url 'mailer:log_detail' log.pk %}" style="color:#818cf8;text-decoration:none">{{ log.subject|truncatechars:30 }}</a></td>
+            <td><span class="badge badge-{{ log.status }}">{{ log.status }}</span></td>
+            <td style="color:#6b7280;font-size:12px">{{ log.sent_at|timesince }} ago</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="empty">No emails sent yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent broadcasts -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span class="card-title" style="margin-bottom:0">Recent Broadcasts</span>
+      <a href="{% url 'mailer:broadcast_new' %}" class="btn btn-primary btn-sm">+ New</a>
+    </div>
+    {% if broadcasts %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Subject</th><th>Audience</th><th>Sent</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for bc in broadcasts %}
+          <tr>
+            <td><a href="{% url 'mailer:broadcast_detail' bc.pk %}" style="color:#818cf8;text-decoration:none">{{ bc.subject|truncatechars:28 }}</a></td>
+            <td style="color:#6b7280;font-size:12px">{{ bc.get_audience_display }}</td>
+            <td style="color:#34d399">{{ bc.total_sent }}</td>
+            <td><span class="badge badge-{{ bc.status }}">{{ bc.status }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="empty">No broadcasts yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Quick actions -->
+<div class="card">
+  <div class="card-title">Quick Actions</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a href="{% url 'mailer:compose' %}"        class="btn btn-primary">✏️ Compose Email</a>
+    <a href="{% url 'mailer:broadcast_new' %}"  class="btn btn-success">📡 New Broadcast</a>
+    <a href="{% url 'mailer:template_new' %}"   class="btn btn-ghost">📄 New Template</a>
+    <a href="{% url 'mailer:logs' %}"           class="btn btn-ghost">📋 View All Logs</a>
+    <a href="/management/#email"                class="btn btn-ghost">⚙️ Email Settings</a>
+  </div>
+</div>
+
+{% endblock %}
