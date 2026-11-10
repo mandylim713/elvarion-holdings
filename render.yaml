@@ -1,6 +1,10 @@
 # ============================================================================
 #  Elvarion Holdings — Render Blueprint (one-click deploy)
 #  New → Blueprint → connect mandylim713/elvarion-holdings → Render auto-creates everything.
+#
+#  REQUIRED: After first deploy, go to Render Dashboard → elvarion-holdings → Environment
+#  and add:   RESEND_API_KEY = your-resend-api-key
+#  Everything else is fully automatic.
 # ============================================================================
 databases:
   - name: elvarion-db
@@ -29,16 +33,16 @@ services:
         value: "False"
       - key: WEB_CONCURRENCY
         value: "4"
-      # ---- Email codes (sign-up, sign-in, password reset) & admin alerts via Resend API
+      # ---- Email / Resend (set RESEND_API_KEY in Render dashboard → Environment)
       - key: RESEND_API_KEY
         sync: false
       - key: DEFAULT_FROM_EMAIL
         value: "Elvarion Holdings <support@elvarionholdings.com>"
-      - key: EMAIL_HOST            # optional fallback: any SMTP server (also set EMAIL_HOST_USER / EMAIL_HOST_PASSWORD)
+      - key: EMAIL_HOST            # optional SMTP fallback
         sync: false
       - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
-      - key: CRON_SECRET           # optional: fixed key for the /cron/tick/ ping URL (otherwise one is derived)
+      - key: CRON_SECRET
         generateValue: true

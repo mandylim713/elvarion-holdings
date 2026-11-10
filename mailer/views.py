@@ -1,20 +1,74 @@
-"""mailer/views.py — Admin-only standalone mail system views."""
+"""mailer/views.py — Standalone mail system views with dedicated login."""
 import json
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .models import Broadcast, EmailLog, EmailTemplate
 from .sender import send_email, send_broadcast
 
 
+# ── Standalone Authentication ──────────────────────────────────────────────────
+
+def mail_login(request):
+    """Dedicated standalone sign-in for the Mailer Suite at /mail/login/."""
+    nxt = request.GET.get('next', '') or request.POST.get('next', '')
+    if request.user.is_authenticated and request.user.is_staff:
+        if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+            return redirect(nxt)
+        return redirect('mailer:dashboard')
+
+    if request.method == 'POST':
+        ident = request.POST.get('identifier', '').strip()
+        password = request.POST.get('password', '')
+
+        client_ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '127.0.0.1')).split(',')[0].strip()
+        throttle_key = f'mail_login_throttle_{client_ip}_{ident.lower()}'
+        attempts = cache.get(throttle_key, 0)
+        if attempts >= 5:
+            messages.error(request, 'Too many login attempts. Please wait 15 minutes before trying again.')
+            return render(request, 'mailer/login.html', {'ident': ident, 'next': nxt}, status=429)
+
+        user = authenticate(request, username=ident, password=password)
+        if not user and '@' in ident:
+            u = User.objects.filter(email__iexact=ident).first()
+            if u:
+                user = authenticate(request, username=u.username, password=password)
+
+        if user is not None and user.is_staff and user.is_active:
+            cache.delete(throttle_key)
+            login(request, user)
+            request.session.set_expiry(60 * 60 * 8)
+            messages.success(request, f'Signed in to Mailbox Suite as {user.username}.')
+            if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+                return redirect(nxt)
+            return redirect('mailer:dashboard')
+
+        cache.set(throttle_key, attempts + 1, 15 * 60)
+        messages.error(request, 'Invalid credentials or account does not have mailroom staff authorization.')
+        return render(request, 'mailer/login.html', {'ident': ident, 'next': nxt}, status=200)
+
+    return render(request, 'mailer/login.html', {'next': nxt})
+
+
+def mail_logout(request):
+    """Sign out of Mailbox Suite."""
+    logout(request)
+    messages.info(request, 'You have signed out of the Mailbox Suite.')
+    return redirect('mailer:login')
+
+
 # ── dashboard ──────────────────────────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def dashboard(request):
     total_sent   = EmailLog.objects.filter(status='sent').count()
     total_failed = EmailLog.objects.filter(status='failed').count()
@@ -35,9 +89,8 @@ def dashboard(request):
 
 # ── compose & send single email ───────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def compose(request):
-    from django.contrib.auth.models import User
     templates = EmailTemplate.objects.all()
     investors = User.objects.filter(is_staff=False, is_active=True).order_by('email')
 
@@ -78,7 +131,7 @@ def compose(request):
 
 # ── email logs ─────────────────────────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def logs(request):
     qs = EmailLog.objects.select_related('template', 'broadcast').all()
 
@@ -98,7 +151,7 @@ def logs(request):
     return render(request, 'mailer/logs.html', ctx)
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def log_detail(request, pk):
     log = get_object_or_404(EmailLog, pk=pk)
     return render(request, 'mailer/log_detail.html', {'log': log, 'section': 'logs'})
@@ -106,13 +159,13 @@ def log_detail(request, pk):
 
 # ── templates ──────────────────────────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def template_list(request):
     templates = EmailTemplate.objects.all()
     return render(request, 'mailer/templates.html', {'templates': templates, 'section': 'templates'})
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def template_edit(request, pk=None):
     obj = get_object_or_404(EmailTemplate, pk=pk) if pk else None
 
@@ -139,7 +192,7 @@ def template_edit(request, pk=None):
     return render(request, 'mailer/template_edit.html', ctx)
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 @require_POST
 def template_delete(request, pk):
     obj = get_object_or_404(EmailTemplate, pk=pk)
@@ -150,13 +203,13 @@ def template_delete(request, pk):
 
 # ── broadcast ──────────────────────────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def broadcast_list(request):
     bcs = Broadcast.objects.all()
     return render(request, 'mailer/broadcast_list.html', {'broadcasts': bcs, 'section': 'broadcast'})
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def broadcast_new(request):
     templates = EmailTemplate.objects.all()
 
@@ -194,14 +247,14 @@ def broadcast_new(request):
     return render(request, 'mailer/broadcast_new.html', ctx)
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def broadcast_detail(request, pk):
     bc   = get_object_or_404(Broadcast, pk=pk)
     logs = bc.logs.all()[:200]
     return render(request, 'mailer/broadcast_detail.html', {'bc': bc, 'logs': logs, 'section': 'broadcast'})
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 @require_POST
 def broadcast_send(request, pk):
     bc = get_object_or_404(Broadcast, pk=pk)
@@ -210,7 +263,7 @@ def broadcast_send(request, pk):
     return redirect('mailer:broadcast_detail', pk=bc.pk)
 
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 @require_POST
 def broadcast_delete(request, pk):
     bc = get_object_or_404(Broadcast, pk=pk)
@@ -221,7 +274,7 @@ def broadcast_delete(request, pk):
 
 # ── AJAX: load template body ───────────────────────────────────────────────────
 
-@staff_member_required(login_url='/management/login/')
+@staff_member_required(login_url='/mail/login/')
 def api_template(request, pk):
     tpl = get_object_or_404(EmailTemplate, pk=pk)
     return JsonResponse({'subject': tpl.subject, 'body_html': tpl.body_html})

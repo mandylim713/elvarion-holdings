@@ -255,3 +255,4 @@ def send_broadcast(broadcast_id: int, sent_by: str = "system") -> "Broadcast":
     bc.sent_at      = timezone.now()
     bc.save()
     return bc
+

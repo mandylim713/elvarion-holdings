@@ -1474,7 +1474,7 @@ def admin_login(request):
             request.session.set_expiry(60 * 60 * 8)   # admin sessions last one working day
             nxt = request.GET.get('next', '')
             from django.utils.http import url_has_allowed_host_and_scheme
-            if nxt.startswith('/management') and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+            if (nxt.startswith('/management') or nxt.startswith('/mail')) and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
                 return redirect(nxt)
             return redirect('admin_management')
         cache.set(key, cache.get(key, 0) + 1, 15 * 60)

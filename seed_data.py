@@ -19,11 +19,13 @@ def run():
 
     # 1. Company Settings
     company, company_new = CompanySetting.objects.get_or_create(id=1)
+    # Always sync the Resend key from environment (env is authoritative on hosted deploys)
+    env_resend_key = os.environ.get('RESEND_API_KEY', '').strip()
     if company_new or not company.resend_api_key:
       company.site_name = "Elvarion Holdings"
       company.domain = "elvarionholdings.com"
       company.support_email = "support@elvarionholdings.com"
-      company.resend_api_key = os.environ.get('RESEND_API_KEY', '')
+      company.resend_api_key = env_resend_key
       company.sender_email = "Elvarion Holdings <support@elvarionholdings.com>"
       company.admin_email = "support@elvarionholdings.com"
       company.corporate_address = "Tower 49, 12 East 49th Street, New York, NY 10017"
@@ -36,6 +38,10 @@ def run():
       company.bank_account_number = "982038472910"
       company.bank_routing_swift = "CHASUS33 / Routing: 021000021"
       company.save()
+    elif env_resend_key and company.resend_api_key != env_resend_key:
+      # Existing record but env has an updated key — sync it
+      company.resend_api_key = env_resend_key
+      company.save(update_fields=['resend_api_key'])
     print("[*] Company settings configured")
 
     # 2. Investment Areas

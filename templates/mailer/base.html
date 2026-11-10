@@ -118,7 +118,7 @@
 <div class="main">
   <div class="topbar">
     <span class="topbar-title">{% block topbar_title %}Mailer{% endblock %}</span>
-    <span class="topbar-user">{{ request.user.username }}</span>
+    <span class="topbar-user">{{ request.user.username }} &bull; <a href="{% url 'mailer:logout' %}" style="color:#f87171;text-decoration:none;margin-left:8px;font-weight:500;">Sign Out</a></span>
   </div>
   <div class="content">
     {% for msg in messages %}
@@ -130,3 +130,4 @@
 
 </body>
 </html>
+

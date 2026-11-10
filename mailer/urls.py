@@ -4,6 +4,10 @@ from . import views
 app_name = 'mailer'
 
 urlpatterns = [
+    # Standalone Auth
+    path('login/',                        views.mail_login,        name='login'),
+    path('logout/',                       views.mail_logout,       name='logout'),
+
     # Dashboard
     path('',                              views.dashboard,         name='dashboard'),
 

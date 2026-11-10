@@ -39,4 +39,5 @@ Switch live prices off there if you prefer fixed reference prices.
 - Investors: `/login/` (staff accounts are rejected here)
 - Admins: `/management/login/` (staff only, rate-limited, 8-hour session)
 - Admin console: `/management/`
+- Standalone Mailbox Suite: `/mail/login/` (redirects to `/mail/` dashboard)
 - Django admin: `/management/django-admin/`
