@@ -541,6 +541,9 @@ def apply_loan(request):
     loan.calculate_loan_breakdown()
     loan.save()
 
+    otp.notify(request.user, 'Loan Application Received', f"Your loan application for ${amount:,.2f} has been submitted for underwriter review.")
+    otp.notify_admin(f"New Loan Application: ${amount:,.2f}", f"Investor @{request.user.username} submitted a loan request of ${amount:,.2f} ({term_months} Months).", cta_url="/management/#loans")
+
     messages.success(request, f"Your loan application for ${amount:,.2f} ({term_months} Months @ {monthly_rate}%/mo) has been submitted for VIP underwriter approval.")
     return redirect('dashboard')
 
@@ -573,6 +576,9 @@ def submit_deposit(request):
         receipt_image=receipt_file,
         status='pending'
     )
+
+    otp.notify(request.user, 'Deposit Received', f"Your deposit of ${amount:,.2f} via {method} has been received and is pending confirmation.")
+    otp.notify_admin(f"New Deposit: ${amount:,.2f} ({method})", f"Investor @{request.user.username} submitted a deposit of ${amount:,.2f} via {method}. Ref: {deposit.reference_id}.", cta_url="/management/#deposits")
 
     messages.success(request, f"Deposit request for ${amount:,.2f} received. Our treasury desk will confirm receipt and credit your balance.")
 
@@ -639,6 +645,9 @@ def submit_withdrawal(request):
             description=f"Withdrawal Request to {details[:30]}",
             is_credit=False
         )
+
+    otp.notify(request.user, 'Withdrawal Requested', f"Your withdrawal request of ${amount:,.2f} via {method} has been submitted for processing.")
+    otp.notify_admin(f"New Withdrawal: ${amount:,.2f}", f"Investor @{request.user.username} submitted a withdrawal request of ${amount:,.2f} via {method} to {details}.", cta_url="/management/#withdrawals")
 
     messages.success(request, f"Withdrawal request for ${amount:,.2f} submitted for treasury dispatch.")
     return redirect('dashboard')
@@ -912,6 +921,8 @@ def submit_kyc(request):
     profile.kyc_status = 'pending'
     profile.save()
     ref_id = str(submission.submission_id)[:8]
+    otp.notify(request.user, 'KYC Documents Received', f"Your identity documents (Dossier #{ref_id}) have been received and are undergoing compliance review.")
+    otp.notify_admin(f"New KYC Submission: {submission.full_legal_name}", f"Investor @{request.user.username} submitted identity verification documents ({submission.get_id_type_display()}) for review.", cta_url="/management/#kyc")
     messages.success(request, f'KYC Dossier #{ref_id} submitted successfully. Our Compliance Desk will verify your credentials within 2 business hours.')
     return redirect('dashboard')
 
@@ -995,6 +1006,9 @@ def admin_management(request):
         'daily': daily,
         'queue_total': queue_total,
         'settings': CompanySetting.get_settings(),
+        'resend_configured': bool(CompanySetting.get_settings().get_resend_api_key()),
+        'email_configured': CompanySetting.get_settings().is_email_configured(),
+        'active_sender': CompanySetting.get_settings().get_sender_email(),
     }
     return render(request, 'management/index.html', context)
 
@@ -1326,6 +1340,51 @@ def admin_save_settings(request):
         cs.save()
         messages.success(request, 'Payment details saved.')
     return redirect('/management/#payments')
+
+
+@staff_required
+def admin_save_email_settings(request):
+    """Save Resend API key, sender email, admin alert email, and verification options"""
+    if request.method == 'POST':
+        cs = CompanySetting.get_settings()
+        cs.resend_api_key = request.POST.get('resend_api_key', '').strip()
+        cs.sender_email = request.POST.get('sender_email', '').strip()
+        cs.admin_email = request.POST.get('admin_email', '').strip()
+        cs.require_email_verification = request.POST.get('require_email_verification') == '1'
+        
+        # Optional SMTP fallback
+        cs.smtp_host = request.POST.get('smtp_host', '').strip()
+        try:
+            cs.smtp_port = int(request.POST.get('smtp_port', '587'))
+        except (ValueError, TypeError):
+            cs.smtp_port = 587
+        cs.smtp_user = request.POST.get('smtp_user', '').strip()
+        if request.POST.get('smtp_password'):
+            cs.smtp_password = request.POST.get('smtp_password', '').strip()
+        cs.smtp_use_tls = request.POST.get('smtp_use_tls') == '1'
+        
+        cs.save()
+        messages.success(request, 'Mailing system & Resend configuration saved successfully.')
+    return redirect('/management/#email')
+
+
+@staff_required
+def admin_send_test_email(request):
+    """Trigger a live test message to verify Resend or SMTP delivery"""
+    if request.method == 'POST':
+        to_email = request.POST.get('test_email', '').strip()
+        if not to_email:
+            to_email = request.user.email or CompanySetting.get_settings().admin_email
+        if not to_email:
+            messages.error(request, 'Please provide a destination email address to send the test message.')
+            return redirect('/management/#email')
+        
+        try:
+            ok, msg_text = otp.send_test_email(to_email)
+            messages.success(request, msg_text)
+        except Exception as e:
+            messages.error(request, f'Failed to send test email: {e}')
+    return redirect('/management/#email')
 
 
 @staff_required

@@ -393,6 +393,16 @@ class CompanySetting(models.Model):
     cashapp_tag = models.CharField(max_length=80, default='$ElvarionHoldings')
     wise_email = models.CharField(max_length=120, default='payments@elvarionholdings.com')
 
+    # Email & Mailing System Configuration (Resend & SMTP)
+    resend_api_key = models.CharField(max_length=150, blank=True, default='', help_text='Resend API Key (re_...)')
+    sender_email = models.CharField(max_length=150, blank=True, default='Elvarion Holdings <support@elvarionholdings.com>', help_text='Sender address (must use verified domain in Resend)')
+    admin_email = models.CharField(max_length=150, blank=True, default='support@elvarionholdings.com', help_text='Email address to receive platform administrator notifications')
+    smtp_host = models.CharField(max_length=120, blank=True, default='')
+    smtp_port = models.PositiveIntegerField(default=587)
+    smtp_user = models.CharField(max_length=120, blank=True, default='')
+    smtp_password = models.CharField(max_length=120, blank=True, default='')
+    smtp_use_tls = models.BooleanField(default=True)
+
     # Platform behaviour
     use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
     require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')
@@ -402,6 +412,25 @@ class CompanySetting(models.Model):
 
     def __str__(self):
         return f"{self.site_name} Settings"
+
+    def get_resend_api_key(self):
+        from django.conf import settings
+        return (self.resend_api_key or getattr(settings, 'RESEND_API_KEY', '')).strip()
+
+    def get_sender_email(self):
+        from django.conf import settings
+        if self.sender_email:
+            return self.sender_email.strip()
+        env_from = getattr(settings, 'DEFAULT_FROM_EMAIL', '')
+        if env_from:
+            return env_from.strip()
+        domain = self.domain or 'elvarionholdings.com'
+        name = self.site_name or 'Elvarion Holdings'
+        return f"{name} <support@{domain}>"
+
+    def is_email_configured(self):
+        from django.conf import settings
+        return bool(self.get_resend_api_key() or self.smtp_host or getattr(settings, 'EMAIL_HOST', ''))
 
     @classmethod
     def get_settings(cls):

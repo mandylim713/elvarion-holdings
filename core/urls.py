@@ -51,4 +51,6 @@ urlpatterns = [
     path('management/asset/save/', views.admin_save_asset, name='admin_save_asset'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
+    path('management/email/save/', views.admin_save_email_settings, name='admin_save_email_settings'),
+    path('management/email/test/', views.admin_send_test_email, name='admin_send_test_email'),
 ]

@@ -111,20 +111,15 @@ LOGOUT_REDIRECT_URL = 'home'
 
 
 # ---------------------------------------------------------------- Email (OTP codes, notifications)
-# Pick ONE: Resend API key, or any SMTP server. With neither, codes are printed to the server log.
+# Supports Resend API (default) or any SMTP server, configurable via environment or the Admin Console.
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1')
-if RESEND_API_KEY:
-    EMAIL_BACKEND = 'core.email_backends.ResendEmailBackend'
-elif EMAIL_HOST:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Elvarion Holdings <onboarding@resend.dev>' if RESEND_API_KEY else 'Elvarion Holdings <noreply@elvarionholdings.com>')
+EMAIL_BACKEND = 'core.email_backends.ConfiguredEmailBackend'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Elvarion Holdings <support@elvarionholdings.com>')
 
 # ---------------------------------------------------------------- Production hardening
 if not DEBUG:

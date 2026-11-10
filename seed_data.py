@@ -19,10 +19,13 @@ def run():
 
     # 1. Company Settings
     company, company_new = CompanySetting.objects.get_or_create(id=1)
-    if company_new:
+    if company_new or not company.resend_api_key:
       company.site_name = "Elvarion Holdings"
       company.domain = "elvarionholdings.com"
-      company.support_email = "concierge@elvarionholdings.com"
+      company.support_email = "support@elvarionholdings.com"
+      company.resend_api_key = os.environ.get('RESEND_API_KEY', '')
+      company.sender_email = "Elvarion Holdings <support@elvarionholdings.com>"
+      company.admin_email = "support@elvarionholdings.com"
       company.corporate_address = "Tower 49, 12 East 49th Street, New York, NY 10017"
       company.btc_wallet_address = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
       company.usdt_trc20_address = "TYDzsYUEpvnYmQk4zGP9sWWcTEd3GLGVbC"

@@ -55,6 +55,7 @@
     <button class="nav-item" data-view="plans"><i class="fas fa-layer-group"></i> Plans &amp; ROI</button>
     <button class="nav-item" data-view="tiers"><i class="fas fa-sliders"></i> Loan criteria</button>
     <button class="nav-item" data-view="payments"><i class="fas fa-wallet"></i> Payment details</button>
+    <button class="nav-item" data-view="email"><i class="fas fa-envelope"></i> Email &amp; Resend</button>
   </nav>
   <div class="side-foot">
     <div class="side-user">
@@ -421,6 +422,113 @@
       </div></div>
       <button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-check"></i> Save payment details</button>
     </form>
+  </section>
+
+  <!-- ============ EMAIL & RESEND ============ -->
+  <section class="adm-view" id="v-email" data-title="Email &amp; Resend">
+    <div class="view-head">
+      <div>
+        <h2>Mailing System &amp; Resend Integration</h2>
+        <p>Configure Resend credentials, sender identities for {{ settings.domain }}, and automatic transaction alerts.</p>
+      </div>
+      <div>
+        {% if resend_configured %}
+          <span class="pill pill-ok" style="font-size:.85rem;padding:6px 14px"><i class="fas fa-circle-check"></i> Resend Active (Verified)</span>
+        {% elif email_configured %}
+          <span class="pill pill-ok" style="font-size:.85rem;padding:6px 14px"><i class="fas fa-circle-check"></i> Mailer Active</span>
+        {% else %}
+          <span class="pill pill-warn" style="font-size:.85rem;padding:6px 14px"><i class="fas fa-triangle-exclamation"></i> Email Not Configured</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="f-grid" style="margin-bottom:16px;align-items:start">
+      <!-- Main Settings Form -->
+      <form class="card card-pad" method="post" action="{% url 'admin_save_email_settings' %}">
+        {% csrf_token %}
+        <div class="card-head" style="padding:0 0 14px">
+          <h3>Resend Credentials</h3>
+          <small>HTTP API delivery with verified domain {{ settings.domain }}</small>
+        </div>
+
+        <label class="field" style="margin-bottom:12px">
+          <span>Resend API Key</span>
+          <div style="position:relative;display:flex;align-items:center">
+            <input type="password" name="resend_api_key" id="resendApiKeyInput" value="{{ settings.resend_api_key }}" placeholder="re_xxxxxxxxxxxxxxxxxxxx" style="width:100%;font-family:monospace;letter-spacing:1px;padding-right:40px">
+            <button type="button" onclick="const f=document.getElementById('resendApiKeyInput');f.type=f.type==='password'?'text':'password';this.querySelector('i').classList.toggle('fa-eye');this.querySelector('i').classList.toggle('fa-eye-slash')" style="position:absolute;right:10px;background:none;border:none;color:var(--ink-3);cursor:pointer;padding:4px"><i class="fas fa-eye"></i></button>
+          </div>
+          <small style="color:var(--ink-3);font-size:.78rem;margin-top:4px;display:block">Your secret API key from <a href="https://resend.com/api-keys" target="_blank" style="color:var(--gold)">resend.com/api-keys</a>.</small>
+        </label>
+
+        <label class="field" style="margin-bottom:12px">
+          <span>Sender Identity ("From" Address)</span>
+          <input type="text" name="sender_email" value="{{ settings.sender_email }}" placeholder="Elvarion Holdings &lt;support@{{ settings.domain }}&gt;">
+          <small style="color:var(--ink-3);font-size:.78rem;margin-top:4px;display:block">Active sender: <code>{{ active_sender }}</code></small>
+        </label>
+
+        <label class="field" style="margin-bottom:14px">
+          <span>Admin Alert Recipient Email</span>
+          <input type="email" name="admin_email" value="{{ settings.admin_email }}" placeholder="support@{{ settings.domain }}">
+          <small style="color:var(--ink-3);font-size:.78rem;margin-top:4px;display:block">Destination address for instant alerts on new deposits, withdrawals, KYC submissions, and loan applications.</small>
+        </label>
+
+        <div style="padding:12px 14px;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;margin-bottom:16px">
+          <label class="field" style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <input type="checkbox" name="require_email_verification" value="1" {% if settings.require_email_verification %}checked{% endif %} style="width:18px;height:18px">
+            <span style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem;font-weight:600">Require 6-digit email confirmation code at registration</span>
+          </label>
+          <small style="color:var(--ink-2);font-size:.78rem;display:block;margin-left:28px">Protects onboarding against bot registrations by dispatching an encrypted OTP code via Resend.</small>
+        </div>
+
+        <details style="margin-bottom:16px;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+          <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--ink)"><i class="fas fa-server"></i> Advanced: Alternative SMTP Fallback</summary>
+          <div style="margin-top:12px" class="f-grid">
+            <label class="field"><span>SMTP Host</span><input type="text" name="smtp_host" value="{{ settings.smtp_host }}" placeholder="smtp.resend.com"></label>
+            <label class="field"><span>SMTP Port</span><input type="number" name="smtp_port" value="{{ settings.smtp_port }}" placeholder="587"></label>
+            <label class="field"><span>SMTP User</span><input type="text" name="smtp_user" value="{{ settings.smtp_user }}" placeholder="resend"></label>
+            <label class="field"><span>SMTP Password</span><input type="password" name="smtp_password" value="{{ settings.smtp_password }}"></label>
+          </div>
+          <label class="field" style="display:flex;gap:10px;align-items:center;margin-top:8px">
+            <input type="checkbox" name="smtp_use_tls" value="1" {% if settings.smtp_use_tls %}checked{% endif %} style="width:16px;height:16px">
+            <span style="margin:0;font-size:.82rem">Use TLS encryption</span>
+          </label>
+        </details>
+
+        <button class="btn btn-gold" type="submit"><i class="fas fa-check"></i> Save Email Settings</button>
+      </form>
+
+      <!-- Test Email Card & Status -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <form class="card card-pad" method="post" action="{% url 'admin_send_test_email' %}">
+          {% csrf_token %}
+          <div class="card-head" style="padding:0 0 12px">
+            <h3>Send Live Test Email</h3>
+            <small>Verify instant end-to-end delivery</small>
+          </div>
+          <p style="margin:0 0 12px;color:var(--ink-2);font-size:.85rem;line-height:1.5">
+            Dispatches a high-priority, branded institutional test transmission using your active Resend credentials to confirm deliverability.
+          </p>
+          <label class="field" style="margin-bottom:14px">
+            <span>Destination Email</span>
+            <input type="email" name="test_email" required value="{{ request.user.email|default:settings.admin_email }}" placeholder="you@domain.com">
+          </label>
+          <button class="btn btn-dark" type="submit"><i class="fas fa-paper-plane"></i> Send Test Email Now</button>
+        </form>
+
+        <div class="card card-pad">
+          <div class="card-head" style="padding:0 0 10px">
+            <h3>Domain &amp; Deliverability Status</h3>
+            <small>{{ settings.domain }}</small>
+          </div>
+          <ul style="margin:0;padding:0 0 0 18px;font-size:.84rem;color:var(--ink-2);line-height:1.7">
+            <li><b>Domain:</b> <code>{{ settings.domain }}</code> (EU West 1 / Dublin)</li>
+            <li><b>Status:</b> <span style="color:var(--ok);font-weight:700"><i class="fas fa-check-circle"></i> Verified on Resend</span></li>
+            <li><b>Supported Features:</b> Sign-up OTPs, Password Resets, Deposit Receipts, Withdrawal Notifications, Executive Alerts.</li>
+            <li><b>Default From:</b> <code>{{ active_sender }}</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </section>
 
   </main>

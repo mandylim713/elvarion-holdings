@@ -115,7 +115,8 @@ class TestKYCComplianceWorkflow(BaseTestCase):
         self.profile = UserProfile.objects.create(
             user=self.user,
             kyc_status='unverified',
-            country='Switzerland'
+            country='Switzerland',
+            email_verified=True
         )
 
     def test_submit_kyc_dossier(self):
@@ -197,7 +198,8 @@ class TestTreasuryDepositWorkflow(BaseTestCase):
         self.profile = UserProfile.objects.create(
             user=self.user,
             wallet_balance=Decimal('0.00'),
-            total_deposited=Decimal('0.00')
+            total_deposited=Decimal('0.00'),
+            email_verified=True
         )
 
     def test_no_free_credit_shortcut(self):
@@ -451,3 +453,19 @@ class TestSeparateAdminLogin(TestCase):
     def test_crypto_sector_listed_on_home(self):
         InvestmentArea.objects.create(name='Digital Assets & Crypto', slug='digital-assets-crypto', tagline='x', description='x', icon='bitcoin-sign')
         self.assertContains(self.client.get('/'), 'Digital Assets &amp; Crypto')
+
+    def test_admin_save_email_settings_and_test_email(self):
+        self.client.post(reverse('admin_login'), {'identifier': 'boss', 'password': 'Boss!Passw0rd'})
+        # Save email settings
+        r = self.client.post(reverse('admin_save_email_settings'), {
+            'resend_api_key': 're_test_key_12345678',
+            'sender_email': 'Elvarion Holdings <support@elvarionholdings.com>',
+            'admin_email': 'support@elvarionholdings.com',
+            'require_email_verification': '1'
+        })
+        self.assertRedirects(r, '/management/#email')
+        cs = CompanySetting.get_settings()
+        self.assertEqual(cs.resend_api_key, 're_test_key_12345678')
+        self.assertEqual(cs.sender_email, 'Elvarion Holdings <support@elvarionholdings.com>')
+        self.assertEqual(cs.admin_email, 'support@elvarionholdings.com')
+        self.assertTrue(cs.require_email_verification)
