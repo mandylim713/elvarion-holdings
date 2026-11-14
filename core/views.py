@@ -560,6 +560,10 @@ def submit_deposit(request):
     if request.method != 'POST':
         return redirect('dashboard')
 
+    if CompanySetting.get_settings().deposits_frozen:
+        messages.error(request, 'Deposits are temporarily unavailable. Please check back soon.')
+        return redirect('dashboard')
+
     profile = request.user.profile
     amount_str = request.POST.get('amount', '0')
     method = request.POST.get('method', 'USDT_TRC20')
@@ -1323,6 +1327,7 @@ def admin_save_settings(request):
                 setattr(cs, k, request.POST.get(k, '').strip()[:150])
         if request.POST.get('form') == 'platform':
             cs.use_live_prices = request.POST.get('use_live_prices') == '1'
+            cs.deposits_frozen = request.POST.get('deposits_frozen') == '1'
             cs.require_email_verification = request.POST.get('require_email_verification') == '1'
             try:
                 cs.option_payout_pct = max(1, min(500, int(request.POST.get('option_payout_pct', cs.option_payout_pct))))

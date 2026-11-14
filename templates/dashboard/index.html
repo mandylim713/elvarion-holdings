@@ -767,9 +767,9 @@
                     <div>
                         <span class="badge badge-gold"><i class="fas fa-wallet"></i> ADD MONEY</span>
                         <h2 style="font-size: 1.8rem; margin-top: 6px;">Add money to your wallet</h2>
-                        <p style="color: var(--text-muted); font-size: 0.92rem;">
+                        {% if settings.deposits_frozen %}<p style="color: var(--text-muted); font-size: 0.92rem;">Deposits are currently paused.</p>{% else %}<p style="color: var(--text-muted); font-size: 0.92rem;">
                             Pay by bank transfer, Zelle, PayPal, Venmo, Cash App, Wise or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
-                        </p>
+                        </p>{% endif %}
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
                         <span style="font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700;">Total deposited so far</span>
@@ -778,6 +778,13 @@
                 </div>
             </div>
 
+            {% if settings.deposits_frozen %}
+            <div class="card card-pad" style="text-align:center;padding:48px 24px;border:1px solid rgba(201,164,92,.35)">
+                <div style="font-size:2rem;color:#c9a45c;margin-bottom:12px"><i class="fas fa-lock"></i></div>
+                <h3 style="margin-bottom:8px">Deposits are temporarily paused</h3>
+                <p style="color:var(--text-muted);max-width:460px;margin:0 auto">We are not accepting new deposits right now. Your wallet, investments and withdrawals are not affected. Please check back soon.</p>
+            </div>
+            {% else %}
             <!-- Currency Selection Tabs -->
             <div class="crypto-selector-tabs">
                 <div class="crypto-tab-card active" onclick="selectDepositGateway('BANK_WIRE', this)">
@@ -1029,6 +1036,7 @@
                 <p style="color: var(--text-dim); font-size: 0.88rem;">No deposit records submitted yet.</p>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
 
         <!-- TAB 5: AML / KYC COMPLIANCE & ACCREDITED INVESTOR VERIFICATION -->
@@ -1488,7 +1496,7 @@
                 <div class="form-group"><label class="form-label">Account number / IBAN</label><input type="text" name="account_number" class="form-control mono-num" autocomplete="off"></div>
                 <div class="wd-two">
                     <div class="form-group"><label class="form-label">SWIFT / routing <span style="text-transform:none;opacity:.6">(optional)</span></label><input type="text" name="swift" class="form-control" autocomplete="off"></div>
-                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="bank_country" class="form-control" placeholder="e.g. Nigeria" autocomplete="off"></div>
+                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="bank_country" class="form-control" placeholder="Country" autocomplete="off"></div>
                 </div>
                 <p class="wd-note"><i class="fas fa-clock"></i> Bank transfers are reviewed by our team and usually arrive in 1&ndash;3 business days.</p>
             </div>

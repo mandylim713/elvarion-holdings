@@ -418,6 +418,7 @@ class CompanySetting(models.Model):
 
     # Platform behaviour
     use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
+    deposits_frozen = models.BooleanField(default=True, help_text='When on, investors cannot submit any deposit (bank transfer, cash apps, crypto)')
     require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')
     option_payout_pct = models.PositiveSmallIntegerField(default=80, help_text='Quick Trade payout on a winning trade, in percent')
     option_min_stake = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('10.00'))

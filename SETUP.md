@@ -39,3 +39,6 @@ Switch live prices off there if you prefer fixed reference prices.
 - Admins: `/management/login/` (staff only, rate-limited, 8-hour session)
 - Admin console: `/management/`
 - Django admin: `/management/django-admin/`
+
+## Deposits are frozen by default
+Admin → Markets → Platform settings → untick "Freeze all deposits" to re-open deposits.

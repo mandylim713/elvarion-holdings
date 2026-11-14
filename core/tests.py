@@ -189,6 +189,7 @@ class TestKYCComplianceWorkflow(BaseTestCase):
 class TestTreasuryDepositWorkflow(BaseTestCase):
     def setUp(self):
         super().setUp()
+        cs = CompanySetting.get_settings(); cs.deposits_frozen = False; cs.save()   # freeze is on by default
         self.user = User.objects.create_user(
             username='investor_deposit_test',
             email='deposit@investor.test',
@@ -482,3 +483,28 @@ class TestInvestmentTerms(TestCase):
     def test_plan_terms_property(self):
         self.assertEqual([t['months'] for t in self.plan.terms], [1, 3, 6, 12])
         self.assertEqual(self.plan.terms[3]['total_pct'], Decimal('60.00'))
+
+
+class TestDepositFreeze(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('frz', 'f@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=self.user, wallet_balance=Decimal('0'), email_verified=True)
+        self.client.force_login(self.user)
+
+    def _post(self):
+        return self.client.post('/deposit/', {'amount': '500', 'method': 'BANK_WIRE', 'proof_hash': 'ref123'})
+
+    def test_frozen_by_default_blocks_every_method(self):
+        self.assertTrue(CompanySetting.get_settings().deposits_frozen)
+        for m in ('BANK_WIRE', 'ZELLE', 'CASHAPP', 'USDT_TRC20'):
+            self.client.post('/deposit/', {'amount': '500', 'method': m, 'proof_hash': 'x'})
+        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 0)
+
+    def test_notice_shown_and_form_hidden(self):
+        html = self.client.get('/dashboard/').content.decode()
+        self.assertIn('Deposits are temporarily paused', html)
+
+    def test_admin_can_unfreeze(self):
+        cs = CompanySetting.get_settings(); cs.deposits_frozen = False; cs.save()
+        self._post()
+        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 1)
