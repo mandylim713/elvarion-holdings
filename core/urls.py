@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/loan-calculator/', views.api_loan_calculator, name='api_loan_calculator'),
 
     # Admin Management Portal
+    path('media/<path:path>', views.media_file, name='media_file'),
     path('management/login/', views.admin_login, name='admin_login'),
     path('management/logout/', views.admin_logout, name='admin_logout'),
     path('management/', views.admin_management, name='admin_management'),
@@ -51,4 +52,6 @@ urlpatterns = [
     path('management/asset/save/', views.admin_save_asset, name='admin_save_asset'),
     path('management/plan/save/', views.admin_save_plan, name='admin_save_plan'),
     path('management/tier/save/', views.admin_save_tier, name='admin_save_tier'),
+    path('management/email/save/', views.admin_save_email_settings, name='admin_save_email_settings'),
+    path('management/email/test/', views.admin_send_test_email, name='admin_send_test_email'),
 ]

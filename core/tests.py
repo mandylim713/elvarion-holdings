@@ -115,7 +115,8 @@ class TestKYCComplianceWorkflow(BaseTestCase):
         self.profile = UserProfile.objects.create(
             user=self.user,
             kyc_status='unverified',
-            country='Switzerland'
+            country='Switzerland',
+            email_verified=True
         )
 
     def test_submit_kyc_dossier(self):
@@ -198,7 +199,8 @@ class TestTreasuryDepositWorkflow(BaseTestCase):
         self.profile = UserProfile.objects.create(
             user=self.user,
             wallet_balance=Decimal('0.00'),
-            total_deposited=Decimal('0.00')
+            total_deposited=Decimal('0.00'),
+            email_verified=True
         )
 
     def test_no_free_credit_shortcut(self):
@@ -453,6 +455,23 @@ class TestSeparateAdminLogin(TestCase):
         InvestmentArea.objects.create(name='Digital Assets & Crypto', slug='digital-assets-crypto', tagline='x', description='x', icon='bitcoin-sign')
         self.assertContains(self.client.get('/'), 'Digital Assets &amp; Crypto')
 
+    def test_admin_save_email_settings_and_test_email(self):
+        self.client.post(reverse('admin_login'), {'identifier': 'boss', 'password': 'Boss!Passw0rd'})
+        # Save email settings
+        r = self.client.post(reverse('admin_save_email_settings'), {
+            'resend_api_key': 're_test_key_12345678',
+            'sender_email': 'Elvarion Holdings <support@elvarionholdings.com>',
+            'admin_email': 'support@elvarionholdings.com',
+            'require_email_verification': '1'
+        })
+        self.assertRedirects(r, '/management/#email')
+        cs = CompanySetting.get_settings()
+        self.assertEqual(cs.resend_api_key, 're_test_key_12345678')
+        self.assertEqual(cs.sender_email, 'Elvarion Holdings <support@elvarionholdings.com>')
+        self.assertEqual(cs.admin_email, 'support@elvarionholdings.com')
+        self.assertTrue(cs.require_email_verification)
+
+
 
 class TestInvestmentTerms(TestCase):
     """Plans pay a monthly rate; the investor picks 1, 3, 6 or 12 months."""
@@ -508,3 +527,32 @@ class TestDepositFreeze(TestCase):
         cs = CompanySetting.get_settings(); cs.deposits_frozen = False; cs.save()
         self._post()
         self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 1)
+
+
+class TestDatabaseUploads(TestCase):
+    """Receipts live in the database and only staff can open them."""
+
+    def setUp(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self.inv = User.objects.create_user('upl', 'u@example.com', 'Passw0rd!x')
+        self.staff = User.objects.create_user('stf', 's@example.com', 'Passw0rd!x', is_staff=True)
+        UserProfile.objects.create(user=self.inv, email_verified=True)
+        UserProfile.objects.create(user=self.staff, email_verified=True)
+        png = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+               b'\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa7\x9a\xa0\xa0\x00\x00\x00\x00IEND\xaeB`\x82')
+        self.png = png
+        self.dep = DepositRequest.objects.create(user=self.inv, amount=Decimal('100'), method='BANK_WIRE',
+                                                 receipt_image=SimpleUploadedFile('proof.png', png, content_type='image/png'))
+
+    def test_receipt_stored_in_db_and_staff_can_open(self):
+        self.assertTrue(self.dep.receipt_image.name.startswith('receipts/'))
+        self.client.force_login(self.staff)
+        r = self.client.get(self.dep.receipt_image.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.content, self.png)
+
+    def test_investor_and_anonymous_cannot_open(self):
+        url = self.dep.receipt_image.url
+        self.assertEqual(self.client.get(url).status_code, 302)
+        self.client.force_login(self.inv)
+        self.assertEqual(self.client.get(url).status_code, 404)

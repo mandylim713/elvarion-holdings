@@ -46,7 +46,7 @@ def to_monthly(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [('core', '0008_verify_existing')]
+    dependencies = [('core', '0009_email_resend_settings')]
     operations = [
         migrations.AddField(model_name='userinvestment', name='term_months',
                             field=models.PositiveSmallIntegerField(default=0, help_text='Chosen term: 1, 3, 6 or 12 months')),

@@ -1,0 +1,48 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mailbox Sign In | Elvarion Holdings</title>
+<meta name="theme-color" content="#0a1424">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="icon" type="image/png" href="/static/img/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:20px;background:#0a1424;background-image:radial-gradient(900px 500px at 15% -10%,#13243f,transparent),radial-gradient(700px 500px at 100% 110%,#1b2c4a,transparent);font-family:Manrope,sans-serif;color:#1b2434}
+.card{width:100%;max-width:420px;background:#f6f2ea;border:1px solid #d9c9a6;border-radius:16px;padding:34px 30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.crest{width:56px;height:56px;margin:0 auto 14px;border:1px solid #b8955a;display:grid;place-items:center;font-size:1.4rem;color:#8a6a35;position:relative}.crest::after{content:'';position:absolute;inset:4px;border:1px solid rgba(184,149,90,.4)}
+.tag{display:block;text-align:center;font-size:.64rem;letter-spacing:.24em;text-transform:uppercase;color:#8a6a35;font-weight:800}
+h1{margin:6px 0 4px;text-align:center;font:600 1.9rem 'Cormorant Garamond',serif;color:#0a1424}p.sub{text-align:center;margin:0 0 22px;color:#6b7385;font-size:.88rem}
+label{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#4a5568;margin:0 0 7px}
+.f{margin-bottom:16px}.in{width:100%;height:48px;border:1px solid #d5cdbb;background:#fff;border-radius:10px;padding:0 14px;font:inherit;font-size:16px;color:#1b2434;outline:0}.in:focus{border-color:#b8955a;box-shadow:0 0 0 3px rgba(184,149,90,.2)}
+.pw{position:relative}.pw button{position:absolute;right:4px;top:4px;width:40px;height:40px;border:0;background:none;color:#7a8296;cursor:pointer}
+.btn{width:100%;height:50px;border:0;border-radius:10px;background:#0a1424;color:#d9c08a;font:800 .8rem Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}.btn:hover{background:#13243f}
+.err{background:#f9e4e0;color:#b4483a;border:1px solid #f0c4bc;border-radius:10px;padding:11px 14px;font-size:.86rem;margin-bottom:16px;line-height:1.5}.ok{background:#e4f4ec;color:#1f8a5b;border-color:#bfe2cf}
+.foot{text-align:center;margin-top:20px;font-size:.78rem;color:#7a8296;line-height:1.6}.foot a{color:#8a6a35;text-decoration:none;border-bottom:1px solid #d9c9a6}
+.lock{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:18px;color:#7a8296;font-size:.74rem}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="crest"><i class="fas fa-envelope-open-text"></i></div>
+  <span class="tag">Standalone Mail System</span>
+  <h1>Mailbox Sign In</h1>
+  <p class="sub">Authorized communications & mailroom staff only.</p>
+  {% for m in messages %}<div class="err {% if m.tags == 'info' or m.tags == 'success' %}ok{% endif %}" role="alert">{{ m }}</div>{% endfor %}
+  <form method="POST" autocomplete="off">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next|default:'' }}">
+    <div class="f"><label for="m-id">Username or email</label><input class="in" id="m-id" name="identifier" value="{{ ident|default:'' }}" autocomplete="username" required autofocus></div>
+    <div class="f"><label for="m-pw">Password</label><div class="pw"><input class="in" id="m-pw" type="password" name="password" autocomplete="current-password" required><button type="button" aria-label="Show password" onclick="var i=document.getElementById('m-pw');i.type=i.type==='password'?'text':'password'"><i class="fas fa-eye"></i></button></div></div>
+    <button class="btn" type="submit">Access Mailroom <i class="fas fa-arrow-right"></i></button>
+  </form>
+  <div class="lock"><i class="fas fa-shield-halved"></i> Resend SMTP & Broadcast Engine · 8-Hour Session</div>
+  <div class="foot">
+    Switch portal: <a href="{% url 'admin_login' %}">Admin Console</a> &bull; <a href="{% url 'login' %}">Investor Sign In</a>
+  </div>
+</main>
+</body>
+</html>
+
