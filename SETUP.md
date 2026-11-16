@@ -44,3 +44,13 @@ Switch live prices off there if you prefer fixed reference prices.
 
 ## Deposits are frozen by default
 Admin → Markets → Platform settings → untick "Freeze all deposits" to re-open deposits.
+
+## Hosting on Railway (elvarionholdings.com)
+1. Railway → New Project → Deploy from GitHub repo → `mandylim713/elvarion-holdings` (it reads the `Procfile`).
+2. Add a database: New → Database → PostgreSQL. Railway sets `DATABASE_URL` for you; link it to the web service
+   (Variables → Add Reference → `DATABASE_URL`). Without Postgres, SQLite is wiped on every deploy.
+3. Web service → Variables: `SECRET_KEY` (any long random string), `DEBUG=False`, `RESEND_API_KEY`,
+   `DEFAULT_FROM_EMAIL=Elvarion Holdings <support@elvarionholdings.com>`, `CRON_SECRET` (any random string).
+4. Settings → Networking → Generate Domain, then Custom Domain → `elvarionholdings.com` and `www.elvarionholdings.com`;
+   add the DNS records Railway shows (CNAME for www, and the apex record it gives you). www redirects to the apex.
+5. Each deploy runs migrations, the mailer setup and a create-only seed, so admin edits are never reset.

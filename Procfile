@@ -1,0 +1,1 @@
+web: python manage.py migrate --no-input && python manage.py setup_mailer && python seed_data.py && python manage.py collectstatic --no-input && gunicorn elvarion_project.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --timeout 60

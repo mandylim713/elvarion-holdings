@@ -23,6 +23,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
+    'https://*.up.railway.app',
     'https://elvarionholdings.com',
     'https://www.elvarionholdings.com',
     'http://127.0.0.1:8000',
