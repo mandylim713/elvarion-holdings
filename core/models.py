@@ -428,7 +428,7 @@ class CompanySetting(models.Model):
 
     # Platform behaviour
     use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
-    disabled_deposit_methods = models.TextField(blank=True, default='BTC,USDT_TRC20,USDT_ERC20,ETH,BANK_WIRE,ZELLE,PAYPAL,VENMO,CASHAPP,WISE',
+    disabled_deposit_methods = models.TextField(blank=True, default='BANK_WIRE',
                                                 help_text='Comma-separated deposit methods the admin has switched off (shown grayed out to investors)')
     deposits_frozen = models.BooleanField(default=False, help_text='When on, investors cannot submit any deposit (bank transfer, cash apps, crypto)')
     require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')

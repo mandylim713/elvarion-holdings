@@ -42,8 +42,8 @@ Switch live prices off there if you prefer fixed reference prices.
 - Standalone Mailbox Suite: `/mail/login/` (redirects to `/mail/` dashboard)
 - Django admin: `/management/django-admin/`
 
-## Deposits are frozen by default
-Admin → Markets → Platform settings → untick "Freeze all deposits" to re-open deposits.
+## Deposit options
+Bank transfer is switched off by default (grayed out for investors). All other methods are on. Admin → Payment details → Deposit options lets you switch any method on or off.
 
 ## Hosting on Railway (elvarionholdings.com)
 1. Railway → New Project → Deploy from GitHub repo → `mandylim713/elvarion-holdings` (it reads the `Procfile`).

@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def move_to_per_method(apps, schema_editor):
-    # The single freeze switch is replaced by per-method switches; every method starts switched off.
+    # The single freeze switch is replaced by per-method switches; only bank transfer starts switched off.
     apps.get_model('core', 'CompanySetting').objects.update(deposits_frozen=False)
 
 
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name="disabled_deposit_methods",
             field=models.TextField(
                 blank=True,
-                default="BTC,USDT_TRC20,USDT_ERC20,ETH,BANK_WIRE,ZELLE,PAYPAL,VENMO,CASHAPP,WISE",
+                default="BANK_WIRE",
                 help_text="Comma-separated deposit methods the admin has switched off (shown grayed out to investors)",
             ),
         ),

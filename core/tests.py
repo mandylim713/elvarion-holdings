@@ -190,7 +190,7 @@ class TestKYCComplianceWorkflow(BaseTestCase):
 class TestTreasuryDepositWorkflow(BaseTestCase):
     def setUp(self):
         super().setUp()
-        cs = CompanySetting.get_settings(); cs.disabled_deposit_methods = ''; cs.save()   # every method starts switched off
+        cs = CompanySetting.get_settings(); cs.disabled_deposit_methods = ''; cs.save()   # enable all for this test
         self.user = User.objects.create_user(
             username='investor_deposit_test',
             email='deposit@investor.test',
@@ -517,13 +517,17 @@ class TestDepositOptions(TestCase):
     def _post(self, method):
         return self.client.post('/deposit/', {'amount': '500', 'method': method, 'proof_hash': 'ref123'})
 
-    def test_everything_off_by_default(self):
+    def test_only_bank_off_by_default(self):
         cs = CompanySetting.get_settings()
-        self.assertTrue(cs.all_deposits_disabled)
-        for m in ('BANK_WIRE', 'ZELLE', 'CASHAPP', 'USDT_TRC20', 'BTC'):
-            self._post(m)
+        self.assertEqual(cs.disabled_methods, ['BANK_WIRE'])
+        self.assertFalse(cs.all_deposits_disabled)
+        self._post('BANK_WIRE')
         self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 0)
-        self.assertIn('Deposits are temporarily paused', self.client.get('/dashboard/').content.decode())
+        self._post('USDT_TRC20')
+        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 1)
+        html = self.client.get('/dashboard/').content.decode()
+        self.assertRegex(html, r'crypto-tab-card disabled" data-gw="BANK_WIRE"')
+        self.assertNotRegex(html, r'crypto-tab-card disabled" data-gw="BTC"')
 
     def test_only_enabled_method_works_and_others_grayed(self):
         cs = CompanySetting.get_settings()
