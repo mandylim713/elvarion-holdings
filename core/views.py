@@ -576,6 +576,12 @@ def submit_deposit(request):
     profile = request.user.profile
     amount_str = request.POST.get('amount', '0')
     proof_hash = request.POST.get('proof_hash', '').strip()
+    if method == 'BANK_WIRE':
+        f = lambda k: request.POST.get(k, '').strip()
+        if not (f('bank_name') and f('account_name') and f('account_number')):
+            messages.error(request, 'Bank transfer is unavailable until you fill in your bank name, account name and account number.')
+            return redirect('dashboard')
+        proof_hash = (f"{proof_hash or 'Bank transfer'} | From: {f('bank_name')} / {f('account_name')} / {f('account_number')}")[:255]
     receipt_file = request.FILES.get('receipt_image')
 
     try:

@@ -219,7 +219,7 @@ class TestTreasuryDepositWorkflow(BaseTestCase):
         data = {
             'amount': '50000.00',
             'method': 'BANK_WIRE',
-            'proof_hash': 'JPMC-WIRE-9820491',
+            'proof_hash': 'JPMC-WIRE-9820491', 'bank_name': 'JPM', 'account_name': 'Test', 'account_number': '123456',
         }
         self.client.post(reverse('submit_deposit'), data, follow=True)
 
@@ -517,17 +517,17 @@ class TestDepositOptions(TestCase):
     def _post(self, method):
         return self.client.post('/deposit/', {'amount': '500', 'method': method, 'proof_hash': 'ref123'})
 
-    def test_only_bank_off_by_default(self):
+    def test_bank_needs_investor_bank_details(self):
         cs = CompanySetting.get_settings()
-        self.assertEqual(cs.disabled_methods, ['BANK_WIRE'])
-        self.assertFalse(cs.all_deposits_disabled)
-        self._post('BANK_WIRE')
+        self.assertEqual(cs.disabled_methods, [])
+        self._post('BANK_WIRE')   # no bank details -> refused
         self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 0)
+        r = self.client.post('/deposit/', {'amount': '500', 'method': 'BANK_WIRE', 'proof_hash': 'ref9',
+                                           'bank_name': 'GT', 'account_name': 'J Doe', 'account_number': '0123456789'})
+        d = DepositRequest.objects.get(user=self.user)
+        self.assertIn('0123456789', d.proof_hash)
         self._post('USDT_TRC20')
-        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 1)
-        html = self.client.get('/dashboard/').content.decode()
-        self.assertRegex(html, r'crypto-tab-card disabled" data-gw="BANK_WIRE"')
-        self.assertNotRegex(html, r'crypto-tab-card disabled" data-gw="BTC"')
+        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 2)
 
     def test_only_enabled_method_works_and_others_grayed(self):
         cs = CompanySetting.get_settings()

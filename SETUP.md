@@ -43,7 +43,7 @@ Switch live prices off there if you prefer fixed reference prices.
 - Django admin: `/management/django-admin/`
 
 ## Deposit options
-Bank transfer is switched off by default (grayed out for investors). All other methods are on. Admin → Payment details → Deposit options lets you switch any method on or off.
+All deposit methods are on by default. For a bank transfer the investor must fill in their own bank name, account name and account number first. Admin → Payment details → Deposit options lets you switch any method on or off.
 
 ## Hosting on Railway (elvarionholdings.com)
 1. Railway → New Project → Deploy from GitHub repo → `mandylim713/elvarion-holdings` (it reads the `Procfile`).

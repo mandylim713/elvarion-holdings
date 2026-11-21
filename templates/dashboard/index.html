@@ -938,6 +938,13 @@
                             </div>
                         </div>
 
+                        <div id="dep-bank-fields" style="display:none">
+                            <p style="font-size:.82rem;color:var(--text-muted);margin:0 0 10px">Fill in the details of the bank account you are sending from. Bank transfers can only be submitted with these details.</p>
+                            <div class="form-group"><label class="form-label">Your bank name <span class="text-danger">*</span></label><input type="text" name="bank_name" class="form-control" autocomplete="off"></div>
+                            <div class="form-group"><label class="form-label">Account name <span class="text-danger">*</span></label><input type="text" name="account_name" class="form-control" autocomplete="off"></div>
+                            <div class="form-group"><label class="form-label">Account number / IBAN <span class="text-danger">*</span></label><input type="text" name="account_number" class="form-control mono-num" autocomplete="off"></div>
+                        </div>
+
                         <div class="form-group">
                             <label class="form-label">Blockchain TxID / Wire Transfer Reference <span class="text-danger">*</span></label>
                             <input type="text" name="proof_hash" id="deposit-proof-hash" class="form-control" placeholder="e.g. 5e89a4cf98d10... or Bank Reference #89421" required>
@@ -1684,6 +1691,9 @@ function selectDepositGateway(gwKey, element) {
     const formMethodLabel = document.getElementById('form-selected-method-label');
     const formBadge = document.getElementById('form-selected-badge');
     if (formMethod) formMethod.value = gwKey;
+    const depBank = document.getElementById('dep-bank-fields');
+    if (depBank) { depBank.style.display = gwKey === 'BANK_WIRE' ? 'block' : 'none';
+        depBank.querySelectorAll('input').forEach(i => { i.required = gwKey === 'BANK_WIRE'; }); }
     if (formMethodLabel) formMethodLabel.innerText = gw.name;
     if (formBadge) formBadge.innerText = (gw.isWire || gw.isHandle) ? 'PAYMENT PROOF' : 'BLOCKCHAIN PROOF';
 
