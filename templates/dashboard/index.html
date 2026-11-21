@@ -768,7 +768,7 @@
                         <span class="badge badge-gold"><i class="fas fa-wallet"></i> ADD MONEY</span>
                         <h2 style="font-size: 1.8rem; margin-top: 6px;">Add money to your wallet</h2>
                         {% if settings.all_deposits_disabled %}<p style="color: var(--text-muted); font-size: 0.92rem;">Deposits are currently paused.</p>{% else %}<p style="color: var(--text-muted); font-size: 0.92rem;">
-                            Pay by bank transfer, Zelle, PayPal, Venmo, Cash App, Wise or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
+                            Pay by bank transfer, Zelle, PayPal or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
                         </p>{% endif %}
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 10px 16px; text-align: right;">
@@ -801,21 +801,6 @@
                     <div class="crypto-tab-icon"><img src="/static/img/logos/paypal.svg" alt=""></div>
                     <div class="crypto-tab-name">PayPal</div>
                     <div class="crypto-tab-network">Friends &amp; family</div>
-                </div>
-                <div class="crypto-tab-card{% if 'VENMO' in settings.disabled_methods %} disabled{% endif %}" data-gw="VENMO" {% if 'VENMO' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('VENMO', this)"{% endif %}>
-                    <div class="crypto-tab-icon"><img src="/static/img/logos/venmo.svg" alt=""></div>
-                    <div class="crypto-tab-name">Venmo</div>
-                    <div class="crypto-tab-network">Send by @username</div>
-                </div>
-                <div class="crypto-tab-card{% if 'CASHAPP' in settings.disabled_methods %} disabled{% endif %}" data-gw="CASHAPP" {% if 'CASHAPP' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('CASHAPP', this)"{% endif %}>
-                    <div class="crypto-tab-icon"><img src="/static/img/logos/cashapp.svg" alt=""></div>
-                    <div class="crypto-tab-name">Cash App</div>
-                    <div class="crypto-tab-network">Send to $cashtag</div>
-                </div>
-                <div class="crypto-tab-card{% if 'WISE' in settings.disabled_methods %} disabled{% endif %}" data-gw="WISE" {% if 'WISE' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('WISE', this)"{% endif %}>
-                    <div class="crypto-tab-icon"><img src="/static/img/logos/wise.svg" alt=""></div>
-                    <div class="crypto-tab-name">Wise</div>
-                    <div class="crypto-tab-network">International</div>
                 </div>
                 <div class="crypto-tab-card{% if 'USDT_TRC20' in settings.disabled_methods %} disabled{% endif %}" data-gw="USDT_TRC20" {% if 'USDT_TRC20' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('USDT_TRC20', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/usdt.svg" alt=""></div>
@@ -890,7 +875,7 @@
                         </button>
                     </div>
 
-                    <!-- Payment app details (Zelle / PayPal / Venmo / Cash App / Wise) -->
+                    <!-- Payment app details (Zelle / PayPal) -->
                     <div id="handle-wrapper" style="display: none;">
                         <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase;" id="hw-label">Send to</label>
                         <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
@@ -1530,7 +1515,7 @@
                 <div class="form-group">
                     <label class="form-label">Send with</label>
                     <select id="wd-appname" class="form-control">
-                        <option value="Zelle">Zelle</option><option value="PayPal">PayPal</option><option value="Venmo">Venmo</option><option value="Cash App">Cash App</option><option value="Wise">Wise</option>
+                        <option value="Zelle">Zelle</option><option value="PayPal">PayPal</option>
                     </select>
                 </div>
                 <div class="form-group"><label class="form-label">Email, phone or @username</label><input type="text" name="app_handle" class="form-control" placeholder="Where we should send it" autocomplete="off" disabled></div>
@@ -1635,9 +1620,6 @@ const GATEWAYS = {
     },
     'ZELLE': { name: 'Zelle', badge: 'ZELLE TRANSFER', title: 'Pay with Zelle', handleLabel: 'Zelle email or phone', handle: '{{ settings.zelle_email|escapejs }}', holder: '{{ settings.zelle_name|escapejs }}', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
     'PAYPAL': { name: 'PayPal', badge: 'PAYPAL', title: 'Pay with PayPal', handleLabel: 'PayPal email', handle: '{{ settings.paypal_email|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Send as Friends & Family', unit: 'USD', isHandle: true },
-    'VENMO': { name: 'Venmo', badge: 'VENMO', title: 'Pay with Venmo', handleLabel: 'Venmo username', handle: '{{ settings.venmo_handle|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
-    'CASHAPP': { name: 'Cash App', badge: 'CASH APP', title: 'Pay with Cash App', handleLabel: 'Cash App $cashtag', handle: '{{ settings.cashapp_tag|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
-    'WISE': { name: 'Wise', badge: 'WISE', title: 'Pay with Wise', handleLabel: 'Wise account email', handle: '{{ settings.wise_email|escapejs }}', holder: '', rate: 1.0, rateLabel: 'Sent in USD', unit: 'USD', isHandle: true },
     'BANK_WIRE': {
         name: 'Bank Transfer',
         badge: '{{ settings.bank_name|upper }}',

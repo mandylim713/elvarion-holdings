@@ -316,6 +316,7 @@ class DepositRequest(models.Model):
         ('CASHAPP', 'Cash App'),
         ('WISE', 'Wise'),
     )
+    RETIRED = ('VENMO', 'CASHAPP', 'WISE')  # no longer offered; kept so old deposits still display
     STATUS_CHOICES = (
         ('pending', 'Pending Verification'),
         ('approved', 'Approved & Credited'),
@@ -438,16 +439,17 @@ class CompanySetting(models.Model):
 
     @property
     def disabled_methods(self):
+        active = [k for k, _ in DepositRequest.METHOD_CHOICES if k not in DepositRequest.RETIRED]
         if self.deposits_frozen:
-            return [k for k, _ in DepositRequest.METHOD_CHOICES]
-        return [m.strip() for m in (self.disabled_deposit_methods or '').split(',') if m.strip()]
+            return active
+        return [m.strip() for m in (self.disabled_deposit_methods or '').split(',') if m.strip() and m.strip() not in DepositRequest.RETIRED]
 
     @property
     def all_deposits_disabled(self):
-        return len(self.disabled_methods) >= len(DepositRequest.METHOD_CHOICES)
+        return len(self.disabled_methods) >= len(DepositRequest.METHOD_CHOICES) - len(DepositRequest.RETIRED)
 
     def deposit_method_enabled(self, key):
-        return key not in self.disabled_methods
+        return key not in DepositRequest.RETIRED and key not in self.disabled_methods
 
     def __str__(self):
         return f"{self.site_name} Settings"

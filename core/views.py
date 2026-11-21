@@ -621,7 +621,7 @@ def submit_withdrawal(request):
             return redirect('/dashboard/#tab-investments')
         details = (f"Bank: {f('bank_name')} | Account name: {f('account_name')} | "
                    f"Account no / IBAN: {f('account_number')} | SWIFT / routing: {f('swift') or '-'} | Country: {f('bank_country') or '-'}")
-    elif method in ('Zelle', 'PayPal', 'Venmo', 'Cash App', 'Wise'):
+    elif method in ('Zelle', 'PayPal'):
         handle = request.POST.get('app_handle', '').strip()
         if not handle:
             messages.error(request, f'Please enter the {method} email, phone or username to send to.')
@@ -1016,7 +1016,7 @@ def admin_management(request):
         'loan_tiers': loan_tiers,
         'loan_terms': loan_terms,
         'users': users,
-        'deposit_methods': DepositRequest.METHOD_CHOICES,
+        'deposit_methods': [m for m in DepositRequest.METHOD_CHOICES if m[0] not in DepositRequest.RETIRED],
         'assets': TradingAsset.objects.all(),
         'recent_trades': Trade.objects.select_related('user', 'asset').order_by('-created_at')[:50],
         'recent_options': OptionTrade.objects.select_related('user', 'asset').order_by('-opened_at')[:50],
@@ -1555,7 +1555,7 @@ def admin_save_deposit_options(request):
     """Admin switches individual deposit methods on or off (off = grayed out for investors)."""
     if request.method != 'POST':
         return redirect('admin_management')
-    keys = [k for k, _ in DepositRequest.METHOD_CHOICES]
+    keys = [k for k, _ in DepositRequest.METHOD_CHOICES if k not in DepositRequest.RETIRED]
     enabled = set(request.POST.getlist('enabled'))
     cs = CompanySetting.get_settings()
     cs.disabled_deposit_methods = ','.join(k for k in keys if k not in enabled)

@@ -630,3 +630,17 @@ class TestDatabaseUploads(TestCase):
         UserProfile.objects.create(user=other, email_verified=True)
         self.client.force_login(other)
         self.assertEqual(self.client.get(url).status_code, 404)
+
+
+class TestRetiredMethods(TestCase):
+    def test_venmo_cashapp_wise_not_accepted_or_shown(self):
+        u = User.objects.create_user('rt', 'r@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=u, email_verified=True)
+        self.client.force_login(u)
+        cs = CompanySetting.get_settings(); cs.disabled_deposit_methods = ''; cs.save()
+        for m in ('VENMO', 'CASHAPP', 'WISE'):
+            self.client.post('/deposit/', {'amount': '500', 'method': m, 'proof_hash': 'x'})
+        self.assertEqual(DepositRequest.objects.count(), 0)
+        html = self.client.get('/dashboard/').content.decode()
+        for m in ('VENMO', 'CASHAPP', 'WISE'):
+            self.assertNotIn('data-gw="%s"' % m, html)
