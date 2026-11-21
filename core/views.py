@@ -649,6 +649,9 @@ def submit_withdrawal(request):
     details = request.POST.get('destination_details', '').strip()
 
     if method == 'Bank Transfer':
+        messages.error(request, 'Bank withdrawals are coming soon. Please use Zelle, PayPal or crypto for now.')
+        return redirect('/dashboard/#tab-investments')
+    if method == 'Bank Transfer__legacy':
         f = lambda k: request.POST.get(k, '').strip()
         if not (f('bank_name') and f('account_name') and f('account_number')):
             messages.error(request, 'Please fill in the bank name, account name and account number.')

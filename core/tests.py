@@ -683,3 +683,14 @@ class TestProfilePhoto(TestCase):
         self.client.post('/settings/photo/', {'remove': '1'})
         u.profile.refresh_from_db()
         self.assertFalse(u.profile.avatar)
+
+
+class TestBankWithdrawalComingSoon(TestCase):
+    def test_bank_withdrawal_refused(self):
+        u = User.objects.create_user('bw', 'bw@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=u, wallet_balance=Decimal('1000'), email_verified=True)
+        self.client.force_login(u)
+        self.client.post('/withdraw/', {'amount': '100', 'payout_method': 'Bank Transfer', 'bank_name': 'X', 'account_name': 'Y', 'account_number': '1'})
+        from core.models import WithdrawalRequest
+        self.assertEqual(WithdrawalRequest.objects.filter(user=u).count(), 0)
+        self.assertIn('coming soon', self.client.get('/dashboard/').content.decode().lower())

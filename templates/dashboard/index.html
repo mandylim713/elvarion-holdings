@@ -1508,11 +1508,11 @@
 
         <form method="POST" action="{% url 'submit_withdrawal' %}" id="wd-form">
             {% csrf_token %}
-            <input type="hidden" name="payout_method" id="wd-method" value="Bank Transfer">
+            <input type="hidden" name="payout_method" id="wd-method" value="Zelle">
 
             <div class="seg" role="tablist">
-                <button type="button" class="seg-btn active" data-wd="bank"><i class="fas fa-landmark"></i> Bank transfer</button>
-                <button type="button" class="seg-btn" data-wd="app"><i class="fas fa-mobile-screen"></i> Zelle / PayPal</button>
+                <button type="button" class="seg-btn" data-wd="bank"><i class="fas fa-landmark"></i> Bank transfer</button>
+                <button type="button" class="seg-btn active" data-wd="app"><i class="fas fa-mobile-screen"></i> Zelle / PayPal</button>
                 <button type="button" class="seg-btn" data-wd="crypto"><i class="fab fa-bitcoin"></i> Crypto</button>
             </div>
 
@@ -1521,18 +1521,15 @@
                 <input type="number" name="amount" class="form-control mono-num" max="{{ profile.wallet_balance|floatformat:2 }}" min="50" step="0.01" inputmode="decimal" placeholder="Minimum $50" required>
             </div>
 
-            <div id="wd-bank">
-                <div class="form-group"><label class="form-label">Bank name</label><input type="text" name="bank_name" class="form-control" placeholder="" autocomplete="off"></div>
-                <div class="form-group"><label class="form-label">Account holder name</label><input type="text" name="account_name" class="form-control" placeholder="Exactly as it appears on the account" autocomplete="off"></div>
-                <div class="form-group"><label class="form-label">Account number / IBAN</label><input type="text" name="account_number" class="form-control mono-num" autocomplete="off"></div>
-                <div class="wd-two">
-                    <div class="form-group"><label class="form-label">SWIFT / routing <span style="text-transform:none;opacity:.6">(optional)</span></label><input type="text" name="swift" class="form-control" autocomplete="off"></div>
-                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="bank_country" class="form-control" placeholder="" autocomplete="off"></div>
+            <div id="wd-bank" style="display:none">
+                <div style="text-align:center;padding:26px 16px;border:1px dashed var(--border-gold);border-radius:var(--radius-sm);margin-bottom:14px">
+                    <i class="fas fa-landmark" style="font-size:1.6rem;color:var(--gold-light)"></i>
+                    <h3 style="margin:10px 0 6px">Bank withdrawals &mdash; coming soon</h3>
+                    <p style="margin:0;color:var(--text-muted);font-size:.9rem">Withdrawing to a bank account is not available yet. Please use Zelle, PayPal or crypto for now.</p>
                 </div>
-                <p class="wd-note"><i class="fas fa-clock"></i> Bank transfers are reviewed by our team and usually arrive in 1&ndash;3 business days.</p>
             </div>
 
-            <div id="wd-app" style="display:none">
+            <div id="wd-app">
                 <div class="form-group">
                     <label class="form-label">Send with</label>
                     <select id="wd-appname" class="form-control">
@@ -1910,10 +1907,9 @@ function initTradeUI() {
         document.getElementById('wd-bank').style.display = mode === 'bank' ? '' : 'none';
         document.getElementById('wd-app').style.display = mode === 'app' ? '' : 'none';
         document.getElementById('wd-crypto').style.display = mode === 'crypto' ? '' : 'none';
-        document.querySelectorAll('#wd-bank input').forEach(i => { i.disabled = mode !== 'bank'; i.required = false; });
+        document.querySelectorAll('#wd-form button[type=submit], #wd-form .amount-wrap, #wd-form input[name=amount]').forEach(i => { if (i.matches('button')) i.disabled = mode === 'bank'; });
         document.querySelectorAll('#wd-app input').forEach(i => { i.disabled = mode !== 'app'; i.required = mode === 'app' && i.name === 'app_handle'; });
         document.querySelectorAll('#wd-crypto textarea').forEach(i => { i.disabled = mode !== 'crypto'; i.required = mode === 'crypto'; });
-        ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = mode === 'bank'; });
         wdMethod.value = mode === 'bank' ? 'Bank Transfer' : (mode === 'app' ? document.getElementById('wd-appname').value : document.getElementById('wd-network').value);
     };
     document.querySelectorAll('[data-wd]').forEach(b => b.addEventListener('click', () => wdSetMode(b.dataset.wd)));
@@ -1921,7 +1917,7 @@ function initTradeUI() {
     if (appSel) appSel.addEventListener('change', () => { wdMethod.value = appSel.value; });
     const net = document.getElementById('wd-network');
     if (net) net.addEventListener('change', () => { wdMethod.value = net.value; });
-    ['bank_name', 'account_name', 'account_number'].forEach(n => { const el = document.querySelector('#wd-bank [name=' + n + ']'); if (el) el.required = true; });
+    wdSetMode('app');
 }
 
 
