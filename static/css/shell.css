@@ -274,3 +274,12 @@ body.app main.sh-content { animation: none !important; }
 .term-grid span{display:block;font-size:.64rem;color:var(--text-dim);margin-bottom:2px}
 .term-grid strong{font-size:.78rem}
 #tab-invest-now .plan-roi-val{font-size:clamp(2rem,3.2vw,3rem);white-space:nowrap}
+
+/* investor's own uploaded photos */
+.photo-chip{display:inline-flex;flex-direction:column;gap:4px;margin:8px 8px 0 0;text-decoration:none;color:var(--text-muted);font-size:.7rem;vertical-align:top}
+.photo-chip img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.14)}
+.photo-row{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05)}
+
+/* deposit options the admin has switched off */
+.crypto-tab-card.disabled{opacity:.42;filter:grayscale(1);cursor:not-allowed;pointer-events:none;position:relative}
+.crypto-tab-card.disabled::after{content:"Unavailable";position:absolute;top:8px;right:8px;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.12);color:#ddd;border-radius:99px;padding:2px 8px}

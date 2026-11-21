@@ -190,7 +190,7 @@ class TestKYCComplianceWorkflow(BaseTestCase):
 class TestTreasuryDepositWorkflow(BaseTestCase):
     def setUp(self):
         super().setUp()
-        cs = CompanySetting.get_settings(); cs.deposits_frozen = False; cs.save()   # freeze is on by default
+        cs = CompanySetting.get_settings(); cs.disabled_deposit_methods = ''; cs.save()   # every method starts switched off
         self.user = User.objects.create_user(
             username='investor_deposit_test',
             email='deposit@investor.test',
@@ -504,29 +504,97 @@ class TestInvestmentTerms(TestCase):
         self.assertEqual(self.plan.terms[3]['total_pct'], Decimal('60.00'))
 
 
-class TestDepositFreeze(TestCase):
+class TestDepositOptions(TestCase):
+    """The admin switches each deposit method on or off; off options are grayed out and refused."""
+
     def setUp(self):
         self.user = User.objects.create_user('frz', 'f@example.com', 'Passw0rd!x')
         UserProfile.objects.create(user=self.user, wallet_balance=Decimal('0'), email_verified=True)
+        self.staff = User.objects.create_user('boss', 'b@example.com', 'Passw0rd!x', is_staff=True)
+        UserProfile.objects.create(user=self.staff, email_verified=True)
         self.client.force_login(self.user)
 
-    def _post(self):
-        return self.client.post('/deposit/', {'amount': '500', 'method': 'BANK_WIRE', 'proof_hash': 'ref123'})
+    def _post(self, method):
+        return self.client.post('/deposit/', {'amount': '500', 'method': method, 'proof_hash': 'ref123'})
 
-    def test_frozen_by_default_blocks_every_method(self):
-        self.assertTrue(CompanySetting.get_settings().deposits_frozen)
-        for m in ('BANK_WIRE', 'ZELLE', 'CASHAPP', 'USDT_TRC20'):
-            self.client.post('/deposit/', {'amount': '500', 'method': m, 'proof_hash': 'x'})
+    def test_everything_off_by_default(self):
+        cs = CompanySetting.get_settings()
+        self.assertTrue(cs.all_deposits_disabled)
+        for m in ('BANK_WIRE', 'ZELLE', 'CASHAPP', 'USDT_TRC20', 'BTC'):
+            self._post(m)
         self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 0)
+        self.assertIn('Deposits are temporarily paused', self.client.get('/dashboard/').content.decode())
 
-    def test_notice_shown_and_form_hidden(self):
+    def test_only_enabled_method_works_and_others_grayed(self):
+        cs = CompanySetting.get_settings()
+        cs.disabled_deposit_methods = ','.join(k for k, _ in DepositRequest.METHOD_CHOICES if k != 'USDT_TRC20')
+        cs.save()
+        self._post('BANK_WIRE'); self.assertEqual(DepositRequest.objects.count(), 0)
+        self._post('USDT_TRC20'); self.assertEqual(DepositRequest.objects.count(), 1)
         html = self.client.get('/dashboard/').content.decode()
-        self.assertIn('Deposits are temporarily paused', html)
+        self.assertIn('data-gw="BANK_WIRE"', html)
+        self.assertRegex(html, r'crypto-tab-card disabled" data-gw="BANK_WIRE"')
+        self.assertNotRegex(html, r'crypto-tab-card disabled" data-gw="USDT_TRC20"')
 
-    def test_admin_can_unfreeze(self):
-        cs = CompanySetting.get_settings(); cs.deposits_frozen = False; cs.save()
-        self._post()
-        self.assertEqual(DepositRequest.objects.filter(user=self.user).count(), 1)
+    def test_admin_switches_options(self):
+        self.client.force_login(self.staff)
+        self.client.post('/management/deposit-options/', {'enabled': ['BANK_WIRE', 'ZELLE']})
+        cs = CompanySetting.get_settings()
+        self.assertTrue(cs.deposit_method_enabled('BANK_WIRE'))
+        self.assertFalse(cs.deposit_method_enabled('BTC'))
+        self.client.force_login(self.user)
+        self.client.post('/management/deposit-options/', {'enabled': ['BTC']})
+        self.assertFalse(CompanySetting.get_settings().deposit_method_enabled('BTC'))
+
+
+class TestAdminInvestorTools(TestCase):
+    def setUp(self):
+        self.inv = User.objects.create_user('victim', 'v@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=self.inv, wallet_balance=Decimal('250'), email_verified=True, phone='+1555')
+        self.staff = User.objects.create_user('boss2', 'b2@example.com', 'Passw0rd!x', is_staff=True)
+        UserProfile.objects.create(user=self.staff, email_verified=True)
+
+    def test_details_staff_only(self):
+        url = f'/management/users/{self.inv.id}/detail/'
+        self.client.force_login(self.inv)
+        self.assertNotEqual(self.client.get(url).status_code, 200)
+        self.client.force_login(self.staff)
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['username'], 'victim')
+        self.assertEqual(r.json()['wallet'], '250.00')
+
+    def test_delete_user_removes_records(self):
+        self.client.force_login(self.staff)
+        self.client.post(f'/management/user/{self.inv.id}/delete/')
+        self.assertFalse(User.objects.filter(id=self.inv.id).exists())
+        self.assertFalse(UserProfile.objects.filter(user_id=self.inv.id).exists())
+
+    def test_cannot_delete_self_or_staff_or_as_investor(self):
+        self.client.force_login(self.staff)
+        self.client.post(f'/management/user/{self.staff.id}/delete/')
+        self.assertTrue(User.objects.filter(id=self.staff.id).exists())
+        other = User.objects.create_user('boss3', 'b3@example.com', 'Passw0rd!x', is_staff=True)
+        UserProfile.objects.create(user=other, email_verified=True)
+        self.client.post(f'/management/user/{other.id}/delete/')
+        self.assertTrue(User.objects.filter(id=other.id).exists())
+        self.client.force_login(self.inv)
+        self.client.post(f'/management/user/{self.staff.id}/delete/')
+        self.assertTrue(User.objects.filter(id=self.staff.id).exists())
+
+    def test_investor_sees_own_photo_not_others(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        png = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+               b'\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa7\x9a\xa0\xa0\x00\x00\x00\x00IEND\xaeB`\x82')
+        dep = DepositRequest.objects.create(user=self.inv, amount=Decimal('10'), method='BTC',
+                                            receipt_image=SimpleUploadedFile('p.png', png, content_type='image/png'))
+        self.client.force_login(self.inv)
+        self.assertEqual(self.client.get(dep.receipt_image.url).status_code, 200)
+        other = User.objects.create_user('nosy', 'n@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=other, email_verified=True)
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(dep.receipt_image.url).status_code, 404)
+
 
 
 class TestDatabaseUploads(TestCase):
@@ -554,5 +622,7 @@ class TestDatabaseUploads(TestCase):
     def test_investor_and_anonymous_cannot_open(self):
         url = self.dep.receipt_image.url
         self.assertEqual(self.client.get(url).status_code, 302)
-        self.client.force_login(self.inv)
+        other = User.objects.create_user('other_inv', 'o@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=other, email_verified=True)
+        self.client.force_login(other)
         self.assertEqual(self.client.get(url).status_code, 404)

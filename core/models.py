@@ -428,11 +428,26 @@ class CompanySetting(models.Model):
 
     # Platform behaviour
     use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
-    deposits_frozen = models.BooleanField(default=True, help_text='When on, investors cannot submit any deposit (bank transfer, cash apps, crypto)')
+    disabled_deposit_methods = models.TextField(blank=True, default='BTC,USDT_TRC20,USDT_ERC20,ETH,BANK_WIRE,ZELLE,PAYPAL,VENMO,CASHAPP,WISE',
+                                                help_text='Comma-separated deposit methods the admin has switched off (shown grayed out to investors)')
+    deposits_frozen = models.BooleanField(default=False, help_text='When on, investors cannot submit any deposit (bank transfer, cash apps, crypto)')
     require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')
     option_payout_pct = models.PositiveSmallIntegerField(default=80, help_text='Quick Trade payout on a winning trade, in percent')
     option_min_stake = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('10.00'))
     last_cron_run = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def disabled_methods(self):
+        if self.deposits_frozen:
+            return [k for k, _ in DepositRequest.METHOD_CHOICES]
+        return [m.strip() for m in (self.disabled_deposit_methods or '').split(',') if m.strip()]
+
+    @property
+    def all_deposits_disabled(self):
+        return len(self.disabled_methods) >= len(DepositRequest.METHOD_CHOICES)
+
+    def deposit_method_enabled(self, key):
+        return key not in self.disabled_methods
 
     def __str__(self):
         return f"{self.site_name} Settings"

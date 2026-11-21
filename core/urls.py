@@ -37,6 +37,8 @@ urlpatterns = [
     path('api/loan-calculator/', views.api_loan_calculator, name='api_loan_calculator'),
 
     # Admin Management Portal
+    path('management/deposit-options/', views.admin_save_deposit_options, name='admin_save_deposit_options'),
+    path('management/users/<int:user_id>/detail/', views.admin_user_detail, name='admin_user_detail'),
     path('media/<path:path>', views.media_file, name='media_file'),
     path('management/login/', views.admin_login, name='admin_login'),
     path('management/logout/', views.admin_logout, name='admin_logout'),

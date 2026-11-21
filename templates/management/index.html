@@ -144,7 +144,7 @@
         <td class="main who" data-label="Investor"><b>{{ d.user.username }}</b><small class="ref">#{{ d.reference_id|slice:":8" }}</small></td>
         <td data-label="Method"><span class="tag">{{ d.get_method_display }}</span></td>
         <td data-label="Amount" class="num"><b class="amt in">+${{ d.amount|floatformat:"2g" }}</b></td>
-        <td data-label="Proof" class="wrapv"><span class="ref" style="color:var(--ink-3)">{{ d.proof_hash|default:"Direct submission" }}</span>{% if d.receipt_image %} <a href="{{ d.receipt_image.url }}" target="_blank" class="pill pill-info">Receipt</a>{% endif %}</td>
+        <td data-label="Proof" class="wrapv"><span class="ref" style="color:var(--ink-3)">{{ d.proof_hash|default:"Direct submission" }}</span>{% if d.receipt_image %} <a href="{{ d.receipt_image.url }}" data-img="Receipt" target="_blank" class="pill pill-info">Receipt</a>{% endif %}</td>
         <td data-label="Date" style="color:var(--ink-3)">{{ d.created_at|date:"M d, Y H:i" }}</td>
         <td data-label="Status">{% if d.status == 'approved' %}<span class="pill pill-ok">Credited</span>{% elif d.status == 'rejected' %}<span class="pill pill-bad">Declined</span>{% else %}<span class="pill pill-warn">Pending</span>{% endif %}</td>
         <td class="act r">{% if d.status == 'pending' %}<div class="acts">
@@ -221,7 +221,7 @@
         <td data-label="Document"><div class="who"><b>{{ k.get_id_type_display }}</b><small class="num">{{ k.id_number }}</small></div></td>
         <td data-label="Location"><div class="who"><b>{{ k.country }}</b><small>{{ k.city }}, {{ k.postal_code }}</small></div></td>
         <td data-label="Wealth"><div class="who"><b>{{ k.get_source_of_wealth_display }}</b><small>{{ k.estimated_net_worth }}</small></div></td>
-        <td data-label="Files"><div class="acts" style="justify-content:flex-start">{% if k.id_front_image %}<a href="{{ k.id_front_image.url }}" target="_blank" class="pill pill-info">ID</a>{% endif %}{% if k.proof_of_address %}<a href="{{ k.proof_of_address.url }}" target="_blank" class="pill pill-gold">Address</a>{% endif %}{% if not k.id_front_image and not k.proof_of_address %}<span style="color:var(--ink-3);font-size:.78rem">Digital filing</span>{% endif %}</div></td>
+        <td data-label="Files"><div class="acts" style="justify-content:flex-start">{% if k.id_front_image %}<a href="{{ k.id_front_image.url }}" data-img="KYC document" target="_blank" class="pill pill-info">ID</a>{% endif %}{% if k.proof_of_address %}<a href="{{ k.proof_of_address.url }}" data-img="KYC document" target="_blank" class="pill pill-gold">Address</a>{% endif %}{% if not k.id_front_image and not k.proof_of_address %}<span style="color:var(--ink-3);font-size:.78rem">Digital filing</span>{% endif %}</div></td>
         <td data-label="Status">{% if k.status == 'approved' %}<span class="pill pill-ok">Verified</span>{% elif k.status == 'pending' %}<span class="pill pill-warn">Pending</span>{% else %}<span class="pill pill-bad">{{ k.status }}</span>{% endif %}</td>
         <td class="act r">{% if k.status == 'pending' %}<div class="acts">
           <form method="POST" action="{% url 'admin_kyc_action' k.id 'approve' %}" data-confirm="Verify {{ k.full_legal_name }} as a Tier-1 investor?" data-note="admin_notes" data-note-ph="Note (optional)" data-ok="Approve">{% csrf_token %}<button class="btn btn-ok btn-sm"><i class="fas fa-check"></i> Approve</button></form>
@@ -249,8 +249,10 @@
         <td data-label="Tier">{% with tier=u.profile.get_eligible_loan_tier %}{% if tier %}<span class="pill pill-gold">{{ tier.badge }}</span>{% else %}<span class="pill pill-mute">None</span>{% endif %}{% endwith %}</td>
         <td data-label="Status">{% if u.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-bad">Suspended</span>{% endif %}{% if u.is_staff %} <span class="pill pill-info">Staff</span>{% endif %}</td>
         <td class="act r"><div class="acts">
+          <button type="button" class="btn btn-line btn-sm" data-user-detail data-uid="{{ u.id }}"><i class="fas fa-id-card"></i> Details</button>
           <button type="button" class="btn btn-line btn-sm" data-adjust data-uid="{{ u.id }}" data-name="{{ u.username }}" data-bal="{{ u.profile.wallet_balance|floatformat:'2g' }}"><i class="fas fa-wallet"></i> Wallet</button>
           {% if u.id != request.user.id %}<form method="POST" action="{% url 'admin_user_action' u.id 'reset_password' %}" data-confirm="Create a new temporary password for {{ u.username }}? Their old password stops working." data-ok="Reset">{% csrf_token %}<button class="btn btn-line btn-sm"><i class="fas fa-key"></i> Password</button></form>{% endif %}
+          {% if u.id != request.user.id and not u.is_staff %}<form method="POST" action="{% url 'admin_user_action' u.id 'delete' %}" data-confirm="Permanently delete {{ u.username }}? Their profile, wallet, investments, deposits, withdrawals and uploaded documents are all removed. This cannot be undone." data-ok="Delete" data-danger>{% csrf_token %}<button class="btn btn-bad btn-sm"><i class="fas fa-trash"></i> Delete</button></form>{% endif %}
           {% if u.id != request.user.id %}<form method="POST" action="{% url 'admin_user_action' u.id 'toggle_active' %}" data-confirm="{% if u.is_active %}Suspend {{ u.username }}? They will not be able to sign in.{% else %}Reactivate {{ u.username }}?{% endif %}" data-ok="{% if u.is_active %}Suspend{% else %}Reactivate{% endif %}" {% if u.is_active %}data-danger{% endif %}>{% csrf_token %}<button class="btn {% if u.is_active %}btn-bad{% else %}btn-ok{% endif %} btn-sm">{% if u.is_active %}<i class="fas fa-ban"></i> Suspend{% else %}<i class="fas fa-rotate-left"></i> Restore{% endif %}</button></form>{% endif %}</div></td></tr>
       {% endfor %}</tbody></table>
       <div class="no-match">Nothing matches this filter.</div></div>
@@ -410,6 +412,16 @@
 
   <section class="adm-view" id="v-payments" data-title="Payment details">
     <div class="view-head"><div><h2>Payment details</h2><p>Where investors send money. These show on the Add money page straight away.</p></div></div>
+    <form method="post" action="{% url 'admin_save_deposit_options' %}" data-confirm="Save deposit options?" data-note="Options you switch off appear grayed out for investors and cannot be used." data-ok="Save" style="margin-bottom:16px">
+      {% csrf_token %}
+      <div class="card card-pad"><h3 style="margin:0 0 4px">Deposit options</h3>
+        <p style="margin:0 0 14px;color:var(--ink-3);font-size:.86rem">Switch on only the methods you want investors to use. Switched-off options show grayed out and cannot be selected.</p>
+        <div class="opt-grid">
+        {% for key, label in deposit_methods %}<label class="opt-row"><span><b>{{ label }}</b></span><input type="checkbox" name="enabled" value="{{ key }}" {% if key not in settings.disabled_methods %}checked{% endif %}><i class="opt-sw"></i></label>{% endfor %}
+        </div>
+        <div style="margin-top:16px"><button class="btn btn-ok" type="submit"><i class="fas fa-check"></i> Save deposit options</button></div>
+      </div>
+    </form>
     <form method="post" action="{% url 'admin_save_settings' %}" data-confirm="Save payment details?" data-note="Investors will see these details immediately." data-ok="Save">
       {% csrf_token %}
       <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Payment apps</h3><div class="f-grid">
@@ -594,6 +606,15 @@
     <label class="field" style="grid-column:1/-1"><span>Reason (shown in their ledger)</span><input name="note" maxlength="150" placeholder="e.g. Bonus credit"></label></div></div>
   <div class="sheet-foot"><button class="btn btn-bad btn-lg" type="submit" id="adj-debit" data-act="debit"><i class="fas fa-minus"></i> Debit</button><button class="btn btn-ok btn-lg" type="submit" id="adj-credit" data-act="credit"><i class="fas fa-plus"></i> Credit</button></div></form></div></div>
 
+<div class="modal" id="m-user"><div class="sheet"><div class="grabber"></div>
+  <div class="sheet-head"><div><h3 id="ud-h">Investor</h3><p id="ud-p"></p></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body" id="ud-body"><p style="color:var(--ink-3)">Loading…</p></div></div></div>
+<div class="modal" id="m-img"><div class="sheet" style="max-width:920px"><div class="grabber"></div>
+  <div class="sheet-head"><div><h3 id="im-h">Image</h3></div><button class="x" type="button" data-close aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="sheet-body" style="text-align:center"><img id="im-img" alt="" style="max-width:100%;max-height:70vh;border-radius:10px"><p style="margin-top:12px"><a id="im-open" href="#" target="_blank" class="btn btn-line btn-sm"><i class="fas fa-up-right-from-square"></i> Open full size</a></p></div></div></div>
+
 <script src="/static/js/admin.js"></script>
+{% include '_translate.html' %}
+<style>#gt-wrap{left:auto;right:16px;bottom:18px}@media(max-width:960px){#gt-wrap{right:10px;left:auto;bottom:76px}}</style>
 </body>
 </html>

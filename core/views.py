@@ -426,6 +426,7 @@ def dashboard(request):
         'recent_txns': recent_txns,
         'user_deposits': user_deposits,
         'latest_kyc': latest_kyc,
+        'kyc_history': list(KYCSubmission.objects.filter(user=request.user).order_by('-submitted_at')[1:]),
         'total_live_roi': total_live_roi,
         'settings': CompanySetting.get_settings(),
     }
@@ -564,13 +565,16 @@ def submit_deposit(request):
     if request.method != 'POST':
         return redirect('dashboard')
 
-    if CompanySetting.get_settings().deposits_frozen:
-        messages.error(request, 'Deposits are temporarily unavailable. Please check back soon.')
+    method = request.POST.get('method', 'USDT_TRC20')
+    if method not in dict(DepositRequest.METHOD_CHOICES):
+        messages.error(request, 'Please choose a valid deposit method.')
+        return redirect('dashboard')
+    if not CompanySetting.get_settings().deposit_method_enabled(method):
+        messages.error(request, 'That deposit option is currently unavailable. Please choose another or check back soon.')
         return redirect('dashboard')
 
     profile = request.user.profile
     amount_str = request.POST.get('amount', '0')
-    method = request.POST.get('method', 'USDT_TRC20')
     proof_hash = request.POST.get('proof_hash', '').strip()
     receipt_file = request.FILES.get('receipt_image')
 
@@ -1012,6 +1016,7 @@ def admin_management(request):
         'loan_tiers': loan_tiers,
         'loan_terms': loan_terms,
         'users': users,
+        'deposit_methods': DepositRequest.METHOD_CHOICES,
         'assets': TradingAsset.objects.all(),
         'recent_trades': Trade.objects.select_related('user', 'asset').order_by('-created_at')[:50],
         'recent_options': OptionTrade.objects.select_related('user', 'asset').order_by('-opened_at')[:50],
@@ -1077,6 +1082,23 @@ def admin_user_action(request, user_id, action):
             target.is_active = not target.is_active
             target.save()
             messages.success(request, f"{target.username} {'reactivated' if target.is_active else 'suspended'}.")
+    elif action == 'delete':
+        if target.id == request.user.id:
+            messages.error(request, 'You cannot delete your own account.')
+        elif target.is_staff or target.is_superuser:
+            messages.error(request, 'Staff accounts cannot be deleted from here.')
+        else:
+            from .models import StoredFile
+            names = [f.name for f in (
+                [target.profile.avatar] +
+                [d.receipt_image for d in DepositRequest.objects.filter(user=target)] +
+                [getattr(k, a) for k in KYCSubmission.objects.filter(user=target)
+                 for a in ('id_front_image', 'id_back_image', 'proof_of_address', 'selfie_image')]) if f]
+            uname = target.username
+            with db_transaction.atomic():
+                target.delete()
+                StoredFile.objects.filter(name__in=names).delete()
+            messages.success(request, f"Investor {uname} and all their records were deleted.")
     elif action == 'reset_password':
         import secrets
         temp = secrets.token_urlsafe(9)
@@ -1342,7 +1364,6 @@ def admin_save_settings(request):
                 setattr(cs, k, request.POST.get(k, '').strip()[:150])
         if request.POST.get('form') == 'platform':
             cs.use_live_prices = request.POST.get('use_live_prices') == '1'
-            cs.deposits_frozen = request.POST.get('deposits_frozen') == '1'
             cs.require_email_verification = request.POST.get('require_email_verification') == '1'
             try:
                 cs.option_payout_pct = max(1, min(500, int(request.POST.get('option_payout_pct', cs.option_payout_pct))))
@@ -1504,14 +1525,81 @@ def admin_logout(request):
     return redirect('admin_login')
 
 
+def _owns_file(user, name):
+    """True if this stored file belongs to the signed-in investor (avatar, deposit receipt or KYC document)."""
+    if UserProfile.objects.filter(user=user, avatar=name).exists():
+        return True
+    if DepositRequest.objects.filter(user=user, receipt_image=name).exists():
+        return True
+    from django.db.models import Q
+    return KYCSubmission.objects.filter(user=user).filter(
+        Q(id_front_image=name) | Q(id_back_image=name) | Q(proof_of_address=name) | Q(selfie_image=name)).exists()
+
+
 @login_required
 def media_file(request, path):
-    """Serve an uploaded file from the database. Avatars: any signed-in user. Receipts, KYC documents: staff only."""
+    """Serve an uploaded file from the database: staff can open any; an investor only their own."""
     from .models import StoredFile
-    if not path.startswith('avatars/') and not (request.user.is_active and request.user.is_staff):
+    is_staff = request.user.is_active and request.user.is_staff
+    if not (is_staff or _owns_file(request.user, path)):
         return HttpResponse(status=404)
     f = get_object_or_404(StoredFile, name=path)
     resp = HttpResponse(bytes(f.data), content_type=f.content_type)
     resp['Cache-Control'] = 'private, max-age=3600'
     resp['X-Content-Type-Options'] = 'nosniff'
     return resp
+
+
+@staff_required
+def admin_save_deposit_options(request):
+    """Admin switches individual deposit methods on or off (off = grayed out for investors)."""
+    if request.method != 'POST':
+        return redirect('admin_management')
+    keys = [k for k, _ in DepositRequest.METHOD_CHOICES]
+    enabled = set(request.POST.getlist('enabled'))
+    cs = CompanySetting.get_settings()
+    cs.disabled_deposit_methods = ','.join(k for k in keys if k not in enabled)
+    cs.deposits_frozen = False
+    cs.save()
+    n = len([k for k in keys if k in enabled])
+    messages.success(request, f"Deposit options saved: {n} of {len(keys)} switched on.")
+    return redirect('/management/#payments')
+
+
+@staff_required
+def admin_user_detail(request, user_id):
+    """Full investor details for the admin console (JSON)."""
+    u = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    p = u.profile
+    kyc = KYCSubmission.objects.filter(user=u).order_by('-submitted_at').first()
+    img = lambda f: f.url if f else ''
+    data = {
+        'id': u.id, 'username': u.username, 'email': u.email, 'name': u.get_full_name(),
+        'staff': u.is_staff, 'active': u.is_active, 'self': u.id == request.user.id,
+        'joined': u.date_joined.strftime('%d %b %Y'),
+        'last_login': u.last_login.strftime('%d %b %Y %H:%M') if u.last_login else 'Never',
+        'phone': p.phone, 'country': p.country, 'account_type': p.get_account_type_display(),
+        'email_verified': p.email_verified, 'two_factor': p.two_factor,
+        'avatar': img(p.avatar),
+        'wallet': f"{p.wallet_balance:,.2f}", 'loan': f"{p.loan_balance:,.2f}",
+        'deposited': f"{p.total_deposited:,.2f}", 'withdrawn': f"{p.total_withdrawn:,.2f}", 'roi': f"{p.total_roi_earned:,.2f}",
+        'kyc_status': p.get_kyc_status_display(),
+        'kyc': None if not kyc else {
+            'name': kyc.full_legal_name, 'dob': str(kyc.date_of_birth) if getattr(kyc, 'date_of_birth', None) else '',
+            'address': f"{kyc.residential_address}, {kyc.city} {kyc.postal_code}, {kyc.country}",
+            'id_type': kyc.get_id_type_display(), 'id_number': kyc.id_number,
+            'source': kyc.get_source_of_wealth_display(), 'status': kyc.status,
+            'images': [{'label': l, 'url': img(f)} for l, f in (
+                ('ID front', kyc.id_front_image), ('ID back', kyc.id_back_image),
+                ('Proof of address', kyc.proof_of_address), ('Selfie', kyc.selfie_image)) if f],
+        },
+        'investments': [{'plan': i.plan.title, 'amount': f"{i.amount:,.2f}", 'term': i.term_label, 'status': i.status}
+                        for i in UserInvestment.objects.filter(user=u).select_related('plan').order_by('-id')[:8]],
+        'deposits': [{'method': d.get_method_display(), 'amount': f"{d.amount:,.2f}", 'status': d.status,
+                      'date': d.created_at.strftime('%d %b %Y'), 'ref': d.proof_hash, 'receipt': img(d.receipt_image)}
+                     for d in DepositRequest.objects.filter(user=u).order_by('-created_at')[:8]],
+        'withdrawals': [{'amount': f"{w.amount:,.2f}", 'method': w.payout_method, 'status': w.status,
+                         'date': w.created_at.strftime('%d %b %Y')}
+                        for w in WithdrawalRequest.objects.filter(user=u).order_by('-created_at')[:8]],
+    }
+    return JsonResponse(data)

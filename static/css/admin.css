@@ -362,3 +362,24 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: .86rem; }
   .adm-content { padding: 14px 12px 28px; }
   .toasts { left: calc(var(--rail) + 8px); }
 }
+
+/* deposit option switches */
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.opt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid var(--line,#e6e0d3);border-radius:12px;cursor:pointer;background:var(--card,#fff)}
+.opt-row input{position:absolute;opacity:0;pointer-events:none}
+.opt-sw{width:42px;height:24px;border-radius:99px;background:#cfc8b8;position:relative;transition:.18s;flex:none}
+.opt-sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.opt-row input:checked~.opt-sw{background:var(--ok,#2f8f5b)}
+.opt-row input:checked~.opt-sw::after{transform:translateX(18px)}
+.opt-row input:focus-visible~.opt-sw{outline:2px solid var(--ok,#2f8f5b);outline-offset:2px}
+/* investor details */
+.ud-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:6px}
+.ud-kv{background:rgba(0,0,0,.03);border-radius:10px;padding:10px 12px;min-width:0}
+.ud-kv span{display:block;font-size:.7rem;color:var(--ink-3,#7a7568);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.ud-kv b{font-size:.9rem;overflow-wrap:anywhere}
+#ud-body h4{margin:20px 0 8px;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3,#7a7568)}
+.ud-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.ud-thumbs a{display:block;border:1px solid var(--line,#e6e0d3);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit}
+.ud-thumbs img{display:block;width:100%;height:100px;object-fit:cover}
+.ud-thumbs small{display:block;padding:6px 8px;font-size:.72rem}
+.ud-none{color:var(--ink-3,#7a7568);font-size:.86rem;margin:0}

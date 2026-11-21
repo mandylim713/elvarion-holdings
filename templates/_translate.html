@@ -1,0 +1,47 @@
+{# Language switcher: sets Google Translate's cookie and reloads. Google's script loads only when a non-English language is chosen. #}
+<style>
+#gt-wrap{position:fixed;left:14px;bottom:18px;z-index:9990;font-family:inherit}
+@media(max-width:960px){#gt-wrap{bottom:84px;left:10px}}
+#gt-btn{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:99px;border:1px solid rgba(128,128,128,.35);background:rgba(18,24,38,.92);color:#f3ecd9;font:600 .78rem/1 inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#gt-btn:focus-visible{outline:2px solid #c9a45c;outline-offset:2px}
+#gt-menu{position:absolute;left:0;bottom:calc(100% + 8px);width:196px;max-height:56vh;overflow:auto;margin:0;padding:6px;list-style:none;border-radius:14px;background:#fff;color:#1b2230;box-shadow:0 14px 40px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
+#gt-menu[hidden]{display:none}
+#gt-menu button{display:flex;justify-content:space-between;width:100%;padding:9px 11px;border:0;background:none;border-radius:9px;font:500 .85rem/1.2 inherit;color:inherit;cursor:pointer;text-align:left}
+#gt-menu button:hover,#gt-menu button[aria-current=true]{background:#f3ecd9}
+.goog-te-banner-frame,#goog-gt-tt,.goog-te-balloon-frame,.skiptranslate>iframe{display:none!important}
+body{top:0!important}
+.goog-text-highlight{background:none!important;box-shadow:none!important}
+</style>
+<div id="gt-wrap" class="notranslate" translate="no">
+  <button id="gt-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change language"><i class="fas fa-globe"></i><span id="gt-cur">EN</span></button>
+  <ul id="gt-menu" hidden></ul>
+</div>
+<div id="google_translate_element" style="display:none"></div>
+<script>
+(function () {
+  var LANGS = [['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['it','Italiano'],['ru','Русский'],['zh-CN','中文 (简体)'],['ar','العربية'],['hi','हिन्दी'],['ja','日本語'],['ko','한국어'],['tr','Türkçe'],['sw','Kiswahili'],['yo','Yorùbá'],['ig','Igbo'],['ha','Hausa']];
+  function getCookie(n) { var m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : ''; }
+  function setLang(code) {
+    var host = location.hostname, parts = host.split('.'), root = parts.length > 2 ? '.' + parts.slice(-2).join('.') : host;
+    var exp = code === 'en' ? 'Thu, 01 Jan 1970 00:00:00 GMT' : 'Fri, 31 Dec 9999 23:59:59 GMT', val = code === 'en' ? '' : '/en/' + code;
+    [null, host, root].forEach(function (dom) { document.cookie = 'googtrans=' + val + '; expires=' + exp + '; path=/' + (dom ? '; domain=' + dom : ''); });
+    try { localStorage.setItem('lang', code); } catch (e) {}
+    location.reload();
+  }
+  var cur = (getCookie('googtrans').split('/')[2]) || 'en';
+  var btn = document.getElementById('gt-btn'), menu = document.getElementById('gt-menu');
+  document.getElementById('gt-cur').textContent = cur.split('-')[0].toUpperCase();
+  LANGS.forEach(function (l) {
+    var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button'; b.textContent = l[1];
+    if (l[0] === cur) b.setAttribute('aria-current', 'true');
+    b.addEventListener('click', function () { setLang(l[0]); }); li.appendChild(b); menu.appendChild(li);
+  });
+  btn.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.hasAttribute('hidden'); if (open) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', open); });
+  document.addEventListener('click', function () { menu.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') menu.setAttribute('hidden', ''); });
+  if (cur !== 'en') {
+    window.googleTranslateElementInit = function () { new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element'); };
+    var s = document.createElement('script'); s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'; s.async = true; document.head.appendChild(s);
+  }
+})();
+</script>

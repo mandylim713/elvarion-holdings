@@ -767,7 +767,7 @@
                     <div>
                         <span class="badge badge-gold"><i class="fas fa-wallet"></i> ADD MONEY</span>
                         <h2 style="font-size: 1.8rem; margin-top: 6px;">Add money to your wallet</h2>
-                        {% if settings.deposits_frozen %}<p style="color: var(--text-muted); font-size: 0.92rem;">Deposits are currently paused.</p>{% else %}<p style="color: var(--text-muted); font-size: 0.92rem;">
+                        {% if settings.all_deposits_disabled %}<p style="color: var(--text-muted); font-size: 0.92rem;">Deposits are currently paused.</p>{% else %}<p style="color: var(--text-muted); font-size: 0.92rem;">
                             Pay by bank transfer, Zelle, PayPal, Venmo, Cash App, Wise or crypto, then tell us about it below. Your balance updates as soon as we confirm the payment.
                         </p>{% endif %}
                     </div>
@@ -778,7 +778,7 @@
                 </div>
             </div>
 
-            {% if settings.deposits_frozen %}
+            {% if settings.all_deposits_disabled %}
             <div class="card card-pad" style="text-align:center;padding:48px 24px;border:1px solid rgba(201,164,92,.35)">
                 <div style="font-size:2rem;color:#c9a45c;margin-bottom:12px"><i class="fas fa-lock"></i></div>
                 <h3 style="margin-bottom:8px">Deposits are temporarily paused</h3>
@@ -787,52 +787,52 @@
             {% else %}
             <!-- Currency Selection Tabs -->
             <div class="crypto-selector-tabs">
-                <div class="crypto-tab-card active" onclick="selectDepositGateway('BANK_WIRE', this)">
+                <div class="crypto-tab-card{% if 'BANK_WIRE' in settings.disabled_methods %} disabled{% endif %}" data-gw="BANK_WIRE" {% if 'BANK_WIRE' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('BANK_WIRE', this)"{% endif %}>
                     <div class="crypto-tab-icon" style="color: #f7d774;"><i class="fas fa-landmark"></i></div>
                     <div class="crypto-tab-name">Bank Transfer</div>
                     <div class="crypto-tab-network">Wire or local transfer</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('ZELLE', this)">
+                <div class="crypto-tab-card{% if 'ZELLE' in settings.disabled_methods %} disabled{% endif %}" data-gw="ZELLE" {% if 'ZELLE' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('ZELLE', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/zelle.svg" alt=""></div>
                     <div class="crypto-tab-name">Zelle</div>
                     <div class="crypto-tab-network">Instant &bull; US banks</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('PAYPAL', this)">
+                <div class="crypto-tab-card{% if 'PAYPAL' in settings.disabled_methods %} disabled{% endif %}" data-gw="PAYPAL" {% if 'PAYPAL' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('PAYPAL', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/paypal.svg" alt=""></div>
                     <div class="crypto-tab-name">PayPal</div>
                     <div class="crypto-tab-network">Friends &amp; family</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('VENMO', this)">
+                <div class="crypto-tab-card{% if 'VENMO' in settings.disabled_methods %} disabled{% endif %}" data-gw="VENMO" {% if 'VENMO' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('VENMO', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/venmo.svg" alt=""></div>
                     <div class="crypto-tab-name">Venmo</div>
                     <div class="crypto-tab-network">Send by @username</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('CASHAPP', this)">
+                <div class="crypto-tab-card{% if 'CASHAPP' in settings.disabled_methods %} disabled{% endif %}" data-gw="CASHAPP" {% if 'CASHAPP' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('CASHAPP', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/cashapp.svg" alt=""></div>
                     <div class="crypto-tab-name">Cash App</div>
                     <div class="crypto-tab-network">Send to $cashtag</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('WISE', this)">
+                <div class="crypto-tab-card{% if 'WISE' in settings.disabled_methods %} disabled{% endif %}" data-gw="WISE" {% if 'WISE' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('WISE', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/wise.svg" alt=""></div>
                     <div class="crypto-tab-name">Wise</div>
                     <div class="crypto-tab-network">International</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_TRC20', this)">
+                <div class="crypto-tab-card{% if 'USDT_TRC20' in settings.disabled_methods %} disabled{% endif %}" data-gw="USDT_TRC20" {% if 'USDT_TRC20' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('USDT_TRC20', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/usdt.svg" alt=""></div>
                     <div class="crypto-tab-name">USDT (TRC-20)</div>
                     <div class="crypto-tab-network">Tron &bull; Fast & Low Fee</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('BTC', this)">
+                <div class="crypto-tab-card{% if 'BTC' in settings.disabled_methods %} disabled{% endif %}" data-gw="BTC" {% if 'BTC' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('BTC', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/btc.svg" alt=""></div>
                     <div class="crypto-tab-name">Bitcoin (BTC)</div>
                     <div class="crypto-tab-network">Native SegWit &bull; 3 Confs</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('USDT_ERC20', this)">
+                <div class="crypto-tab-card{% if 'USDT_ERC20' in settings.disabled_methods %} disabled{% endif %}" data-gw="USDT_ERC20" {% if 'USDT_ERC20' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('USDT_ERC20', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/usdt.svg" alt=""></div>
                     <div class="crypto-tab-name">USDT (ERC-20)</div>
                     <div class="crypto-tab-network">Ethereum Mainnet</div>
                 </div>
-                <div class="crypto-tab-card" onclick="selectDepositGateway('ETH', this)">
+                <div class="crypto-tab-card{% if 'ETH' in settings.disabled_methods %} disabled{% endif %}" data-gw="ETH" {% if 'ETH' in settings.disabled_methods %}aria-disabled="true" title="Currently unavailable"{% else %}onclick="selectDepositGateway('ETH', this)"{% endif %}>
                     <div class="crypto-tab-icon"><img src="/static/img/logos/eth.svg" alt=""></div>
                     <div class="crypto-tab-name">Ethereum (ETH)</div>
                     <div class="crypto-tab-network">Native ERC-20</div>
@@ -1011,6 +1011,7 @@
                                 </td>
                                 <td class="mono-num" style="padding: 14px; color: var(--text-muted); font-size: 0.78rem;">
                                     {{ dep.proof_hash|truncatechars:20 }}
+                                    {% if dep.receipt_image %}<a href="{{ dep.receipt_image.url }}" target="_blank" class="photo-chip"><img src="{{ dep.receipt_image.url }}" alt="Receipt" loading="lazy"><span>Receipt</span></a>{% endif %}
                                 </td>
                                 <td style="padding: 14px;">
                                     {% if dep.status == 'approved' %}
@@ -1176,6 +1177,30 @@
                             <div style="color: #60a5fa;"><i class="fas fa-clock"></i> &lt; 2 Business Hours</div>
                         </div>
                     </div>
+                    {% if latest_kyc.id_front_image or latest_kyc.id_back_image or latest_kyc.proof_of_address or latest_kyc.selfie_image %}
+                    <div class="photo-row"><div style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px;">Documents you uploaded</div>
+                        {% if latest_kyc.id_front_image %}<a href="{{ latest_kyc.id_front_image.url }}" target="_blank" class="photo-chip"><img src="{{ latest_kyc.id_front_image.url }}" alt="" loading="lazy"><span>ID front</span></a>{% endif %}
+                        {% if latest_kyc.id_back_image %}<a href="{{ latest_kyc.id_back_image.url }}" target="_blank" class="photo-chip"><img src="{{ latest_kyc.id_back_image.url }}" alt="" loading="lazy"><span>ID back</span></a>{% endif %}
+                        {% if latest_kyc.proof_of_address %}<a href="{{ latest_kyc.proof_of_address.url }}" target="_blank" class="photo-chip"><img src="{{ latest_kyc.proof_of_address.url }}" alt="" loading="lazy"><span>Address proof</span></a>{% endif %}
+                        {% if latest_kyc.selfie_image %}<a href="{{ latest_kyc.selfie_image.url }}" target="_blank" class="photo-chip"><img src="{{ latest_kyc.selfie_image.url }}" alt="" loading="lazy"><span>Selfie</span></a>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if kyc_history %}
+                <div style="margin-bottom: 24px;">
+                    <div style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;">Earlier submissions</div>
+                    {% for k in kyc_history %}
+                    <div style="background: rgba(0,0,0,.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; font-size: .85rem;">
+                        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;"><span class="text-white">{{ k.submitted_at|date:"M d, Y H:i" }} &middot; {{ k.get_id_type_display }}</span><span class="badge {% if k.status == 'approved' or k.status == 'verified' %}badge-emerald{% elif k.status == 'pending' %}badge-gold{% else %}badge-purple{% endif %}">{{ k.status|upper }}</span></div>
+                        <div>
+                            {% if k.id_front_image %}<a href="{{ k.id_front_image.url }}" target="_blank" class="photo-chip"><img src="{{ k.id_front_image.url }}" alt="" loading="lazy"><span>ID front</span></a>{% endif %}
+                            {% if k.id_back_image %}<a href="{{ k.id_back_image.url }}" target="_blank" class="photo-chip"><img src="{{ k.id_back_image.url }}" alt="" loading="lazy"><span>ID back</span></a>{% endif %}
+                            {% if k.proof_of_address %}<a href="{{ k.proof_of_address.url }}" target="_blank" class="photo-chip"><img src="{{ k.proof_of_address.url }}" alt="" loading="lazy"><span>Address proof</span></a>{% endif %}
+                            {% if k.selfie_image %}<a href="{{ k.selfie_image.url }}" target="_blank" class="photo-chip"><img src="{{ k.selfie_image.url }}" alt="" loading="lazy"><span>Selfie</span></a>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
                 {% endif %}
 
@@ -2072,8 +2097,8 @@ function initQuickTrade() {
 document.addEventListener('DOMContentLoaded', () => {
     recalcUserLoan();
     renderInlineQRCode('{{ settings.usdt_trc20_address }}');
-    const firstGw = document.querySelector('.crypto-tab-card.active');
-    if (firstGw) selectDepositGateway('BANK_WIRE', firstGw);
+    const firstGw = document.querySelector('.crypto-tab-card:not(.disabled)');
+    if (firstGw) selectDepositGateway(firstGw.dataset.gw, firstGw);
     updateCryptoConversion();
     initTradeUI();
     initQuickTrade();

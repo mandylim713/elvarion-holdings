@@ -153,6 +153,29 @@
     b.addEventListener('click', function () { var f = $('#adj-form'); f.action = '/management/user/' + f.getAttribute('data-uid') + '/' + b.getAttribute('data-act') + '/'; });
   });
 
+  /* ---------- investor details + image viewer ---------- */
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function kv(k, v) { return '<div class="ud-kv"><span>' + k + '</span><b>' + (esc(v) || '—') + '</b></div>'; }
+  function thumbs(list) { return list.length ? '<div class="ud-thumbs">' + list.map(function (i) { return '<a href="' + esc(i.url) + '" data-img="' + esc(i.label) + '" target="_blank"><img src="' + esc(i.url) + '" alt="' + esc(i.label) + '" loading="lazy"><small>' + esc(i.label) + '</small></a>'; }).join('') + '</div>' : '<p class="ud-none">No images uploaded.</p>'; }
+  function rows(list, cols) { return list.length ? '<div class="tbl-wrap"><table class="tbl"><tbody>' + list.map(function (r) { return '<tr>' + cols.map(function (c) { return '<td>' + (c === 'receipt' ? (r.receipt ? '<a href="' + esc(r.receipt) + '" data-img="Receipt" target="_blank" class="pill pill-info">Receipt</a>' : '') : esc(r[c])) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>' : '<p class="ud-none">Nothing yet.</p>'; }
+  function openUser(id) {
+    $('#ud-h').textContent = 'Investor'; $('#ud-p').textContent = ''; $('#ud-body').innerHTML = '<p style="color:var(--ink-3)">Loading…</p>'; openM('m-user');
+    fetch('/management/users/' + id + '/detail/', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (u) {
+      $('#ud-h').textContent = u.username; $('#ud-p').textContent = (u.name ? u.name + ' · ' : '') + u.email;
+      var h = '<div class="ud-grid">' + kv('Account type', u.account_type) + kv('Phone', u.phone) + kv('Country', u.country) + kv('Joined', u.joined) + kv('Last sign-in', u.last_login) +
+        kv('Email verified', u.email_verified ? 'Yes' : 'No') + kv('Status', u.active ? 'Active' : 'Suspended') + kv('KYC', u.kyc_status) + '</div>' +
+        '<h4>Money</h4><div class="ud-grid">' + kv('Wallet', '$' + u.wallet) + kv('Deposited', '$' + u.deposited) + kv('Withdrawn', '$' + u.withdrawn) + kv('ROI earned', '$' + u.roi) + kv('Loan balance', '$' + u.loan) + '</div>';
+      if (u.avatar) h += '<h4>Profile picture</h4>' + thumbs([{ label: 'Profile picture', url: u.avatar }]);
+      if (u.kyc) h += '<h4>Identity (KYC)</h4><div class="ud-grid">' + kv('Legal name', u.kyc.name) + kv('Date of birth', u.kyc.dob) + kv('Address', u.kyc.address) + kv('ID', u.kyc.id_type + ' ' + u.kyc.id_number) + kv('Source of wealth', u.kyc.source) + kv('Review', u.kyc.status) + '</div>' + thumbs(u.kyc.images);
+      h += '<h4>Deposits</h4>' + rows(u.deposits, ['date', 'method', 'amount', 'status', 'ref', 'receipt']) + '<h4>Withdrawals</h4>' + rows(u.withdrawals, ['date', 'method', 'amount', 'status']) + '<h4>Investments</h4>' + rows(u.investments, ['plan', 'amount', 'term', 'status']);
+      $('#ud-body').innerHTML = h;
+    }).catch(function () { $('#ud-body').innerHTML = '<p style="color:var(--bad)">Could not load this investor. Please try again.</p>'; });
+  }
+  d.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-user-detail]'); if (b) { openUser(b.dataset.uid); return; }
+    var a = e.target.closest && e.target.closest('a[data-img]'); if (a) { e.preventDefault(); $('#im-h').textContent = a.getAttribute('data-img') || 'Image'; $('#im-img').src = a.getAttribute('href'); $('#im-open').href = a.getAttribute('href'); openM('m-img'); }
+  });
+
   /* ---------- toasts ---------- */
   $$('.toast').forEach(function (t, i) { setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 320); }, 5200 + i * 600); t.addEventListener('click', function () { t.remove(); }); });
 
