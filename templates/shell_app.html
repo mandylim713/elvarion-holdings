@@ -47,7 +47,7 @@
   </nav>
   <div class="sh-foot">
     <div class="sh-user">
-      <div class="sh-avatar">{{ request.user.username|first|upper }}</div>
+      <div class="sh-avatar">{% if request.user.profile.avatar %}<img src="/media/{{ request.user.profile.avatar.name }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">{% else %}{{ request.user.username|first|upper }}{% endif %}</div>
       <div class="sh-user-text"><b>{{ request.user.first_name|default:request.user.username }}</b><small>{% block side_role %}Client{% endblock %}</small></div>
     </div>
     <div class="sh-links">

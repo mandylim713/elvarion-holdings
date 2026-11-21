@@ -431,6 +431,7 @@ class CompanySetting(models.Model):
     use_live_prices = models.BooleanField(default=True, help_text='Pull real market prices when the feed is reachable')
     disabled_deposit_methods = models.TextField(blank=True, default='',
                                                 help_text='Comma-separated deposit methods the admin has switched off (shown grayed out to investors)')
+    qr_codes = models.JSONField(default=dict, blank=True, help_text='Uploaded QR code image per payment method (key -> stored file name)')
     deposits_frozen = models.BooleanField(default=False, help_text='When on, investors cannot submit any deposit (bank transfer, cash apps, crypto)')
     require_email_verification = models.BooleanField(default=True, help_text='New investors must confirm their email with a code (only enforced when email sending is set up)')
     option_payout_pct = models.PositiveSmallIntegerField(default=80, help_text='Quick Trade payout on a winning trade, in percent')
@@ -447,6 +448,10 @@ class CompanySetting(models.Model):
     @property
     def all_deposits_disabled(self):
         return len(self.disabled_methods) >= len(DepositRequest.METHOD_CHOICES) - len(DepositRequest.RETIRED)
+
+    @property
+    def qr_urls(self):
+        return {k: '/media/' + n for k, n in (self.qr_codes or {}).items() if n}
 
     def deposit_method_enabled(self, key):
         return key not in DepositRequest.RETIRED and key not in self.disabled_methods

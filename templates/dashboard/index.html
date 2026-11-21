@@ -838,11 +838,10 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic QR Container -->
+                    {{ settings.qr_urls|json_script:"qr-urls" }}
+                    <!-- QR Container (admin-uploaded image) -->
                     <div id="crypto-qr-wrapper">
-                        <div class="qr-container" id="qr-code-display">
-                            <!-- Dynamic SVG QR Code renders here -->
-                        </div>
+                        <div class="qr-container" id="qr-code-display"></div>
                         <p style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
                             Scan QR Code with your institutional wallet or corporate exchange
                         </p>
@@ -890,6 +889,8 @@
                             <li>Fill in the form on the right and attach a screenshot.</li>
                         </ol>
                     </div>
+
+                    <div id="alt-qr" style="display:none;text-align:center;margin-bottom:16px"></div>
 
                     <!-- Real-Time Crypto Conversion Estimator -->
                     <div id="crypto-est-box" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-top: 20px;">
@@ -1352,6 +1353,19 @@
             <div class="tr-top"><div><h2 style="font-size: 1.8rem;">Settings</h2>
                 <p style="color: var(--text-muted); font-size: 0.92rem;">Your details, password and security.</p></div></div>
             <div class="st-grid">
+                <form class="st-card glass-card-luxury" method="POST" enctype="multipart/form-data" action="{% url 'settings_photo' %}">
+                    {% csrf_token %}
+                    <h3><i class="fas fa-camera"></i> Profile photo</h3>
+                    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                        {% if profile.avatar %}<img src="/media/{{ profile.avatar.name }}" alt="Your photo" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--border-gold)">{% else %}<div style="width:84px;height:84px;border-radius:50%;background:#16253f;border:2px solid var(--border-gold);display:grid;place-items:center;font-size:1.8rem;color:var(--gold-light)">{{ request.user.username|first|upper }}</div>{% endif %}
+                        <div style="flex:1;min-width:200px">
+                            <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" class="form-control" required>
+                            <small style="color:var(--text-muted)">PNG, JPG or WEBP, up to 5 MB.</small>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-gold" type="submit"><i class="fas fa-upload"></i> Upload photo</button></div>
+                </form>
+                {% if profile.avatar %}<form class="st-card glass-card-luxury" method="POST" action="{% url 'settings_photo' %}" style="padding-top:14px;padding-bottom:14px">{% csrf_token %}<input type="hidden" name="remove" value="1"><button class="btn btn-sm btn-outline-gold" type="submit">Remove my photo</button></form>{% endif %}
                 <form class="st-card glass-card-luxury" method="POST" action="{% url 'settings_profile' %}">
                     {% csrf_token %}
                     <h3><i class="fas fa-user"></i> Profile</h3>
@@ -1672,18 +1686,20 @@ function selectDepositGateway(gwKey, element) {
         document.getElementById('hw-label').innerText = gw.handleLabel;
         document.getElementById('hw-value').innerText = gw.handle;
         document.getElementById('hw-copy').setAttribute('data-clipboard-text', gw.handle);
+        if (showQr(gwKey)) document.getElementById('alt-qr').style.display = 'block';
         document.getElementById('hw-name-row').innerHTML = gw.holder ? 'Account name: <b style="color:#fff">' + gw.holder + '</b>' : '';
     } else if (gw.isWire) {
         if (qrWrap) qrWrap.style.display = 'none';
         if (addrWrap) addrWrap.style.display = 'none';
         if (wireWrap) wireWrap.style.display = 'block';
+        if (showQr(gwKey)) document.getElementById('alt-qr').style.display = 'block';
     } else {
         if (qrWrap) qrWrap.style.display = 'block';
         if (addrWrap) addrWrap.style.display = 'block';
         if (wireWrap) wireWrap.style.display = 'none';
         if (elAddr) elAddr.innerText = gw.address;
         if (elCopy) elCopy.setAttribute('data-clipboard-text', gw.address);
-        renderInlineQRCode(gw.address);
+        if (qrWrap) qrWrap.style.display = showQr(gwKey) ? 'block' : 'none';
     }
 
     // Update Form fields
@@ -1700,56 +1716,15 @@ function selectDepositGateway(gwKey, element) {
     updateCryptoConversion();
 }
 
-function renderInlineQRCode(text) {
-    const container = document.getElementById('qr-code-display');
-    if (!container) return;
-    
-    // Generate clean SVG visual QR simulation grid
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-        hash = ((hash << 5) - hash) + text.charCodeAt(i);
-        hash |= 0;
-    }
-    
-    // 21x21 QR matrix
-    const size = 21;
-    let rects = '';
-    const cellSize = 180 / size;
-    
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            // Finder patterns in 3 corners
-            const isTopLeftFinder = (r < 7 && c < 7);
-            const isTopRightFinder = (r < 7 && c >= size - 7);
-            const isBottomLeftFinder = (r >= size - 7 && c < 7);
-            
-            let isBlack = false;
-            if (isTopLeftFinder) {
-                isBlack = (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
-            } else if (isTopRightFinder) {
-                const cAdj = c - (size - 7);
-                isBlack = (r === 0 || r === 6 || cAdj === 0 || cAdj === 6 || (r >= 2 && r <= 4 && cAdj >= 2 && cAdj <= 4));
-            } else if (isBottomLeftFinder) {
-                const rAdj = r - (size - 7);
-                isBlack = (rAdj === 0 || rAdj === 6 || c === 0 || c === 6 || (rAdj >= 2 && rAdj <= 4 && c >= 2 && c <= 4));
-            } else {
-                // Pseudo pseudo-data bits based on text hash
-                const bitVal = Math.sin((r * 13) + (c * 29) + hash);
-                isBlack = bitVal > 0.1;
-            }
-            
-            if (isBlack) {
-                rects += `<rect x="${c * cellSize + 10}" y="${r * cellSize + 10}" width="${cellSize}" height="${cellSize}" fill="#0c1222" />`;
-            }
-        }
-    }
-
-    container.innerHTML = `
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
-            <rect width="200" height="200" fill="#ffffff" rx="6" />
-            ${rects}
-        </svg>
-    `;
+const QR_URLS = JSON.parse(document.getElementById('qr-urls').textContent || '{}');
+function showQr(key) {
+    // Shows the QR image uploaded by the admin for this payment method; nothing is shown if none was uploaded.
+    const url = QR_URLS[key];
+    const html = url ? '<img src="' + url + '" alt="Payment QR code" style="width:190px;height:190px;object-fit:contain;background:#fff;padding:8px;border-radius:12px">' : '';
+    const crypto = document.getElementById('qr-code-display'), alt = document.getElementById('alt-qr'), wrap = document.getElementById('crypto-qr-wrapper');
+    if (crypto) crypto.innerHTML = html;
+    if (alt) { alt.innerHTML = html ? html + '<p style="font-size:.78rem;color:var(--text-muted);margin:8px 0 0">Scan to pay</p>' : ''; alt.style.display = 'none'; }
+    return !!url;
 }
 
 function updateCryptoConversion() {
@@ -2088,7 +2063,6 @@ function initQuickTrade() {
 
 document.addEventListener('DOMContentLoaded', () => {
     recalcUserLoan();
-    renderInlineQRCode('{{ settings.usdt_trc20_address }}');
     const firstGw = document.querySelector('.crypto-tab-card:not(.disabled)');
     if (firstGw) selectDepositGateway(firstGw.dataset.gw, firstGw);
     updateCryptoConversion();

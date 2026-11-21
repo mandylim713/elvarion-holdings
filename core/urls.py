@@ -15,6 +15,7 @@ urlpatterns = [
     path('reset-password/', views.reset_password, name='reset_password'),
     path('auth/resend-otp/', views.resend_otp, name='resend_otp'),
     path('settings/profile/', views.settings_profile, name='settings_profile'),
+    path('settings/photo/', views.settings_photo, name='settings_photo'),
     path('settings/password/', views.settings_password, name='settings_password'),
     path('settings/security/', views.settings_security, name='settings_security'),
     path('logout/', views.logout_view, name='logout'),

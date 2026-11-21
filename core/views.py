@@ -1,4 +1,5 @@
 import json
+import uuid
 import os
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
@@ -278,6 +279,33 @@ def resend_otp(request):
 
 
 # ---------------- ACCOUNT SETTINGS ----------------
+
+@login_required
+def settings_photo(request):
+    """Investor uploads or removes their own profile photo."""
+    if request.method == 'POST':
+        p = request.user.profile
+        if request.POST.get('remove'):
+            if p.avatar:
+                p.avatar.delete(save=False)
+            p.avatar = None
+            p.save(update_fields=['avatar'])
+            messages.success(request, 'Profile photo removed.')
+        else:
+            up = request.FILES.get('avatar')
+            ext = (up.name.rsplit('.', 1)[-1] if up and '.' in up.name else '').lower()
+            if not up or ext not in ('png', 'jpg', 'jpeg', 'webp', 'gif') or not (up.content_type or '').startswith('image/'):
+                messages.error(request, 'Please choose a PNG, JPG or WEBP photo.')
+            elif up.size > 5 * 1024 * 1024:
+                messages.error(request, 'That photo is too large. Please use one under 5 MB.')
+            else:
+                if p.avatar:
+                    p.avatar.delete(save=False)
+                p.avatar = up
+                p.save(update_fields=['avatar'])
+                messages.success(request, 'Profile photo updated.')
+    return redirect('/dashboard/#tab-settings')
+
 
 @login_required
 def settings_profile(request):
@@ -1357,6 +1385,9 @@ def admin_save_tier(request):
     return redirect('/management/#tiers')
 
 
+QR_METHODS = ('BTC', 'ETH', 'USDT_TRC20', 'USDT_ERC20', 'BANK_WIRE', 'ZELLE', 'PAYPAL')
+
+
 @staff_required
 def admin_save_settings(request):
     """Edit bank, wallet and payment-app details shown on the Add money page"""
@@ -1368,6 +1399,20 @@ def admin_save_settings(request):
         for k in fields:
             if k in request.POST:
                 setattr(cs, k, request.POST.get(k, '').strip()[:150])
+        from django.core.files.storage import default_storage
+        qr = dict(cs.qr_codes or {})
+        for key in QR_METHODS:
+            if request.POST.get('qr_remove_' + key):
+                qr.pop(key, None)
+            up = request.FILES.get('qr_' + key)
+            if up:
+                ext = (up.name.rsplit('.', 1)[-1] if '.' in up.name else '').lower()
+                if ext not in ('png', 'jpg', 'jpeg', 'webp', 'gif') or up.size > 2 * 1024 * 1024 \
+                        or not (up.content_type or '').startswith('image/'):
+                    messages.error(request, f'QR code for {key} must be a PNG/JPG/WEBP image under 2 MB.')
+                    continue
+                qr[key] = default_storage.save(f'qr/{key}-{uuid.uuid4().hex[:8]}.{ext}', up)
+        cs.qr_codes = qr
         if request.POST.get('form') == 'platform':
             cs.use_live_prices = request.POST.get('use_live_prices') == '1'
             cs.require_email_verification = request.POST.get('require_email_verification') == '1'
@@ -1547,7 +1592,7 @@ def media_file(request, path):
     """Serve an uploaded file from the database: staff can open any; an investor only their own."""
     from .models import StoredFile
     is_staff = request.user.is_active and request.user.is_staff
-    if not (is_staff or _owns_file(request.user, path)):
+    if not (is_staff or path.startswith('qr/') or _owns_file(request.user, path)):
         return HttpResponse(status=404)
     f = get_object_or_404(StoredFile, name=path)
     resp = HttpResponse(bytes(f.data), content_type=f.content_type)

@@ -422,7 +422,7 @@
         <div style="margin-top:16px"><button class="btn btn-ok" type="submit"><i class="fas fa-check"></i> Save deposit options</button></div>
       </div>
     </form>
-    <form method="post" action="{% url 'admin_save_settings' %}" data-confirm="Save payment details?" data-note="Investors will see these details immediately." data-ok="Save">
+    <form method="post" enctype="multipart/form-data" action="{% url 'admin_save_settings' %}" data-confirm="Save payment details?" data-note="Investors will see these details immediately." data-ok="Save">
       {% csrf_token %}
       <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Payment apps</h3><div class="f-grid">
         <label class="field"><span>Zelle email / phone</span><input name="zelle_email" value="{{ settings.zelle_email }}" placeholder=""></label><label class="field"><span>Zelle account name</span><input name="zelle_name" value="{{ settings.zelle_name }}" placeholder=""></label><label class="field"><span>PayPal email</span><input name="paypal_email" value="{{ settings.paypal_email }}" placeholder=""></label><label class="field"><span>Venmo username</span><input name="venmo_handle" value="{{ settings.venmo_handle }}" placeholder=""></label><label class="field"><span>Cash App $cashtag</span><input name="cashapp_tag" value="{{ settings.cashapp_tag }}" placeholder=""></label><label class="field"><span>Wise email</span><input name="wise_email" value="{{ settings.wise_email }}" placeholder=""></label>
@@ -433,6 +433,31 @@
       <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 14px">Crypto wallets</h3><div class="f-grid">
         <label class="field"><span>Bitcoin (BTC)</span><input name="btc_wallet_address" value="{{ settings.btc_wallet_address }}" placeholder=""></label><label class="field"><span>Ethereum (ETH)</span><input name="eth_wallet_address" value="{{ settings.eth_wallet_address }}" placeholder=""></label><label class="field"><span>USDT (TRC-20)</span><input name="usdt_trc20_address" value="{{ settings.usdt_trc20_address }}" placeholder=""></label><label class="field"><span>USDT (ERC-20)</span><input name="usdt_erc20_address" value="{{ settings.usdt_erc20_address }}" placeholder=""></label>
       </div></div>
+      <div class="card card-pad" style="margin-bottom:16px"><h3 style="margin:0 0 4px">QR codes</h3>
+        <p style="margin:0 0 14px;color:var(--ink-3);font-size:.86rem">Upload a QR image for any payment method (PNG, JPG or WEBP, up to 2 MB). Investors see it on the Add money page next to that method. Methods with no QR show none.</p>
+        <div class="f-grid c3">
+        <div class="card card-pad" style="box-shadow:none"><b>Bank transfer</b>
+          {% if settings.qr_urls.BANK_WIRE %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.BANK_WIRE }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_BANK_WIRE" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_BANK_WIRE" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>Zelle</b>
+          {% if settings.qr_urls.ZELLE %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.ZELLE }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_ZELLE" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_ZELLE" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>PayPal</b>
+          {% if settings.qr_urls.PAYPAL %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.PAYPAL }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_PAYPAL" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_PAYPAL" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>USDT (TRC-20)</b>
+          {% if settings.qr_urls.USDT_TRC20 %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.USDT_TRC20 }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_USDT_TRC20" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_USDT_TRC20" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>Bitcoin (BTC)</b>
+          {% if settings.qr_urls.BTC %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.BTC }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_BTC" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_BTC" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>USDT (ERC-20)</b>
+          {% if settings.qr_urls.USDT_ERC20 %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.USDT_ERC20 }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_USDT_ERC20" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_USDT_ERC20" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        <div class="card card-pad" style="box-shadow:none"><b>Ethereum (ETH)</b>
+          {% if settings.qr_urls.ETH %}<div style="margin:10px 0"><img src="{{ settings.qr_urls.ETH }}" alt="" style="width:120px;height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:6px"></div><label style="font-size:.82rem"><input type="checkbox" name="qr_remove_ETH" value="1"> Remove this QR</label>{% else %}<p style="margin:8px 0;color:var(--ink-3);font-size:.82rem">No QR uploaded</p>{% endif %}
+          <input type="file" name="qr_ETH" accept="image/png,image/jpeg,image/webp" style="margin-top:8px;width:100%"></div>
+        </div></div>
       <button class="btn btn-gold btn-lg" type="submit"><i class="fas fa-check"></i> Save payment details</button>
     </form>
   </section>

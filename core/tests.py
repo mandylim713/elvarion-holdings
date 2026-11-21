@@ -644,3 +644,42 @@ class TestRetiredMethods(TestCase):
         html = self.client.get('/dashboard/').content.decode()
         for m in ('VENMO', 'CASHAPP', 'WISE'):
             self.assertNotIn('data-gw="%s"' % m, html)
+
+
+class TestQrCodes(TestCase):
+    PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+           b'\x00\x00\x00\rIDATx\x9cc\xf8\xcf\xc0\x00\x00\x03\x01\x01\x00\xc9\xfe\x92\xef\x00\x00\x00\x00IEND\xaeB`\x82')
+
+    def test_admin_uploads_qr_and_investor_sees_it(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        staff = User.objects.create_user('qs', 'q@example.com', 'Passw0rd!x', is_staff=True)
+        UserProfile.objects.create(user=staff, email_verified=True)
+        inv = User.objects.create_user('qi', 'qi@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=inv, email_verified=True)
+        self.client.force_login(staff)
+        self.client.post('/management/settings/save/', {'qr_USDT_TRC20': SimpleUploadedFile('q.png', self.PNG, content_type='image/png')})
+        url = CompanySetting.get_settings().qr_urls['USDT_TRC20']
+        self.assertTrue(url.startswith('/media/qr/'))
+        self.client.post('/management/settings/save/', {'qr_BTC': SimpleUploadedFile('q.exe', b'x', content_type='application/octet-stream')})
+        self.assertNotIn('BTC', CompanySetting.get_settings().qr_urls)
+        self.client.force_login(inv)
+        self.assertIn(url, self.client.get('/dashboard/').content.decode())
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+
+class TestProfilePhoto(TestCase):
+    def test_investor_uploads_and_removes_photo(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        u = User.objects.create_user('ph', 'ph@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=u, email_verified=True)
+        self.client.force_login(u)
+        self.client.post('/settings/photo/', {'avatar': SimpleUploadedFile('me.png', TestQrCodes.PNG, content_type='image/png')})
+        u.profile.refresh_from_db()
+        self.assertTrue(u.profile.avatar)
+        url = '/media/' + u.profile.avatar.name
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertIn(url, self.client.get('/dashboard/').content.decode())
+        self.client.post('/settings/photo/', {'avatar': SimpleUploadedFile('x.exe', b'x', content_type='application/octet-stream')})
+        self.client.post('/settings/photo/', {'remove': '1'})
+        u.profile.refresh_from_db()
+        self.assertFalse(u.profile.avatar)
