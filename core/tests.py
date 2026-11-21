@@ -694,3 +694,15 @@ class TestBankWithdrawalComingSoon(TestCase):
         from core.models import WithdrawalRequest
         self.assertEqual(WithdrawalRequest.objects.filter(user=u).count(), 0)
         self.assertIn('coming soon', self.client.get('/dashboard/').content.decode().lower())
+
+
+class TestWithdrawalApps(TestCase):
+    def test_venmo_withdrawal_ok_bank_not(self):
+        from core.models import WithdrawalRequest
+        u = User.objects.create_user('wa', 'wa@example.com', 'Passw0rd!x')
+        UserProfile.objects.create(user=u, wallet_balance=Decimal('1000'), email_verified=True)
+        self.client.force_login(u)
+        self.client.post('/withdraw/', {'amount': '100', 'payout_method': 'Venmo', 'app_handle': '@me'})
+        self.assertEqual(WithdrawalRequest.objects.filter(user=u).count(), 1)
+        self.client.post('/withdraw/', {'amount': '100', 'payout_method': 'Bank Transfer', 'bank_name': 'X', 'account_name': 'Y', 'account_number': '1'})
+        self.assertEqual(WithdrawalRequest.objects.filter(user=u).count(), 1)

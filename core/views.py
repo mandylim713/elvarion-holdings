@@ -649,7 +649,7 @@ def submit_withdrawal(request):
     details = request.POST.get('destination_details', '').strip()
 
     if method == 'Bank Transfer':
-        messages.error(request, 'Bank withdrawals are coming soon. Please use Zelle, PayPal or crypto for now.')
+        messages.error(request, 'Bank withdrawals are coming soon. Please use Zelle, PayPal, Venmo, Cash App, Wise or crypto for now.')
         return redirect('/dashboard/#tab-investments')
     if method == 'Bank Transfer__legacy':
         f = lambda k: request.POST.get(k, '').strip()
@@ -658,7 +658,7 @@ def submit_withdrawal(request):
             return redirect('/dashboard/#tab-investments')
         details = (f"Bank: {f('bank_name')} | Account name: {f('account_name')} | "
                    f"Account no / IBAN: {f('account_number')} | SWIFT / routing: {f('swift') or '-'} | Country: {f('bank_country') or '-'}")
-    elif method in ('Zelle', 'PayPal'):
+    elif method in ('Zelle', 'PayPal', 'Venmo', 'Cash App', 'Wise'):
         handle = request.POST.get('app_handle', '').strip()
         if not handle:
             messages.error(request, f'Please enter the {method} email, phone or username to send to.')
