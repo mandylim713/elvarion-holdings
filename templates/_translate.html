@@ -4,7 +4,7 @@
 @media(max-width:960px){#gt-wrap{bottom:84px;left:10px}}
 #gt-btn{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:99px;border:1px solid rgba(128,128,128,.35);background:rgba(18,24,38,.92);color:#f3ecd9;font:600 .78rem/1 inherit;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #gt-btn:focus-visible{outline:2px solid #c9a45c;outline-offset:2px}
-#gt-menu{position:absolute;left:0;bottom:calc(100% + 8px);width:196px;max-height:56vh;overflow:auto;margin:0;padding:6px;list-style:none;border-radius:14px;background:#fff;color:#1b2230;box-shadow:0 14px 40px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
+#gt-menu{position:absolute;left:0;bottom:calc(100% + 8px);width:230px;max-height:56vh;overflow:auto;margin:0;padding:6px;list-style:none;border-radius:14px;background:#fff;color:#1b2230;box-shadow:0 14px 40px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
 #gt-menu[hidden]{display:none}
 #gt-menu button{display:flex;justify-content:space-between;width:100%;padding:9px 11px;border:0;background:none;border-radius:9px;font:500 .85rem/1.2 inherit;color:inherit;cursor:pointer;text-align:left}
 #gt-menu button:hover,#gt-menu button[aria-current=true]{background:#f3ecd9}
@@ -14,12 +14,12 @@ body{top:0!important}
 </style>
 <div id="gt-wrap" class="notranslate" translate="no">
   <button id="gt-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change language"><i class="fas fa-globe"></i><span id="gt-cur">EN</span></button>
-  <ul id="gt-menu" hidden></ul>
+  <ul id="gt-menu" hidden><li style="padding:2px 2px 6px"><input id="gt-q" type="search" placeholder="Search language" autocomplete="off" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid rgba(0,0,0,.15);border-radius:9px;font:500 .85rem inherit;color:#1b2230;background:#fff"></li></ul>
 </div>
 <div id="google_translate_element" style="display:none"></div>
 <script>
 (function () {
-  var LANGS = [['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['it','Italiano'],['ru','Русский'],['zh-CN','中文 (简体)'],['ar','العربية'],['hi','हिन्दी'],['ja','日本語'],['ko','한국어'],['tr','Türkçe'],['sw','Kiswahili'],['yo','Yorùbá'],['ig','Igbo'],['ha','Hausa']];
+  var LANGS = [['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['it','Italiano'],['nl','Nederlands'],['ru','Русский'],['uk','Українська'],['pl','Polski'],['cs','Čeština'],['sk','Slovenčina'],['hu','Magyar'],['ro','Română'],['bg','Български'],['sr','Српски'],['hr','Hrvatski'],['sl','Slovenščina'],['el','Ελληνικά'],['sv','Svenska'],['da','Dansk'],['no','Norsk'],['fi','Suomi'],['is','Íslenska'],['et','Eesti'],['lv','Latviešu'],['lt','Lietuvių'],['sq','Shqip'],['mk','Македонски'],['bs','Bosanski'],['be','Беларуская'],['ca','Català'],['eu','Euskara'],['gl','Galego'],['ga','Gaeilge'],['cy','Cymraeg'],['mt','Malti'],['tr','Türkçe'],['ar','العربية'],['he','עברית'],['fa','فارسی'],['ur','اردو'],['ps','پښتو'],['ku','Kurdî'],['hi','हिन्दी'],['bn','বাংলা'],['pa','ਪੰਜਾਬੀ'],['gu','ગુજરાતી'],['mr','मराठी'],['ta','தமிழ்'],['te','తెలుగు'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['ne','नेपाली'],['si','සිංහල'],['zh-CN','中文 (简体)'],['zh-TW','中文 (繁體)'],['ja','日本語'],['ko','한국어'],['th','ไทย'],['vi','Tiếng Việt'],['id','Bahasa Indonesia'],['ms','Bahasa Melayu'],['tl','Filipino'],['km','ខ្មែរ'],['lo','ລາວ'],['my','မြန်မာ'],['mn','Монгол'],['kk','Қазақша'],['uz','Oʻzbekcha'],['ky','Кыргызча'],['tg','Тоҷикӣ'],['az','Azərbaycanca'],['hy','Հայերեն'],['ka','ქართული'],['sw','Kiswahili'],['am','አማርኛ'],['so','Soomaali'],['zu','isiZulu'],['xh','isiXhosa'],['af','Afrikaans'],['mg','Malagasy'],['ht','Kreyòl Ayisyen'],['haw','ʻŌlelo Hawaiʻi'],['sm','Gagana Samoa'],['mi','Māori'],['la','Latina'],['eo','Esperanto']];
   function getCookie(n) { var m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : ''; }
   function setLang(code) {
     var host = location.hostname, parts = host.split('.'), root = parts.length > 2 ? '.' + parts.slice(-2).join('.') : host;
@@ -36,6 +36,9 @@ body{top:0!important}
     if (l[0] === cur) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', function () { setLang(l[0]); }); li.appendChild(b); menu.appendChild(li);
   });
+  var q = document.getElementById('gt-q');
+  q.addEventListener('click', function (e) { e.stopPropagation(); });
+  q.addEventListener('input', function () { var v = q.value.toLowerCase(); menu.querySelectorAll('li').forEach(function (li, i) { if (i) li.style.display = li.textContent.toLowerCase().indexOf(v) < 0 ? 'none' : ''; }); });
   btn.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.hasAttribute('hidden'); if (open) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', open); });
   document.addEventListener('click', function () { menu.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') menu.setAttribute('hidden', ''); });
