@@ -646,7 +646,7 @@
                                 value="{{ eligible_tier.min_loan_amount|floatformat:0 }}" 
                                 min="{{ eligible_tier.min_loan_amount|floatformat:0 }}" 
                                 max="{{ eligible_tier.max_loan_amount|floatformat:0 }}" 
-                                step="10000" oninput="recalcUserLoan()" required>
+                                step="any" oninput="recalcUserLoan()" required>
                         </div>
 
                         <div class="form-group">
@@ -919,7 +919,7 @@
 
                         <div class="form-group">
                             <label class="form-label">Deposit Amount ($ USD) <span class="text-danger">*</span></label>
-                            <input type="number" id="deposit-amount-input" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="500" value="25000" oninput="updateCryptoConversion()" required>
+                            <input type="number" id="deposit-amount-input" name="amount" class="form-control mono-num" placeholder="e.g. 25000" min="100" step="any" value="25000" oninput="updateCryptoConversion()" required>
                             
                             <!-- Preset Amount Chips -->
                             <div class="preset-chips">
@@ -1467,7 +1467,7 @@
                     <label class="form-label" style="margin-bottom: 0;">Investment Amount ($ USD)</label>
                     <span id="invest-min-max-label" class="mono-num" style="font-size: 0.78rem; color: var(--text-dim);"></span>
                 </div>
-                <input type="number" id="invest-amount-input" name="amount" class="form-control mono-num" min="1000" step="500" required>
+                <input type="number" id="invest-amount-input" name="amount" class="form-control mono-num" min="1000" step="any" required>
             </div>
 
             <div class="form-group">
